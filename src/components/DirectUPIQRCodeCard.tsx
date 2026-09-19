@@ -78,8 +78,8 @@ export const DirectUPIQRCodeCard: React.FC<DirectUPIQRCodeCardProps> = ({
 
   // Construct UPI deep-link URI
   const upiDeepLink = payableAmount
-    ? `upi://pay?pa=${upiId}&pn=NextClass&am=${payableAmount}&cu=INR&tn=${encodeURIComponent(note)}`
-    : `upi://pay?pa=${upiId}&pn=NextClass&cu=INR&tn=${encodeURIComponent(note)}`;
+    ? `upi://pay?pa=${upiId}&pn=Nextclasses.in&am=${payableAmount}&cu=INR&tn=${encodeURIComponent(note)}`
+    : `upi://pay?pa=${upiId}&pn=Nextclasses.in&cu=INR&tn=${encodeURIComponent(note)}`;
 
   // Generate dynamic QR code
   useEffect(() => {
@@ -198,7 +198,7 @@ export const DirectUPIQRCodeCard: React.FC<DirectUPIQRCodeCardProps> = ({
     const dest = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
     const portalUrl = typeof window !== 'undefined' ? `${window.location.origin}/?portal=true` : '/?portal=true';
     const msg = createdAccount
-      ? `🎓 *NextClass AI Enrollment Credentials* 🔐\n\n` +
+      ? `🎓 *Nextclasses.in Enrollment Credentials* 🔐\n\n` +
         `Hi *${createdAccount.name}*, here are your login details for *${createdAccount.courseTitle}*:\n` +
         `• *Username:* ${createdAccount.username}\n` +
         `• *Password:* ${createdAccount.password}\n` +
@@ -360,7 +360,7 @@ export const DirectUPIQRCodeCard: React.FC<DirectUPIQRCodeCardProps> = ({
           </div>
           <div>
             <span className="text-[10px] text-neutral-400 uppercase tracking-widest font-bold block">
-              Official NextClass UPI
+              Official Nextclasses.in UPI
             </span>
             <span className="text-xs font-semibold text-neutral-200">
               Instant Bank Settlement (0% Fee)
@@ -406,14 +406,14 @@ export const DirectUPIQRCodeCard: React.FC<DirectUPIQRCodeCardProps> = ({
         {dynamicQrUrl ? (
           <img
             src={dynamicQrUrl}
-            alt="UPI QR Code - NextClass AI"
+            alt="UPI QR Code - Nextclasses.in"
             className="w-full h-full object-contain rounded-xl"
             referrerPolicy="no-referrer"
           />
         ) : (
           <img
             src={themeMode === 'dark' ? '/biju-pb-upi-qr.svg' : '/biju-pb-upi-qr-light.svg'}
-            alt="NextClass Official UPI QR"
+            alt="Nextclasses.in Official UPI QR"
             className="w-full h-full object-contain rounded-xl"
             referrerPolicy="no-referrer"
           />
@@ -437,7 +437,7 @@ export const DirectUPIQRCodeCard: React.FC<DirectUPIQRCodeCardProps> = ({
         <div className="text-left font-mono truncate mr-2">
           <span className="text-[10px] text-neutral-400 block">UPI ID / VPA</span>
           <span className="font-bold text-orange-400 text-sm">{upiId}</span>
-          <span className="text-[10px] text-neutral-500 block truncate">NextClass Official (HDFC Bank)</span>
+          <span className="text-[10px] text-neutral-500 block truncate">Nextclasses.in Official (HDFC Bank)</span>
         </div>
         <button
           type="button"

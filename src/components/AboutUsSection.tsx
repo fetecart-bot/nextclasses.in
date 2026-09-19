@@ -17,7 +17,7 @@ export default function AboutUsSection({ onOpenPolicyModal, onExploreCourses }: 
     {
       title: 'Who We Are',
       description:
-        'Operated under Fetecart Store, NextClass AI is an agile EdTech initiative founded in Thrissur, Kerala. We build hands-on curriculums covering Claude AI, ChatGPT, Automation (n8n), Languages, and Exam Readiness.',
+        'Operated under Fetecart Store, Nextclasses.in is an agile EdTech initiative founded in Thrissur, Kerala. We build hands-on curriculums covering Claude AI, ChatGPT, Automation (n8n), Languages, and Exam Readiness.',
       icon: Users,
       color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/30',
     },
@@ -46,7 +46,7 @@ export default function AboutUsSection({ onOpenPolicyModal, onExploreCourses }: 
           <div className="space-y-3 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs font-semibold">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>About NextClass AI & Fetecart Store</span>
+              <span>About Nextclasses.in & Fetecart Store</span>
             </div>
             <h2 id="about-us-title" className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white">
               Empowering India with Real, Practical AI Skills.
@@ -107,10 +107,10 @@ export default function AboutUsSection({ onOpenPolicyModal, onExploreCourses }: 
                 <span>Registered Indian Business & Verified EdTech Publisher</span>
               </div>
               <h3 className="text-2xl font-extrabold text-white">
-                NextClass AI by Fetecart Store
+                Nextclasses.in by Fetecart Store
               </h3>
               <p className="text-sm text-neutral-300 leading-relaxed">
-                NextClass AI was conceived with a straightforward belief: <em>Artificial intelligence shouldn't be reserved for high-end developers and Silicon Valley engineers</em>. From school teachers in Thrissur to university researchers and competitive exam candidates, everyone deserves straightforward, hands-on instruction to leverage AI safely and productively.
+                Nextclasses.in was conceived with a straightforward belief: <em>Artificial intelligence shouldn't be reserved for high-end developers and Silicon Valley engineers</em>. From school teachers in Thrissur to university researchers and competitive exam candidates, everyone deserves straightforward, hands-on instruction to leverage AI safely and productively.
               </p>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs text-neutral-300">

@@ -206,7 +206,7 @@ export default function CatalogAdminModal({
   const [videoForm, setVideoForm] = useState<Partial<PortalVideoLesson>>({
     title: '',
     duration: '10:00',
-    company: 'NextClass AI',
+    company: 'Nextclasses.in',
     youtubeId: '',
     youtubeUrl: '',
     description: '',
@@ -405,7 +405,7 @@ export default function CatalogAdminModal({
         ],
         targetAudience: ['Students', 'Professionals', 'Enthusiasts'],
         instructor: {
-          name: 'NextClass AI Faculty',
+          name: 'Nextclasses.in Faculty',
           role: 'Industry Practitioner & AI Educator',
           avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
           bio: 'Experienced AI engineer and mentor.',
@@ -422,7 +422,7 @@ export default function CatalogAdminModal({
     setVideoForm({
       title: '',
       duration: '10:00',
-      company: 'NextClass AI',
+      company: 'Nextclasses.in',
       youtubeId: '',
       youtubeUrl: '',
       description: '',
@@ -451,7 +451,7 @@ export default function CatalogAdminModal({
       id: editingVideoId || `portal-vid-${Date.now()}`,
       title: videoForm.title?.trim() || 'Untitled Video Lesson',
       duration: videoForm.duration?.trim() || '10:00',
-      company: videoForm.company?.trim() || 'NextClass AI',
+      company: videoForm.company?.trim() || 'Nextclasses.in',
       youtubeId: finalYId,
       youtubeUrl: `https://www.youtube.com/watch?v=${finalYId}`,
       description: videoForm.description?.trim() || 'Interactive video lesson walkthrough.',
@@ -568,7 +568,7 @@ export default function CatalogAdminModal({
 
           <div className="mt-6 pt-4 border-t border-neutral-800/80 text-center">
             <span className="text-[11px] text-neutral-500">
-              Authorized personnel only • Fetecart Store & NextClass
+              Authorized personnel only • Fetecart Store & Nextclasses.in
             </span>
           </div>
         </div>
@@ -590,7 +590,7 @@ export default function CatalogAdminModal({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-lg font-extrabold text-white">NextClass Catalog & Domain Manager</h3>
+                <h3 className="text-lg font-extrabold text-white">Nextclasses.in Catalog & Domain Manager</h3>
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-orange-500/20 text-orange-400 border border-orange-500/30">
                   Admin Panel
                 </span>
@@ -1309,7 +1309,7 @@ export default function CatalogAdminModal({
                         </span>
                       </div>
                       <p className="text-xs text-neutral-400 mt-0.5">
-                        Active custom domain mapped to your NextClass AI instance.
+                        Active custom domain mapped to your Nextclasses.in instance.
                       </p>
                     </div>
                   </div>
@@ -1644,7 +1644,7 @@ export default function CatalogAdminModal({
                           type="text"
                           value={videoForm.company || ''}
                           onChange={(e) => setVideoForm({ ...videoForm, company: e.target.value })}
-                          placeholder="e.g. NextClass AI or Google Cloud Tech"
+                          placeholder="e.g. Nextclasses.in or Google Cloud Tech"
                           className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-700 text-white text-xs focus:outline-none focus:border-orange-500"
                         />
                       </div>
@@ -1996,7 +1996,7 @@ export default function CatalogAdminModal({
                 </div>
               </div>
 
-              {/* Supported Payment Modes in NextClass */}
+              {/* Supported Payment Modes in Nextclasses.in */}
               <div className="p-6 rounded-2xl bg-neutral-950 border border-neutral-800 space-y-3">
                 <h5 className="text-sm font-bold text-white">Supported Customer Payment Methods</h5>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">

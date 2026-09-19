@@ -61,10 +61,10 @@ export default function WhyNextClass() {
         {/* Header */}
         <div className="max-w-3xl space-y-4 mb-16">
           <span className="text-xs font-bold uppercase tracking-wider text-orange-400">
-            The NextClass Advantage
+            The Nextclasses.in Advantage
           </span>
           <h2 id="why-heading" className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white">
-            Why thousands of learners trust NextClass AI for their journey.
+            Why thousands of learners trust Nextclasses.in for their journey.
           </h2>
           <p className="text-neutral-400 text-sm sm:text-base leading-relaxed">
             Most online tutorials are either too academic or overly superficial. We bridge the gap with hands-on, contextual learning that creates immediate productivity.

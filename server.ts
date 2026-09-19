@@ -435,6 +435,10 @@ ${JSON.stringify(texts)}`;
     });
   });
 
+  // Serve public static assets directly (images, SVGs, certificates)
+  const publicPath = path.join(process.cwd(), "public");
+  app.use(express.static(publicPath));
+
   // Vite middleware for development vs static files for production
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({

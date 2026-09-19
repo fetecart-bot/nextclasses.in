@@ -41,7 +41,7 @@ export default function Navbar({
     { label: 'About Us', href: 'about-us' },
     { label: 'AI Courses', href: 'courses' },
     { label: 'AI Digital Products', href: 'products' },
-    { label: 'Why NextClass', href: 'why-us' },
+    { label: 'Why Nextclasses.in', href: 'why-us' },
     { label: 'Testimonials', href: 'testimonials' },
     { label: 'FAQ', href: 'faq' },
   ];
@@ -70,13 +70,13 @@ export default function Navbar({
             </div>
             <div>
               <div className="flex items-center gap-1.5 font-extrabold text-lg sm:text-xl tracking-tight text-white leading-none">
-                <span>NextClass</span>
+                <span>NextClasses</span>
                 <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-orange-500/20 text-orange-400 border border-orange-500/30">
-                  AI
+                  .in
                 </span>
               </div>
               <p className="text-[11px] text-neutral-400 font-medium mt-0.5">
-                Practical AI Courses & Digital Products
+                Practical AI & Competitive Exam Masterclasses
               </p>
             </div>
           </button>
@@ -164,11 +164,11 @@ export default function Navbar({
             {/* Direct WhatsApp Helpline */}
             <a
               id="navbar-whatsapp-helpline"
-              href="https://wa.me/918281644058?text=Hi%20NextClass%20AI%20Support"
+              href="https://wa.me/918281644058?text=Hi%20Nextclasses.in%20Support"
               target="_blank"
               rel="noopener noreferrer"
               className="hidden lg:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-950/80 border border-emerald-800/80 text-emerald-400 hover:bg-emerald-900 text-xs font-semibold transition-colors"
-              title="Chat with NextClass Academic Support on WhatsApp (+91 82816 44058)"
+              title="Chat with Nextclasses.in Academic Support on WhatsApp (+91 82816 44058)"
             >
               <MessageCircle className="w-3.5 h-3.5" />
               <span>WhatsApp</span>
@@ -390,7 +390,7 @@ export default function Navbar({
             )}
 
             <a
-              href="https://wa.me/918281644058?text=Hi%20NextClass%20AI%20Support"
+              href="https://wa.me/918281644058?text=Hi%20Nextclasses.in%20Support"
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => setMobileMenuOpen(false)}

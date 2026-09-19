@@ -97,7 +97,7 @@ function getCourseOfficialVideo(course: Course) {
   if (course.id.includes('genai-beginners') || course.id.includes('teachers') || course.id.includes('students')) {
     return {
       youtubeId: 'IHOJUJjZbzc',
-      company: 'NextClass AI Academy',
+      company: 'Nextclasses.in Academy',
       title: 'Generative AI Guide for Beginners: Zero to Hero Practical Masterclass',
       watchUrl: 'https://www.youtube.com/watch?v=IHOJUJjZbzc',
     };
@@ -186,7 +186,7 @@ function getCourseOfficialVideo(course: Course) {
   // Default to Google Cloud Tech
   return {
     youtubeId: 'IHOJUJjZbzc',
-    company: 'NextClass AI Studio',
+    company: 'Nextclasses.in Studio',
     title: `${course.title} - Official Video Masterclass Preview`,
     watchUrl: 'https://www.youtube.com/watch?v=IHOJUJjZbzc',
   };
@@ -262,8 +262,42 @@ export default function CourseModal({ course, onClose, onAddToCart }: CourseModa
         {/* Scrollable Body */}
         <div className="p-6 sm:p-8 overflow-y-auto space-y-8 divide-y divide-neutral-800/80">
           
-          {/* Hero Details */}
-          <div className="space-y-4">
+          {/* Hero Banner & Details */}
+          <div className="space-y-5">
+            {course.thumbnail && (
+              <div className="relative aspect-21/9 sm:aspect-16/6 w-full rounded-xl overflow-hidden bg-neutral-900 border border-neutral-800 shadow-lg">
+                <img
+                  src={course.thumbnail}
+                  alt={course.title}
+                  className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    if (!target.dataset.triedFallback) {
+                      target.dataset.triedFallback = 'true';
+                      if (course.id === 'course-google-ai-studio') {
+                        target.src = '/courses/google-ai-studio-gemini.svg';
+                      } else if (course.id === 'course-autonomous-ai-agents') {
+                        target.src = '/courses/autonomous-ai-agents.svg';
+                      } else if (course.id.includes('claude')) {
+                        target.src = '/courses/claude-3-7-masterclass.svg';
+                      } else {
+                        target.src = '/courses/google-ai-studio-gemini.svg';
+                      }
+                    }
+                  }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/40 to-transparent" />
+                {course.badge && (
+                  <div className="absolute top-3 left-3">
+                    <span className="px-3 py-1 rounded-md bg-neutral-950/90 backdrop-blur-md text-amber-300 text-xs font-bold border border-amber-500/30 shadow-md">
+                      {course.badge}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
             <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight">
               {course.title}
             </h2>
@@ -450,6 +484,9 @@ export default function CourseModal({ course, onClose, onAddToCart }: CourseModa
                 alt={course.instructor.name}
                 className="w-14 h-14 rounded-full object-cover border-2 border-orange-500/40"
                 referrerPolicy="no-referrer"
+                onError={(e) => {
+                  e.currentTarget.src = '/instructors/biju-balan.svg';
+                }}
               />
               <div className="space-y-1 flex-1">
                 <div className="flex items-center gap-2">
@@ -518,7 +555,7 @@ export default function CourseModal({ course, onClose, onAddToCart }: CourseModa
 
           <div className="flex items-center gap-2">
             <a
-              href={`https://wa.me/918281644058?text=${encodeURIComponent(`Hi NextClass AI, I have questions about the "${course.title}" course.`)}`}
+              href={`https://wa.me/918281644058?text=${encodeURIComponent(`Hi Nextclasses.in, I have questions about the "${course.title}" course.`)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-emerald-950/80 border border-emerald-800 text-emerald-400 hover:bg-emerald-900 text-xs font-semibold transition-colors"

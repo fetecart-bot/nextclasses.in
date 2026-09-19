@@ -623,7 +623,7 @@ export function generatePrintableStudyMaterialHtml(courseId: string, studentName
 
     <div class="header">
       <div>
-        <div class="logo-title">NEXTCLASS AI ACADEMY</div>
+        <div class="logo-title">NEXTCLASSES.IN ACADEMY</div>
         <div class="logo-sub">Automated Academic Excellence & Competitive Exam Prep</div>
       </div>
       <div class="badge">Official Study Material Pack</div>
@@ -711,8 +711,8 @@ export function generatePrintableStudyMaterialHtml(courseId: string, studentName
     </table>
 
     <div class="footer">
-      NextClass AI Academic Council • 24/7 Academic Support on WhatsApp: +91 82816 44058 • https://www.fetecart.in<br>
-      © 2026–2027 NextClass AI. All rights reserved.
+      Nextclasses.in Academic Council • 24/7 Academic Support on WhatsApp: +91 82816 44058 • https://www.fetecart.in<br>
+      © 2026–2027 Nextclasses.in. All rights reserved.
     </div>
   </div>
 </body>
@@ -776,8 +776,8 @@ export function generateWhatsAppDispatchMessage(
       `• Portal Login Link: ${portalUrl}\n\n`
     : '';
 
-  return `🎓 *NextClass AI Academy • Official Study Material Pack* 📦\n\n` +
-    `Hello *${studentName || 'Student'}*! Welcome to NextClass AI.\n\n` +
+  return `🎓 *Nextclasses.in Academy • Official Study Material Pack* 📦\n\n` +
+    `Hello *${studentName || 'Student'}*! Welcome to Nextclasses.in.\n\n` +
     `✅ *Your enrollment in:* *${pack.courseTitle}* is verified & active!\n\n` +
     credsBlock +
     `📚 *Study Material Access:* \n` +
@@ -786,5 +786,5 @@ export function generateWhatsAppDispatchMessage(
     `👉 *Open Student Learning Portal:* ${portalUrl}\n` +
     `👉 *Direct Study Pack Download:* ${portalUrl}&course=${encodeURIComponent(effectiveId)}\n\n` +
     `💬 *Official Academic Helpline:* +91 82816 44058\n\n` +
-    `_Best wishes for your exam preparation from NextClass AI!_`;
+    `_Best wishes for your exam preparation from Nextclasses.in!_`;
 }

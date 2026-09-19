@@ -96,6 +96,14 @@ export default function ProductCatalog({ products, onAddToCart, onInstantBuy, on
                       alt={product.title}
                       className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-500"
                       referrerPolicy="no-referrer"
+                      loading="lazy"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        if (!target.dataset.triedFallback) {
+                          target.dataset.triedFallback = 'true';
+                          target.src = 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80';
+                        }
+                      }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/20 to-transparent" />
 

@@ -1,6 +1,6 @@
 {
-  "name": "NextClass AI - Practical Courses & Digital Products",
-  "description": "NextClass AI - Practical AI Platform Masterclasses, Languages & Public Speaking (English, French, German, Articulation), and Competitive Exam Prep (NEET, JEE, KEAM, Navodaya).",
+  "name": "NextClasses.in | Practical AI Courses, Languages & Sainik Entrance Prep",
+  "description": "Learn Generative AI, Google AI Studio, ChatGPT & Cursor AI in Malayalam & English. Comprehensive AISSEE 2027 Sainik School, NEET, JEE entrance prep, and interactive CBT mock tests on NextClasses.in.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

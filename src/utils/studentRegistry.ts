@@ -219,7 +219,7 @@ export function formatCredentialsEmailBody(account: RegisteredStudentAccount): s
   const standardNote = account.standard ? `• Standard / Class: ${account.standard.replace('class-', 'Class ')}\n` : '';
   return `Dear ${account.name},
 
-Congratulations! Your enrollment in NextClass AI Academy is confirmed.
+Congratulations! Your enrollment in Nextclasses.in Academy is confirmed.
 
 Here are your official Student Learning Portal credentials:
 ------------------------------------------------------------
@@ -237,11 +237,11 @@ What's Included with Your Account:
 4. Weekly Sunday Study Drops dispatched straight to your portal & WhatsApp.
 
 Need Help?
-Connect with your NextClass AI Mentor on WhatsApp: +91 82816 44058
+Connect with your Nextclasses.in Mentor on WhatsApp: +91 82816 44058
 Email: support@fetecart.in
 
 Best wishes for your exam preparation!
-Academic Director, NextClass AI Academy`;
+Academic Director, Nextclasses.in Academy`;
 }
 
 /**
@@ -249,7 +249,7 @@ Academic Director, NextClass AI Academy`;
  * with the pre-filled credentials.
  */
 export function generateMailtoUrl(account: RegisteredStudentAccount): string {
-  const subject = `Welcome to NextClass AI: Your Student Login ID & Password (${account.courseTitle.slice(0, 30)}...)`;
+  const subject = `Welcome to Nextclasses.in: Your Student Login ID & Password (${account.courseTitle.slice(0, 30)}...)`;
   const body = formatCredentialsEmailBody(account);
   return `mailto:${encodeURIComponent(account.email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
@@ -258,7 +258,7 @@ export function generateMailtoUrl(account: RegisteredStudentAccount): string {
  * Creates a direct Gmail web compose link with the pre-filled recipient, subject, and credentials.
  */
 export function generateGmailComposeUrl(account: RegisteredStudentAccount): string {
-  const subject = `Welcome to NextClass AI: Your Student Login ID & Password (${account.courseTitle.slice(0, 30)}...)`;
+  const subject = `Welcome to Nextclasses.in: Your Student Login ID & Password (${account.courseTitle.slice(0, 30)}...)`;
   const body = formatCredentialsEmailBody(account);
   return `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(account.email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
@@ -421,7 +421,7 @@ export async function registerPaidStudent(details: {
   // 2. Dispatch WhatsApp confirmation with credentials
   if (cleanPhone) {
     try {
-      const waMessage = `🎉 *NextClass AI Academy: Student Login Credentials* 🎓\n\n` +
+      const waMessage = `🎉 *Nextclasses.in Academy: Student Login Credentials* 🎓\n\n` +
         `Hi *${account.name}*, your enrollment in *${account.courseTitle}* is verified!\n\n` +
         `🔐 *Your Student Portal Login:* \n` +
         `• *Username:* \`${account.username}\`\n` +
@@ -450,6 +450,7 @@ export async function registerPaidStudent(details: {
 
 /**
  * Verifies credentials and returns the student record with their enrolled course.
+ * Enforces strict authentication so arbitrary fake credentials cannot gain access.
  */
 export function verifyStudentCredentials(
   identifier: string,
@@ -463,12 +464,29 @@ export function verifyStudentCredentials(
   if (!cleanIdentifier || !cleanPassword) return null;
 
   const found = students.find((s) => {
-    const matchesUser = s.username.toLowerCase() === cleanIdentifier;
-    const matchesEmail = s.email.toLowerCase() === cleanIdentifier;
-    const matchesPhone = rawNumbers.length >= 8 && s.phone.replace(/[^0-9]/g, '').includes(rawNumbers);
+    const studentUser = s.username ? s.username.toLowerCase() : '';
+    const studentEmail = s.email ? s.email.toLowerCase() : '';
+    const studentPhoneClean = s.phone ? s.phone.replace(/[^0-9]/g, '') : '';
+
+    const matchesUser = studentUser === cleanIdentifier;
+    const matchesEmail = studentEmail === cleanIdentifier;
+    // For phone lookup, require exact full phone number match (or matching last 10 digits)
+    const matchesPhone = rawNumbers.length >= 10 && (studentPhoneClean === rawNumbers || studentPhoneClean.endsWith(rawNumbers));
     const matchesPass = s.password === cleanPassword;
+
     return (matchesUser || matchesEmail || matchesPhone) && matchesPass;
   });
 
   return found || null;
 }
+
+/**
+ * Checks whether a given student user matches an active registered account.
+ */
+export function isRegisteredStudent(user: StudentUser | null): boolean {
+  if (!user || !user.email) return false;
+  const students = getRegisteredStudents();
+  const cleanEmail = user.email.trim().toLowerCase();
+  return students.some((s) => s.email.toLowerCase() === cleanEmail);
+}
+

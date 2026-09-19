@@ -244,12 +244,28 @@ export default function CourseCatalog({
                 >
                   {/* Card Media Header */}
                   <div>
-                    <div className="relative aspect-16/10 overflow-hidden bg-neutral-800">
+                    <div className="relative aspect-16/10 overflow-hidden bg-neutral-850">
                       <img
                         src={course.thumbnail}
                         alt={translated.title}
                         className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-500"
                         referrerPolicy="no-referrer"
+                        loading="lazy"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          if (!target.dataset.triedFallback) {
+                            target.dataset.triedFallback = 'true';
+                            if (course.id === 'course-google-ai-studio') {
+                              target.src = '/courses/google-ai-studio-gemini.svg';
+                            } else if (course.id === 'course-autonomous-ai-agents') {
+                              target.src = '/courses/autonomous-ai-agents.svg';
+                            } else if (course.id.includes('claude')) {
+                              target.src = '/courses/claude-3-7-masterclass.svg';
+                            } else {
+                              target.src = '/courses/google-ai-studio-gemini.svg';
+                            }
+                          }
+                        }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/20 to-transparent" />
 

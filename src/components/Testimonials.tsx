@@ -15,7 +15,7 @@ export default function Testimonials() {
             Loved by Teachers, Students & Creators Across India & Beyond
           </h2>
           <p className="text-neutral-400 text-sm sm:text-base leading-relaxed">
-            Discover how educators save hours every week and how students unlock high academic results with NextClass AI.
+            Discover how educators save hours every week and how students unlock high academic results with Nextclasses.in.
           </p>
         </div>
 
@@ -54,6 +54,9 @@ export default function Testimonials() {
                     alt={t.name}
                     className="w-11 h-11 rounded-full object-cover border border-neutral-700"
                     referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(t.name)}&background=ea580c&color=fff`;
+                    }}
                   />
                   <div>
                     <div className="flex items-center gap-1.5">

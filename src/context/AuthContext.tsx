@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { StudentUser, MockTestResult } from '../types';
-import { verifyStudentCredentials, getRegisteredStudents, RegisteredStudentAccount } from '../utils/studentRegistry';
+import { verifyStudentCredentials, getRegisteredStudents, RegisteredStudentAccount, isRegisteredStudent } from '../utils/studentRegistry';
 
 interface AuthContextType {
   user: StudentUser | null;
@@ -28,16 +28,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed && parsed.name) {
+        // Only restore student sessions that are verified registered accounts with a password/username
+        if (parsed && parsed.email && (parsed.username || isRegisteredStudent(parsed))) {
           return parsed;
         }
       }
     } catch {
       // ignore
     }
-    // Default to null - students must authenticate with username & password or upon payment
+    // Default to null - students must authenticate with verified credentials or upon verified payment
     return null;
   });
+
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 

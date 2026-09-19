@@ -85,6 +85,17 @@ export default function App() {
               if (defaultMatch.category === 'languages' && c.category !== 'languages') {
                 updated.category = 'languages' as const;
               }
+              // Sync updated high-definition thumbnails
+              if (defaultMatch.thumbnail && (
+                !c.thumbnail ||
+                defaultMatch.thumbnail.startsWith('/courses/') ||
+                c.thumbnail.includes('photo-1526374965328-7f61d4dc18c5') ||
+                c.thumbnail.includes('photo-1677442136019-21780ecad995') ||
+                c.thumbnail.includes('photo-1618005182384-a83a8bd57fbe') ||
+                c.thumbnail.includes('photo-1516321318423-f06f85e504b3')
+              )) {
+                updated.thumbnail = defaultMatch.thumbnail;
+              }
             }
             return updated;
           });
@@ -432,7 +443,7 @@ export default function App() {
         {/* Real Student Testimonials & Ratings */}
         <Testimonials />
 
-        {/* About Us (NextClass AI & Fetecart Store) */}
+        {/* About Us (Nextclasses.in & Fetecart Store) */}
         <AboutUsSection
           onOpenPolicyModal={(tab) => {
             setActivePolicyTab(tab);

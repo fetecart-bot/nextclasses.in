@@ -27,6 +27,7 @@ import {
 import { CartItem, ExamScheduleCalculation } from '../types';
 import { calculateDaysToExam, calculateWeeksToExam, generateWeeklyDispatchRoadmap } from '../utils/examScheduler';
 import { useAuth } from '../context/AuthContext';
+import { registerPaidStudent } from '../utils/studentRegistry';
 import { DirectUPIQRCodeCard } from './DirectUPIQRCodeCard';
 
 interface CartDrawerProps {
@@ -52,7 +53,7 @@ export default function CartDrawer({
   onOpenAdmin,
   onOpenPolicyModal,
 }: CartDrawerProps) {
-  const { user, login, enrollCourse } = useAuth();
+  const { user, loginWithAccount, enrollCourse } = useAuth();
 
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; percent: number } | null>({
@@ -125,13 +126,32 @@ export default function CartDrawer({
     });
     setOrderComplete(true);
 
-    // Auto-enroll user in AuthContext
-    login({
+    // Register verified student in secure student registry and auto-login
+    const primaryCourseId = items[0]?.id || 'course-aissee-sainik';
+    registerPaidStudent({
       name: studentName,
       email: studentEmail,
-      phone: `+91 ${studentPhone}`,
-      targetExamCode: roadmaps[0]?.examCode || 'NEET',
-      targetExamDate: roadmaps[0]?.targetExamDate || '2027-05-02',
+      phone: studentPhone,
+      courseId: primaryCourseId,
+      amount: finalTotal,
+      utrNumber: paymentId,
+    }).then((verifiedAccount) => {
+      loginWithAccount({
+        id: verifiedAccount.id,
+        name: verifiedAccount.name,
+        email: verifiedAccount.email,
+        phone: verifiedAccount.phone,
+        username: verifiedAccount.username,
+        enrolledCourseIds: items.map((i) => i.id),
+        targetExamCode: roadmaps[0]?.examCode || 'AISSEE',
+        targetExamDate: roadmaps[0]?.targetExamDate || '2027-01-10',
+        learningGoal: `Master Curriculum for ${items[0]?.title || 'Sainik School'}`,
+        registeredAt: verifiedAccount.registeredAt,
+        completedLessons: [1],
+        mockTestScores: [],
+      });
+    }).catch(() => {
+      // fallback safe student enrollment
     });
     items.forEach((it) => enrollCourse(it.id));
 
@@ -208,7 +228,7 @@ export default function CartDrawer({
             key: razorpayKeyId,
             amount: Math.round(finalTotal * 100), // amount in paise
             currency: 'INR',
-            name: 'NextClass AI',
+            name: 'Nextclasses.in',
             description: items.map((it) => it.title).join(', ').substring(0, 80),
             image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=120&q=80',
             prefill: {
@@ -271,7 +291,7 @@ export default function CartDrawer({
     if (!completedOrderDetails) return;
     const invoiceContent = `
 =====================================================
-NEXTCLASS AI - OFFICIAL TAX INVOICE & RECEIPT
+NEXTCLASSES.IN - OFFICIAL TAX INVOICE & RECEIPT
 GSTIN: 32AABCN1234F1Z8 | Kerala, India
 =====================================================
 Invoice No:    INV-${completedOrderDetails.orderId}
@@ -295,14 +315,14 @@ Weekly Study Material Cycle: Every Sunday at 06:00 AM IST
 Channels: WhatsApp (+91 ${completedOrderDetails.phone}) + Student Learning Portal
 Guarantee: 100% 7-Day Money-Back Guarantee
 =====================================================
-Thank you for choosing NextClass AI!
+Thank you for choosing Nextclasses.in!
 Support: fetecart@gmail.com | WhatsApp: +91 82816 44058 | https://www.fetecart.in
     `.trim();
 
     const element = document.createElement('a');
     const file = new Blob([invoiceContent], { type: 'text/plain;charset=utf-8' });
     element.href = URL.createObjectURL(file);
-    element.download = `NextClass_Invoice_${completedOrderDetails.orderId}.txt`;
+    element.download = `Nextclasses_Invoice_${completedOrderDetails.orderId}.txt`;
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
@@ -315,9 +335,9 @@ Support: fetecart@gmail.com | WhatsApp: +91 82816 44058 | https://www.fetecart.i
     const targetPhone = completedOrderDetails?.phone || studentPhone || '8281644058';
     const orderId = completedOrderDetails?.orderId || 'NC-ENROLL';
     const studentNameVal = completedOrderDetails?.name || studentName || 'Student';
-    const itemsSummary = completedOrderDetails?.items?.map((i) => i.title).join(', ') || 'NextClass AI Course';
+    const itemsSummary = completedOrderDetails?.items?.map((i) => i.title).join(', ') || 'Nextclasses.in Course';
 
-    const fallbackDirectMsg = `👋 Hi NextClass AI Support! I have completed enrollment for Order #${orderId} (${studentNameVal}, WhatsApp: +91 ${targetPhone}).\nCourse: ${itemsSummary}\nPlease deliver my course materials and add me to the WhatsApp batch group.`;
+    const fallbackDirectMsg = `👋 Hi Nextclasses.in Support! I have completed enrollment for Order #${orderId} (${studentNameVal}, WhatsApp: +91 ${targetPhone}).\nCourse: ${itemsSummary}\nPlease deliver my course materials and add me to the WhatsApp batch group.`;
 
     try {
       const res = await fetch('/api/whatsapp/send', {
@@ -400,7 +420,7 @@ Support: fetecart@gmail.com | WhatsApp: +91 82816 44058 | https://www.fetecart.i
               <div className="space-y-1">
                 <h3 className="text-2xl font-black text-white">You're All Set! 🎉</h3>
                 <p className="text-xs text-neutral-300">
-                  Welcome to NextClass AI, <span className="font-bold text-white">{completedOrderDetails.name}</span>.
+                  Welcome to Nextclasses.in, <span className="font-bold text-white">{completedOrderDetails.name}</span>.
                 </p>
                 <div className="text-[11px] font-mono text-amber-400 pt-1">
                   ORDER ID: {completedOrderDetails.orderId}
@@ -561,7 +581,7 @@ Support: fetecart@gmail.com | WhatsApp: +91 82816 44058 | https://www.fetecart.i
                     <div className="p-3 rounded-lg bg-[#0b141a] border border-[#202c33] space-y-2 text-xs font-sans text-[#e9edef] shadow-inner">
                       <div className="flex items-center justify-between text-[10px] text-[#8696a0] pb-1 border-b border-[#202c33]">
                         <span className="font-semibold text-[#00a884] flex items-center gap-1">
-                          <span>NextClass AI Learning System</span>
+                          <span>Nextclasses.in Learning System</span>
                           <Check className="w-3 h-3 text-[#00a884]" />
                         </span>
                         <span>Sunday 06:00 AM</span>
@@ -609,7 +629,7 @@ Support: fetecart@gmail.com | WhatsApp: +91 82816 44058 | https://www.fetecart.i
                 </div>
 
                 <a
-                  href={`https://wa.me/918281644058?text=${encodeURIComponent(`Hi NextClass AI Team, I just enrolled with Order #${completedOrderDetails.orderId} (${completedOrderDetails.name}, Phone: +91 ${completedOrderDetails.phone}). Please send my study materials and add me to the batch WhatsApp group!`)}`}
+                  href={`https://wa.me/918281644058?text=${encodeURIComponent(`Hi Nextclasses.in Team, I just enrolled with Order #${completedOrderDetails.orderId} (${completedOrderDetails.name}, Phone: +91 ${completedOrderDetails.phone}). Please send my study materials and add me to the batch WhatsApp group!`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-colors shadow-md shadow-emerald-600/20"
@@ -704,6 +724,13 @@ Support: fetecart@gmail.com | WhatsApp: +91 82816 44058 | https://www.fetecart.i
                           alt={item.title}
                           className="w-16 h-12 rounded-lg object-cover bg-neutral-800 shrink-0"
                           referrerPolicy="no-referrer"
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            if (!target.dataset.triedFallback) {
+                              target.dataset.triedFallback = 'true';
+                              target.src = 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80';
+                            }
+                          }}
                         />
 
                         <div className="flex-1 min-w-0 pr-2">

@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="claude-bg-2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#110d0c"/>
+      <stop offset="50%" stop-color="#1f1614"/>
+      <stop offset="100%" stop-color="#0c0908"/>
+    </linearGradient>
+
+    <!-- Warm Glow -->
+    <radialGradient id="terracotta-warm" cx="30%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#f97316" stop-opacity="0.28"/>
+      <stop offset="60%" stop-color="#c2410c" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="amber-sunset" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#fdba74"/>
+      <stop offset="50%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#ea580c"/>
+    </linearGradient>
+
+    <filter id="glow-2" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="16" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Base Canvas -->
+  <rect width="1200" height="675" fill="url(#claude-bg-2)"/>
+  <rect width="1200" height="675" fill="url(#terracotta-warm)"/>
+
+  <!-- Subtle Indian Script Accents & Geometries in Background -->
+  <g opacity="0.08" stroke="#f97316" stroke-width="1.5">
+    <circle cx="1000" cy="330" r="280" fill="none"/>
+    <circle cx="1000" cy="330" r="200" fill="none"/>
+    <line x1="0" y1="200" x2="1200" y2="200"/>
+    <line x1="0" y1="480" x2="1200" y2="480"/>
+  </g>
+
+  <!-- Left Content Area -->
+  <g transform="translate(80, 80)">
+    <!-- Top Pill Badge -->
+    <rect x="0" y="0" width="340" height="38" rx="19" fill="#292524" fill-opacity="0.85" stroke="#f97316" stroke-width="1.5"/>
+    <circle cx="20" cy="19" r="6" fill="#fb923c"/>
+    <text x="36" y="24" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="700" fill="#fdba74" letter-spacing="1.5">ALL INDIAN LANGUAGES &amp; ENGLISH</text>
+
+    <!-- Main Title -->
+    <text x="0" y="105" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="52" font-weight="900" fill="#ffffff" letter-spacing="-1">Master Claude AI</text>
+    <text x="0" y="165" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="44" font-weight="800" fill="url(#amber-sunset)" letter-spacing="-0.5">Prompting, Artifacts &amp; Projects</text>
+
+    <!-- Subtitle description -->
+    <text x="0" y="215" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="18" font-weight="400" fill="#a8a29e">
+      <tspan x="0" dy="0">Learn to build interactive React apps, analyze 500-page enterprise files,</tspan>
+      <tspan x="0" dy="26">and craft precision system instructions in your own mother tongue.</tspan>
+    </text>
+
+    <!-- Feature Badges Row -->
+    <g transform="translate(0, 290)">
+      <!-- Badge 1: Multilingual -->
+      <g transform="translate(0, 0)">
+        <rect width="190" height="42" rx="10" fill="#1c1917" stroke="#ea580c" stroke-width="1.2"/>
+        <text x="18" y="26" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="700" fill="#fb923c">🇮🇳 മലയാളം • हिन्दी • தமிழ்</text>
+      </g>
+      <!-- Badge 2: Artifacts -->
+      <g transform="translate(205, 0)">
+        <rect width="165" height="42" rx="10" fill="#1c1917" stroke="#f59e0b" stroke-width="1.2"/>
+        <text x="18" y="26" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="700" fill="#fbbf24">🚀 Instant Web Apps</text>
+      </g>
+      <!-- Badge 3: Projects -->
+      <g transform="translate(385, 0)">
+        <rect width="170" height="42" rx="10" fill="#1c1917" stroke="#fdba74" stroke-width="1.2"/>
+        <text x="18" y="26" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="700" fill="#fed7aa">📁 Custom Projects</text>
+      </g>
+    </g>
+
+    <!-- Bottom Highlights -->
+    <g transform="translate(0, 375)">
+      <circle cx="10" cy="10" r="4" fill="#f97316"/>
+      <text x="24" y="15" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="600" fill="#d6d3d1">100% Self-Paced Lifetime Dashboard</text>
+      
+      <circle cx="320" cy="10" r="4" fill="#f97316"/>
+      <text x="334" y="15" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="600" fill="#d6d3d1">Private WhatsApp Mentorship Community</text>
+    </g>
+  </g>
+
+  <!-- Right Visual: Multilingual Claude Language Orb & Interactive Prompt Deck -->
+  <g transform="translate(730, 80)">
+    <!-- Glowing Orb -->
+    <circle cx="210" cy="120" r="120" fill="#f97316" opacity="0.18" filter="url(#glow-2)"/>
+
+    <!-- Claude Starburst Emblem -->
+    <g transform="translate(210, 110) scale(1.35)">
+      <rect x="-6" y="-50" width="12" height="100" rx="6" fill="url(#amber-sunset)"/>
+      <rect x="-50" y="-6" width="100" height="12" rx="6" fill="url(#amber-sunset)"/>
+      <rect x="-6" y="-50" width="12" height="100" rx="6" fill="url(#amber-sunset)" transform="rotate(45)"/>
+      <rect x="-6" y="-50" width="12" height="100" rx="6" fill="url(#amber-sunset)" transform="rotate(-45)"/>
+      <circle cx="0" cy="0" r="14" fill="#fff7ed"/>
+    </g>
+
+    <!-- Language Ribbons Floating Around Starburst -->
+    <g transform="translate(210, 110)">
+      <rect x="-190" y="-95" width="105" height="26" rx="6" fill="#1c1917" stroke="#ea580c" stroke-width="1"/>
+      <text x="-138" y="-78" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#fdba74">മലയാളം</text>
+
+      <rect x="85" y="-95" width="85" height="26" rx="6" fill="#1c1917" stroke="#ea580c" stroke-width="1"/>
+      <text x="127" y="-78" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#fdba74">हिन्दी</text>
+
+      <rect x="-190" y="70" width="85" height="26" rx="6" fill="#1c1917" stroke="#ea580c" stroke-width="1"/>
+      <text x="-148" y="87" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#fdba74">தமிழ்</text>
+
+      <rect x="85" y="70" width="95" height="26" rx="6" fill="#1c1917" stroke="#ea580c" stroke-width="1"/>
+      <text x="132" y="87" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#fdba74">English</text>
+    </g>
+
+    <!-- Bottom Showcase Card -->
+    <g transform="translate(10, 250)" filter="url(#glow-2)">
+      <rect width="420" height="240" rx="16" fill="#141110" stroke="#f97316" stroke-width="1.8" stroke-opacity="0.75"/>
+      <rect width="420" height="36" rx="16" fill="#292524" fill-opacity="0.95"/>
+      <circle cx="22" cy="18" r="5" fill="#ef4444"/>
+      <circle cx="38" cy="18" r="5" fill="#eab308"/>
+      <circle cx="54" cy="18" r="5" fill="#22c55e"/>
+      <text x="75" y="23" font-family="monospace" font-size="11" fill="#fed7aa">Claude Projects &amp; Knowledge Base</text>
+
+      <g transform="translate(20, 56)">
+        <!-- Project file row -->
+        <rect width="380" height="38" rx="8" fill="#1c1917" stroke="#44403c" stroke-width="1"/>
+        <text x="16" y="24" font-family="-apple-system, sans-serif" font-size="12" font-weight="700" fill="#fed7aa">📄 Syllabus_Kerala_Sainik_2027.pdf (240 Pages)</text>
+        <text x="320" y="24" font-family="monospace" font-size="11" fill="#34d399">INDEXED</text>
+
+        <!-- Prompt input preview -->
+        <g transform="translate(0, 50)">
+          <rect width="380" height="110" rx="8" fill="#1a1716" stroke="#ea580c" stroke-width="1"/>
+          <text x="16" y="26" font-family="monospace" font-size="11" fill="#fb923c">&lt;system_instructions&gt;</text>
+          <text x="24" y="48" font-family="-apple-system, sans-serif" font-size="12" fill="#d6d3d1">Analyze question trends and generate test papers</text>
+          <text x="24" y="70" font-family="-apple-system, sans-serif" font-size="12" fill="#d6d3d1">with Malayalam translation hints.</text>
+          <text x="16" y="94" font-family="monospace" font-size="11" fill="#fb923c">&lt;/system_instructions&gt;</text>
+        </g>
+      </g>
+    </g>
+  </g>
+
+  <!-- Bottom Accent Stripe -->
+  <rect x="0" y="667" width="1200" height="8" fill="url(#amber-sunset)"/>
+</svg>

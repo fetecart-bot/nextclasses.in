@@ -50,7 +50,7 @@ export const AIChatBot: React.FC<AIChatBotProps> = ({
     {
       id: 'm-1',
       sender: 'bot',
-      text: "Hello! 👋 I'm **Aura**, your NextClass AI Academic Counselor. How can I guide your learning journey today? Feel free to ask about our courses, fees, syllabus, NEET/KEAM materials, or discount coupons.",
+      text: "Hello! 👋 I'm **Aura**, your Nextclasses.in Academic Counselor. How can I guide your learning journey today? Feel free to ask about our courses, fees, syllabus, NEET/KEAM materials, or discount coupons.",
       timestamp: 'Just now',
     },
   ];
@@ -169,7 +169,7 @@ export const AIChatBot: React.FC<AIChatBotProps> = ({
 
     // Default helpful general response
     return {
-      text: "At **NextClass AI**, we offer hands-on generative AI masterclasses, language & public speaking programs, and weekly competitive exam packs (NEET, KEAM, IIT JEE, Navodaya). All courses include hands-on projects, bilingual explanations (English and Indian languages), and verified completion certificates!\n\nWould you like details on a specific course or how to enroll?",
+      text: "At **Nextclasses.in**, we offer hands-on generative AI masterclasses, language & public speaking programs, and weekly competitive exam packs (NEET, KEAM, IIT JEE, Navodaya). All courses include hands-on projects, bilingual explanations (English and Indian languages), and verified completion certificates!\n\nWould you like details on a specific course or how to enroll?",
     };
   };
 
@@ -238,7 +238,7 @@ export const AIChatBot: React.FC<AIChatBotProps> = ({
               </div>
               <div>
                 <div className="font-extrabold text-sm leading-tight flex items-center gap-1.5">
-                  <span>NextClass AI Counselor</span>
+                  <span>Nextclasses.in Counselor</span>
                   <Sparkles className="w-3.5 h-3.5 text-amber-200" />
                 </div>
                 <span className="text-[10px] text-orange-100 font-medium flex items-center gap-1">

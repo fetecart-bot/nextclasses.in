@@ -24,9 +24,9 @@ export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicy
               <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center text-neutral-950 font-black text-lg shadow-md">
                 NC
               </div>
-              <span className="font-extrabold text-lg text-white tracking-tight">NextClass</span>
+              <span className="font-extrabold text-lg text-white tracking-tight">NextClasses</span>
               <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-orange-500/20 text-orange-400 border border-orange-500/30">
-                AI Academy
+                .in Academy
               </span>
             </div>
 
@@ -36,7 +36,7 @@ export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicy
 
             <div className="flex flex-wrap items-center gap-4 text-xs pt-1">
               <a
-                href="https://wa.me/918281644058?text=Hi%20NextClass%20AI%20Support"
+                href="https://wa.me/918281644058?text=Hi%20Nextclasses.in%20Support"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 text-emerald-400 hover:text-emerald-300 transition-colors"
@@ -82,7 +82,7 @@ export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicy
                   onClick={() => onNavigateTo('about-us')}
                   className="text-amber-400 hover:text-amber-300 font-semibold transition-colors text-left flex items-center gap-1"
                 >
-                  <span>About Us (NextClass AI)</span>
+                  <span>About Us (Nextclasses.in)</span>
                 </button>
               </li>
               <li>
@@ -213,17 +213,17 @@ export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicy
 
         </div>
 
-        {/* Razorpay Compliance Policies Bar */}
+        {/* Legal & Regulatory Policies Bar */}
         <div id="policies" className="mt-12 pt-8 border-t border-neutral-800">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
               <span className="text-xs font-bold text-white uppercase tracking-wider">
-                Mandatory Legal & Razorpay Policies
+                Platform Terms & Policies
               </span>
             </div>
             <span className="text-[11px] text-neutral-500">
-              Compliant with RBI Payment Aggregator Guidelines & Consumer Protection (E-Commerce) Rules
+              Compliant with Standard E-Commerce Consumer Guidelines & Security Standards
             </span>
           </div>
 
@@ -303,9 +303,9 @@ export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicy
         {/* Bottom Bar */}
         <div className="mt-10 pt-6 border-t border-neutral-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-neutral-500 text-[11px]">
           <div className="flex flex-wrap items-center gap-2">
-            <span>© {new Date().getFullYear()} NextClass AI. All rights reserved.</span>
+            <span>© {new Date().getFullYear()} NextClasses.in. All rights reserved.</span>
             <span className="text-neutral-700">•</span>
-            <span className="text-neutral-400">Official Merchant Domain: <a href="https://www.fetecart.in" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">www.fetecart.in</a></span>
+            <span className="text-neutral-400">Official Portal Domain: <a href="https://nextclasses.in" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">nextclasses.in</a></span>
           </div>
 
           <div className="flex flex-wrap items-center gap-4 sm:gap-6">

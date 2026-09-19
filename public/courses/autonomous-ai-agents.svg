@@ -1,0 +1,166 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="agent-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#020617"/>
+      <stop offset="50%" stop-color="#051329"/>
+      <stop offset="100%" stop-color="#030816"/>
+    </linearGradient>
+
+    <!-- Radial Glows -->
+    <radialGradient id="cyan-radial" cx="30%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.3"/>
+      <stop offset="60%" stop-color="#0891b2" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+
+    <radialGradient id="emerald-radial" cx="75%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.28"/>
+      <stop offset="60%" stop-color="#047857" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Swarm Gradient -->
+    <linearGradient id="swarm-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="50%" stop-color="#34d399"/>
+      <stop offset="100%" stop-color="#a78bfa"/>
+    </linearGradient>
+
+    <filter id="agent-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="16" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Base Canvas -->
+  <rect width="1200" height="675" fill="url(#agent-bg)"/>
+  <rect width="1200" height="675" fill="url(#cyan-radial)"/>
+  <rect width="1200" height="675" fill="url(#emerald-radial)"/>
+
+  <!-- Isometric Cyber Grid -->
+  <g opacity="0.12" stroke="#06b6d4" stroke-width="1">
+    <path d="M 0 100 L 1200 100 M 0 200 L 1200 200 M 0 300 L 1200 300 M 0 400 L 1200 400 M 0 500 L 1200 500 M 0 600 L 1200 600"/>
+    <path d="M 150 0 L 150 675 M 300 0 L 300 675 M 450 0 L 450 675 M 600 0 L 600 675 M 750 0 L 750 675 M 900 0 L 900 675 M 1050 0 L 1050 675"/>
+  </g>
+
+  <!-- Left Content Column -->
+  <g transform="translate(80, 80)">
+    <!-- Category Pill -->
+    <rect x="0" y="0" width="310" height="38" rx="19" fill="#042f2e" fill-opacity="0.85" stroke="#14b8a6" stroke-width="1.5"/>
+    <circle cx="20" cy="19" r="6" fill="#2dd4bf"/>
+    <text x="36" y="24" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="700" fill="#5eead4" letter-spacing="1.5">AUTONOMOUS MULTI-AGENT SWARMS</text>
+
+    <!-- Main Title -->
+    <text x="0" y="105" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="50" font-weight="900" fill="#ffffff" letter-spacing="-1">Autonomous AI Agents</text>
+    <text x="0" y="165" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="44" font-weight="800" fill="url(#swarm-grad)" letter-spacing="-0.5">&amp; Multi-Agent Swarms</text>
+
+    <!-- Subtitle description -->
+    <text x="0" y="215" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="18" font-weight="400" fill="#94a3b8">
+      <tspan x="0" dy="0">Build collaborative teams of AI agents that research, code, browse,</tspan>
+      <tspan x="0" dy="26">and run self-correcting business workflows using LangGraph &amp; CrewAI.</tspan>
+    </text>
+
+    <!-- Feature Badges Row -->
+    <g transform="translate(0, 290)">
+      <!-- Badge 1: LangGraph -->
+      <g transform="translate(0, 0)">
+        <rect width="180" height="42" rx="10" fill="#082f49" stroke="#0ea5e9" stroke-width="1.2"/>
+        <text x="18" y="26" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="700" fill="#38bdf8">⚡ LangGraph State Loops</text>
+      </g>
+      <!-- Badge 2: CrewAI -->
+      <g transform="translate(195, 0)">
+        <rect width="165" height="42" rx="10" fill="#064e3b" stroke="#10b981" stroke-width="1.2"/>
+        <text x="18" y="26" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="700" fill="#34d399">👥 CrewAI Multi-Role</text>
+      </g>
+      <!-- Badge 3: Local Models -->
+      <g transform="translate(375, 0)">
+        <rect width="165" height="42" rx="10" fill="#2e1065" stroke="#a855f7" stroke-width="1.2"/>
+        <text x="18" y="26" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="700" fill="#c084fc">🦙 Free Local Ollama</text>
+      </g>
+    </g>
+
+    <!-- Bottom Highlights -->
+    <g transform="translate(0, 375)">
+      <circle cx="10" cy="10" r="4" fill="#34d399"/>
+      <text x="24" y="15" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="600" fill="#cbd5e1">Human-in-the-Loop Approval Gates</text>
+      
+      <circle cx="280" cy="10" r="4" fill="#34d399"/>
+      <text x="294" y="15" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="600" fill="#cbd5e1">Self-Healing Code Generation</text>
+    </g>
+  </g>
+
+  <!-- Right Visual: Swarm Topology Graph & Live Agent Cards -->
+  <g transform="translate(680, 70)">
+    <!-- Outer Glow for Network -->
+    <circle cx="250" cy="260" r="180" fill="#06b6d4" opacity="0.15" filter="url(#agent-glow)"/>
+
+    <!-- Interconnecting Glowing Directed Edges -->
+    <g stroke-width="2.5" fill="none" opacity="0.8">
+      <!-- Edge: Coordinator -> Researcher -->
+      <line x1="250" y1="120" x2="100" y2="250" stroke="#06b6d4" stroke-dasharray="6 4"/>
+      <!-- Edge: Coordinator -> Coder -->
+      <line x1="250" y1="120" x2="400" y2="250" stroke="#10b981" stroke-dasharray="6 4"/>
+      <!-- Edge: Researcher -> Critic -->
+      <line x1="100" y1="280" x2="250" y2="420" stroke="#a855f7" stroke-dasharray="6 4"/>
+      <!-- Edge: Coder -> Critic -->
+      <line x1="400" y1="280" x2="250" y2="420" stroke="#f59e0b" stroke-dasharray="6 4"/>
+      <!-- Cyclical Loop Edge back to Coordinator -->
+      <path d="M 250 420 Q 480 300 280 110" stroke="#38bdf8" stroke-width="1.8" stroke-dasharray="4 4" opacity="0.5"/>
+    </g>
+
+    <!-- Node 1: Master Orchestrator (Top) -->
+    <g transform="translate(250, 110)">
+      <circle cx="0" cy="0" r="46" fill="#0f172a" stroke="#06b6d4" stroke-width="3" filter="url(#agent-glow)"/>
+      <circle cx="0" cy="0" r="36" fill="#082f49"/>
+      <text x="0" y="-4" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="20">👑</text>
+      <text x="0" y="16" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="9" font-weight="800" fill="#38bdf8">PLANNER</text>
+      <!-- Label Chip -->
+      <rect x="-70" y="48" width="140" height="24" rx="6" fill="#030712" stroke="#0284c7" stroke-width="1"/>
+      <text x="0" y="64" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#bae6fd">LangGraph::State</text>
+    </g>
+
+    <!-- Node 2: Web Research Agent (Left) -->
+    <g transform="translate(100, 260)">
+      <circle cx="0" cy="0" r="42" fill="#0f172a" stroke="#38bdf8" stroke-width="2.5"/>
+      <circle cx="0" cy="0" r="32" fill="#0c4a6e"/>
+      <text x="0" y="-3" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="18">🌐</text>
+      <text x="0" y="15" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="8" font-weight="800" fill="#7dd3fc">RESEARCH</text>
+      <!-- Label Chip -->
+      <rect x="-65" y="45" width="130" height="22" rx="6" fill="#030712" stroke="#0284c7" stroke-width="1"/>
+      <text x="0" y="60" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#7dd3fc">Tavily Search API</text>
+    </g>
+
+    <!-- Node 3: Software Engineer Agent (Right) -->
+    <g transform="translate(400, 260)">
+      <circle cx="0" cy="0" r="42" fill="#0f172a" stroke="#10b981" stroke-width="2.5"/>
+      <circle cx="0" cy="0" r="32" fill="#064e3b"/>
+      <text x="0" y="-3" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="18">💻</text>
+      <text x="0" y="15" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="8" font-weight="800" fill="#6ee7b7">CODER</text>
+      <!-- Label Chip -->
+      <rect x="-65" y="45" width="130" height="22" rx="6" fill="#030712" stroke="#059669" stroke-width="1"/>
+      <text x="0" y="60" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#a7f3d0">Docker Sandbox</text>
+    </g>
+
+    <!-- Node 4: Critic / Quality Assurance (Bottom) -->
+    <g transform="translate(250, 420)">
+      <circle cx="0" cy="0" r="42" fill="#0f172a" stroke="#a855f7" stroke-width="2.5"/>
+      <circle cx="0" cy="0" r="32" fill="#3b0764"/>
+      <text x="0" y="-3" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="18">🛡️</text>
+      <text x="0" y="15" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="8" font-weight="800" fill="#d8b4fe">REVIEWER</text>
+      <!-- Label Chip -->
+      <rect x="-65" y="45" width="130" height="22" rx="6" fill="#030712" stroke="#7e22ce" stroke-width="1"/>
+      <text x="0" y="60" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#e9d5ff">Quality Critic QA</text>
+    </g>
+
+    <!-- Live Execution Telemetry Pill -->
+    <g transform="translate(130, 500)">
+      <rect width="240" height="34" rx="17" fill="#022c22" stroke="#10b981" stroke-width="1.2"/>
+      <circle cx="20" cy="17" r="4" fill="#34d399"/>
+      <text x="32" y="21" font-family="monospace" font-size="11" font-weight="700" fill="#6ee7b7">SWARM: 4/4 AGENTS ACTIVE</text>
+    </g>
+  </g>
+
+  <!-- Bottom Accent Stripe -->
+  <rect x="0" y="667" width="1200" height="8" fill="url(#swarm-grad)"/>
+</svg>

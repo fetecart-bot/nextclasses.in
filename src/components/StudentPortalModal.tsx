@@ -3,8 +3,9 @@ import {
   X, Play, CheckCircle2, Clock, Calendar, Download, Send, 
   Copy, Check, Award, Tv, ExternalLink, Target, 
   BarChart3, ArrowRight, Loader2, MessageCircle, Settings, BookOpen, Sparkles,
-  Lock, KeyRound, LogOut, Mail, Eye, EyeOff, UserCheck, ShieldCheck
+  Lock, KeyRound, LogOut, Mail, Eye, EyeOff, UserCheck, ShieldCheck, Medal
 } from 'lucide-react';
+import StudentBadges from './StudentBadges';
 import { useAuth } from '../context/AuthContext';
 import { MOCK_TESTS_DATA } from '../data/mockTestsData';
 import { downloadStudyMaterialFile, generateWhatsAppDispatchMessage, STUDY_MATERIALS_DATABASE } from '../utils/studyMaterialGenerator';
@@ -571,7 +572,7 @@ const COURSE_CURRICULUMS: Record<string, {
         id: 'claude-m-3',
         title: '03. Claude Projects & Automated Technical Documentation',
         duration: '27:45',
-        company: 'NextClass AI Lab',
+        company: 'Nextclasses.in Lab',
         youtubeId: 'r5z_V-tLz4A',
         youtubeUrl: 'https://www.youtube.com/watch?v=r5z_V-tLz4A',
         description: 'Curate project knowledge docs, custom team instructions, and multi-file code review workflows.',
@@ -672,7 +673,7 @@ const COURSE_CURRICULUMS: Record<string, {
         id: 'openai-vid-2',
         title: '02. OpenAI o1 & o3-mini Reasoning Models: Complex Logic & Coding',
         duration: '35:45',
-        company: 'NextClass AI Wing',
+        company: 'Nextclasses.in Wing',
         youtubeId: 'yk9lXobJ95E',
         youtubeUrl: 'https://www.youtube.com/watch?v=yk9lXobJ95E',
         description: 'Benchmark thinking tokens, step-by-step mathematical reasoning, and automated code debugging using OpenAI reasoning series.',
@@ -851,7 +852,7 @@ const COURSE_CURRICULUMS: Record<string, {
         id: 'agents-vid-3',
         title: '03. Equipping Agents with Web Search, Database Tools & Python Execution',
         duration: '36:10',
-        company: 'NextClass AI Lab',
+        company: 'Nextclasses.in Lab',
         youtubeId: 'yk9lXobJ95E',
         youtubeUrl: 'https://www.youtube.com/watch?v=yk9lXobJ95E',
         description: 'Integrate Tavily search, SQL database access, and secure sandboxed code execution tools with guardrails.',
@@ -1109,7 +1110,7 @@ const COURSE_CURRICULUMS: Record<string, {
         id: 'genai-b-1',
         title: '01. Demystifying AI: How LLMs, Tokens & Neural Networks Actually Work',
         duration: '32:10',
-        company: 'NextClass AI Academy',
+        company: 'Nextclasses.in Academy',
         youtubeId: 'IHOJUJjZbzc',
         youtubeUrl: 'https://www.youtube.com/watch?v=IHOJUJjZbzc',
         description: 'Plain English walkthrough of generative AI with zero confusing jargon or heavy mathematics.',
@@ -1722,7 +1723,7 @@ export default function StudentPortalModal({
     }
   }, [user]);
 
-  const [activeTab, setActiveTab] = useState<'lessons' | 'dispatches' | 'mock_tests' | 'prompts' | 'certificate'>('lessons');
+  const [activeTab, setActiveTab] = useState<'lessons' | 'dispatches' | 'mock_tests' | 'badges' | 'prompts' | 'certificate'>('lessons');
   const [copiedPromptIndex, setCopiedPromptIndex] = useState<number | null>(null);
   const [downloadNotice, setDownloadNotice] = useState<string | null>(null);
   const [isSendingWhatsApp, setIsSendingWhatsApp] = useState(false);
@@ -1837,7 +1838,7 @@ export default function StudentPortalModal({
               </div>
               <div>
                 <h3 className="text-sm font-extrabold text-white leading-tight">Student Learning Portal</h3>
-                <p className="text-[11px] text-neutral-400">NextClass AI Academy</p>
+                <p className="text-[11px] text-neutral-400">Nextclasses.in Academy</p>
               </div>
             </div>
             <button
@@ -2005,7 +2006,7 @@ export default function StudentPortalModal({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-extrabold text-sm text-white">NextClass Student Learning Portal</span>
+                <span className="font-extrabold text-sm text-white">Nextclasses.in Student Learning Portal</span>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">
                   Enrolled & Active
                 </span>
@@ -2220,6 +2221,19 @@ export default function StudentPortalModal({
           >
             <span>Mock Tests (CBT)</span>
             <span className="px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px]">Live Exam</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('badges')}
+            className={`py-3 border-b-2 whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'badges'
+                ? 'border-orange-500 text-white'
+                : 'border-transparent text-neutral-400 hover:text-neutral-200'
+            }`}
+          >
+            <Medal className="w-3.5 h-3.5 text-amber-400" />
+            <span>Badges & Honors</span>
+            <span className="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 text-[10px]">New</span>
           </button>
           <button
             type="button"
@@ -2602,6 +2616,21 @@ export default function StudentPortalModal({
             </div>
           )}
 
+          {/* BADGES & HONORS TAB */}
+          {activeTab === 'badges' && (
+            <StudentBadges
+              user={user}
+              selectedCourseTitle={currentCurriculum.courseTitle}
+              totalLessonsCount={effectiveVideos.length}
+              completedLessonsCount={effectiveVideos.filter(v => v.completed).length}
+              onNavigateToTab={(target) => {
+                if (target === 'mock_tests') setActiveTab('mock_tests');
+                else if (target === 'lessons') setActiveTab('lessons');
+                else if (target === 'dispatches') setActiveTab('dispatches');
+              }}
+            />
+          )}
+
           {/* VERIFIED CERTIFICATE TAB */}
           {activeTab === 'certificate' && (
             <div className="space-y-6 text-center">
@@ -2630,7 +2659,7 @@ export default function StudentPortalModal({
 
                   <div>
                     <span className="text-xs uppercase font-bold tracking-widest text-orange-400">
-                      NextClass AI Academy
+                      Nextclasses.in Academy
                     </span>
                     <h2 className="text-xl sm:text-2xl font-serif font-bold text-white mt-1">
                       {currentCurriculum.certificateTitle}
@@ -2650,7 +2679,7 @@ export default function StudentPortalModal({
                   <div className="pt-6 border-t border-neutral-800 flex items-center justify-between text-[11px] text-neutral-400">
                     <div>
                       <span className="block font-mono text-emerald-400 font-bold">VERIFIED ID: NC-2027-{selectedCourseId.slice(-4).toUpperCase()}</span>
-                      <span>Authorized NextClass Credential</span>
+                      <span>Authorized Nextclasses.in Credential</span>
                     </div>
                     <div className="text-right">
                       <span className="block font-semibold text-white">Academic Council</span>

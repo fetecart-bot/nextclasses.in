@@ -136,6 +136,13 @@ export default function Hero({
                   alt={flagshipCourse.title}
                   className="w-full h-full object-cover group-hover/thumb:scale-105 transition-transform duration-500"
                   referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    if (!target.dataset.triedFallback) {
+                      target.dataset.triedFallback = 'true';
+                      target.src = '/courses/google-ai-studio-gemini.svg';
+                    }
+                  }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/30 to-transparent" />
                 

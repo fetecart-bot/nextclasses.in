@@ -19,27 +19,27 @@ export const FloatingWhatsAppButton: React.FC<FloatingWhatsAppButtonProps> = ({
     {
       title: 'Course Inquiries & Fees',
       desc: 'Get syllabus, pricing & regional batch timings',
-      msg: 'Hi NextClass AI Team, I want to inquire about course details, fees, and upcoming batches.',
+      msg: 'Hi Nextclasses.in Team, I want to inquire about course details, fees, and upcoming batches.',
     },
     {
       title: 'Order Access & Weekly Drops',
       desc: 'Verify enrollment or receive study packs',
-      msg: 'Hi NextClass AI Support, I need assistance with my order access and weekly study materials.',
+      msg: 'Hi Nextclasses.in Support, I need assistance with my order access and weekly study materials.',
     },
     {
       title: 'Languages & Public Speaking',
       desc: 'English, French, German & Stage Mastery',
-      msg: 'Hi NextClass AI, I would like more information on the Languages & Public Speaking programs.',
+      msg: 'Hi Nextclasses.in, I would like more information on the Languages & Public Speaking programs.',
     },
     {
       title: 'Direct Academic Counselor',
       desc: 'Talk to an AI mentor on WhatsApp',
-      msg: 'Hi NextClass AI, I would like to speak directly with an academic mentor.',
+      msg: 'Hi Nextclasses.in, I would like to speak directly with an academic mentor.',
     },
   ];
 
   const handleOpenWhatsApp = (customText?: string) => {
-    const text = customText || 'Hi NextClass AI Team, I have a question regarding courses and study materials.';
+    const text = customText || 'Hi Nextclasses.in Team, I have a question regarding courses and study materials.';
     const url = `https://wa.me/91${cleanPhone}?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
   };
@@ -60,7 +60,7 @@ export const FloatingWhatsAppButton: React.FC<FloatingWhatsAppButtonProps> = ({
               </div>
               <div>
                 <div className="font-bold text-sm leading-tight flex items-center gap-1.5">
-                  <span>NextClass AI WhatsApp</span>
+                  <span>Nextclasses.in WhatsApp</span>
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-200" />
                 </div>
                 <div className="text-[11px] text-emerald-100 font-mono font-medium">
@@ -82,7 +82,7 @@ export const FloatingWhatsAppButton: React.FC<FloatingWhatsAppButtonProps> = ({
           <div className="p-4 space-y-3 bg-[#0b141a] text-neutral-200">
             <div className="p-3 rounded-xl bg-[#111b21] border border-[#202c33] text-xs leading-relaxed space-y-1">
               <p className="text-[#e9edef] font-medium">
-                👋 Welcome to <strong className="text-emerald-400">NextClass AI</strong> & <strong className="text-orange-400">Fetecart</strong>!
+                👋 Welcome to <strong className="text-emerald-400">Nextclasses.in</strong> & <strong className="text-orange-400">Fetecart</strong>!
               </p>
               <p className="text-[#8696a0] text-[11px]">
                 If automated WhatsApp notifications are delayed or you prefer direct human support, tap below to chat with our counselors right away.

@@ -1,0 +1,431 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" width="100%" height="100%">
+  <defs>
+    <!-- Background studio lighting -->
+    <radialGradient id="bgGrad" cx="50%" cy="38%" r="65%">
+      <stop offset="0%" stop-color="#e8ebed"/>
+      <stop offset="45%" stop-color="#d6dadf"/>
+      <stop offset="100%" stop-color="#b6bbc2"/>
+    </radialGradient>
+
+    <!-- Skin base & shading gradients -->
+    <linearGradient id="skinGrad" x1="30%" y1="20%" x2="70%" y2="85%">
+      <stop offset="0%" stop-color="#c69575"/>
+      <stop offset="35%" stop-color="#b88363"/>
+      <stop offset="70%" stop-color="#a46e50"/>
+      <stop offset="100%" stop-color="#8a563c"/>
+    </linearGradient>
+
+    <radialGradient id="foreheadLight" cx="48%" cy="32%" r="35%">
+      <stop offset="0%" stop-color="#d9a888" stop-opacity="0.85"/>
+      <stop offset="60%" stop-color="#c69575" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#a46e50" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="neckShadow" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#5a3522"/>
+      <stop offset="40%" stop-color="#7c4c34"/>
+      <stop offset="100%" stop-color="#a26c4f"/>
+    </linearGradient>
+
+    <!-- Suit Charcoal Gradients -->
+    <linearGradient id="suitDark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3d444e"/>
+      <stop offset="25%" stop-color="#2c323b"/>
+      <stop offset="75%" stop-color="#1e2329"/>
+      <stop offset="100%" stop-color="#14171c"/>
+    </linearGradient>
+
+    <linearGradient id="lapelLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4a525f"/>
+      <stop offset="50%" stop-color="#323943"/>
+      <stop offset="100%" stop-color="#1f242b"/>
+    </linearGradient>
+
+    <linearGradient id="lapelRight" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#464e5b"/>
+      <stop offset="50%" stop-color="#303741"/>
+      <stop offset="100%" stop-color="#1c2128"/>
+    </linearGradient>
+
+    <!-- White Shirt -->
+    <linearGradient id="shirtGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="70%" stop-color="#f1f3f5"/>
+      <stop offset="100%" stop-color="#dbe0e6"/>
+    </linearGradient>
+
+    <linearGradient id="shirtShadow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#c9d0d8"/>
+      <stop offset="50%" stop-color="#e8ecf0"/>
+      <stop offset="100%" stop-color="#c9d0d8"/>
+    </linearGradient>
+
+    <!-- Deep Burgundy / Wine Tie -->
+    <linearGradient id="tieGrad" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#7a1f3d"/>
+      <stop offset="35%" stop-color="#5e152d"/>
+      <stop offset="75%" stop-color="#491023"/>
+      <stop offset="100%" stop-color="#360a18"/>
+    </linearGradient>
+
+    <linearGradient id="tieKnotGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#8b2446"/>
+      <stop offset="50%" stop-color="#641731"/>
+      <stop offset="100%" stop-color="#430e20"/>
+    </linearGradient>
+
+    <pattern id="tieTexture" width="6" height="6" patternUnits="userSpaceOnUse">
+      <path d="M0 6 L6 0 M0 0 L6 6" stroke="#420b1c" stroke-width="0.75" opacity="0.45"/>
+      <circle cx="3" cy="3" r="0.7" fill="#a03254" opacity="0.35"/>
+    </pattern>
+
+    <!-- Hair Shading -->
+    <linearGradient id="hairGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#4a4846"/>
+      <stop offset="30%" stop-color="#2d2b29"/>
+      <stop offset="75%" stop-color="#1a1918"/>
+      <stop offset="100%" stop-color="#121110"/>
+    </linearGradient>
+
+    <!-- Eye Gradients -->
+    <radialGradient id="irisGrad" cx="45%" cy="45%" r="50%">
+      <stop offset="0%" stop-color="#4e2c1d"/>
+      <stop offset="60%" stop-color="#2d170e"/>
+      <stop offset="100%" stop-color="#0f0704"/>
+    </radialGradient>
+
+    <!-- Shadow filter -->
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- 1. Background -->
+  <rect width="800" height="1000" fill="url(#bgGrad)"/>
+
+  <!-- Subtle vignette edges -->
+  <rect width="800" height="1000" fill="none" stroke="#9ba0a8" stroke-width="1" opacity="0.3"/>
+
+  <!-- 2. Body / Suit Silhouette -->
+  <!-- Suit Back & Shoulders -->
+  <path d="M-40 1000 L-20 720 C20 620 120 570 230 550 C290 540 330 560 400 565 C470 560 510 540 570 550 C680 570 780 620 820 720 L840 1000 Z" fill="url(#suitDark)"/>
+
+  <!-- Suit shoulder seams and highlights -->
+  <path d="M-20 720 C90 635 190 590 270 575" stroke="#565f6c" stroke-width="2.5" fill="none" opacity="0.4"/>
+  <path d="M820 720 C710 635 610 590 530 575" stroke="#565f6c" stroke-width="2.5" fill="none" opacity="0.4"/>
+
+  <!-- 3. Neck & Chest area -->
+  <!-- Neck shadow on body -->
+  <path d="M305 480 C305 570 340 650 400 650 C460 650 495 570 495 480 Z" fill="url(#neckShadow)"/>
+
+  <!-- Neck muscle contours -->
+  <path d="M335 490 C345 560 370 610 395 625" stroke="#683d27" stroke-width="3" fill="none" opacity="0.6"/>
+  <path d="M465 490 C455 560 430 610 405 625" stroke="#683d27" stroke-width="3" fill="none" opacity="0.6"/>
+
+  <!-- Adam's apple & throat highlight -->
+  <ellipse cx="400" cy="550" rx="14" ry="18" fill="#b07b5c" opacity="0.4"/>
+
+  <!-- 4. White Dress Shirt -->
+  <!-- Shirt Inner Base -->
+  <polygon points="325,580 475,580 445,740 355,740" fill="url(#shirtGrad)"/>
+  <!-- Shirt collar shadows -->
+  <polygon points="325,580 400,660 475,580 455,670 400,700 345,670" fill="url(#shirtShadow)"/>
+
+  <!-- Shirt Left Collar Leaf -->
+  <path d="M315 570 L400 665 L372 675 L295 605 Z" fill="#ffffff" filter="url(#softShadow)"/>
+  <path d="M315 570 L400 665 L372 675 L295 605 Z" fill="url(#shirtGrad)"/>
+  <path d="M295 605 L372 675" stroke="#cfd6de" stroke-width="1.5"/>
+
+  <!-- Shirt Right Collar Leaf -->
+  <path d="M485 570 L400 665 L428 675 L505 605 Z" fill="#ffffff" filter="url(#softShadow)"/>
+  <path d="M485 570 L400 665 L428 675 L505 605 Z" fill="url(#shirtGrad)"/>
+  <path d="M505 605 L428 675" stroke="#cfd6de" stroke-width="1.5"/>
+
+  <!-- Collar fold crisp line -->
+  <path d="M315 570 C345 565 375 585 390 600" stroke="#bcc4cd" stroke-width="2" fill="none"/>
+  <path d="M485 570 C455 565 425 585 410 600" stroke="#bcc4cd" stroke-width="2" fill="none"/>
+
+  <!-- 5. Burgundy Silk Tie -->
+  <!-- Tie Knot -->
+  <path d="M374 658 L426 658 L418 730 L400 740 L382 730 Z" fill="url(#tieKnotGrad)"/>
+  <path d="M374 658 L426 658 L418 730 L400 740 L382 730 Z" fill="url(#tieTexture)"/>
+  <!-- Knot side shadow & crease -->
+  <path d="M374 658 L382 730" stroke="#2a0610" stroke-width="1.5" opacity="0.6"/>
+  <path d="M426 658 L418 730" stroke="#2a0610" stroke-width="1.5" opacity="0.6"/>
+  <path d="M398 670 L400 735" stroke="#9e2d50" stroke-width="2" opacity="0.5"/>
+
+  <!-- Tie Body Blade -->
+  <path d="M382 730 L400 740 L418 730 L455 1000 L345 1000 Z" fill="url(#tieGrad)"/>
+  <path d="M382 730 L400 740 L418 730 L455 1000 L345 1000 Z" fill="url(#tieTexture)"/>
+  <!-- Tie central silk fold highlight & shadow -->
+  <path d="M400 740 L405 1000" stroke="#8c2444" stroke-width="3" opacity="0.7"/>
+  <path d="M396 740 L398 1000" stroke="#2c0612" stroke-width="2.5" opacity="0.7"/>
+
+  <!-- 6. Suit Lapels & Front Opening -->
+  <!-- Left Lapel (Viewer's left) -->
+  <path d="M235 565 L350 755 L358 750 L342 660 L285 580 Z" fill="url(#lapelLeft)"/>
+  <path d="M235 565 L350 755 L360 880 L290 1000 L120 1000 L140 760 Z" fill="url(#lapelLeft)"/>
+  <path d="M235 565 L350 755 L360 1000" stroke="#4f5763" stroke-width="2.5" fill="none"/>
+  <!-- Left lapel notch -->
+  <polygon points="265,605 285,580 325,630 300,645" fill="#242931"/>
+
+  <!-- Right Lapel (Viewer's right) -->
+  <path d="M565 565 L450 755 L442 750 L458 660 L515 580 Z" fill="url(#lapelRight)"/>
+  <path d="M565 565 L450 755 L440 880 L510 1000 L680 1000 L660 760 Z" fill="url(#lapelRight)"/>
+  <path d="M565 565 L450 755 L440 1000" stroke="#4a525f" stroke-width="2.5" fill="none"/>
+  <!-- Right lapel notch -->
+  <polygon points="535,605 515,580 475,630 500,645" fill="#1e2329"/>
+
+  <!-- Lapel seam edge shadows -->
+  <path d="M350 755 L360 1000" stroke="#0e1115" stroke-width="4" opacity="0.75"/>
+  <path d="M450 755 L440 1000" stroke="#0e1115" stroke-width="4" opacity="0.75"/>
+
+  <!-- 7. Head & Ears -->
+  <!-- Ears -->
+  <!-- Left Ear (Viewer's left) -->
+  <g id="leftEar">
+    <ellipse cx="230" cy="365" rx="22" ry="42" fill="#ba8565"/>
+    <path d="M232 330 C242 330 248 350 242 375 C238 395 230 405 222 400" stroke="#874e31" stroke-width="3" fill="none"/>
+    <ellipse cx="234" cy="365" rx="10" ry="18" fill="#8f5739"/>
+    <!-- Salt pepper sideburn edge on ear -->
+    <path d="M238 325 C234 345 235 365 242 375" stroke="#68625e" stroke-width="3" stroke-dasharray="2,3"/>
+  </g>
+
+  <!-- Right Ear (Viewer's right) -->
+  <g id="rightEar">
+    <ellipse cx="570" cy="365" rx="22" ry="42" fill="#b07d5d"/>
+    <path d="M568 330 C558 330 552 350 558 375 C562 395 570 405 578 400" stroke="#80472b" stroke-width="3" fill="none"/>
+    <ellipse cx="566" cy="365" rx="10" ry="18" fill="#824c30"/>
+    <path d="M562 325 C566 345 565 365 558 375" stroke="#68625e" stroke-width="3" stroke-dasharray="2,3"/>
+  </g>
+
+  <!-- Head Base Shape -->
+  <path d="M240 330 C235 220 300 130 400 130 C500 130 565 220 560 330 C555 420 520 510 470 540 C435 560 365 560 330 540 C280 510 245 420 240 330 Z" fill="url(#skinGrad)"/>
+
+  <!-- Forehead Light highlight -->
+  <ellipse cx="400" cy="270" rx="130" ry="85" fill="url(#foreheadLight)"/>
+
+  <!-- Cheekbone & Jaw Shadows -->
+  <path d="M245 350 C250 430 280 490 330 525 C310 480 290 420 285 360 Z" fill="#804c30" opacity="0.45"/>
+  <path d="M555 350 C550 430 520 490 470 525 C490 480 510 420 515 360 Z" fill="#754329" opacity="0.45"/>
+
+  <!-- Chin contour -->
+  <ellipse cx="400" cy="520" rx="38" ry="24" fill="#9e6648" opacity="0.5"/>
+  <ellipse cx="400" cy="515" rx="28" ry="16" fill="#c69575" opacity="0.4"/>
+  <!-- Chin dimple subtle line -->
+  <path d="M398 528 C400 533 402 533 404 528" stroke="#6a3a22" stroke-width="2.5" fill="none" opacity="0.6"/>
+
+  <!-- 8. Hair & Hairline (Salt & Pepper, Executive styling) -->
+  <!-- Hair Base Silhouette -->
+  <path d="M232 320 C228 230 260 145 320 120 C360 102 440 102 480 120 C540 145 572 230 568 320 C560 270 545 200 495 175 C450 155 350 155 305 175 C255 200 240 270 232 320 Z" fill="url(#hairGrad)"/>
+
+  <!-- Forehead Receding Temple Hairline -->
+  <path d="M245 295 C255 250 280 205 315 195 C335 190 355 210 395 210 C435 210 455 190 475 195 C510 205 535 250 545 295 C535 255 500 215 470 210 C440 205 425 220 395 220 C365 220 350 205 320 210 C290 215 255 255 245 295 Z" fill="#2d2b29"/>
+
+  <!-- Salt & Pepper Silver flecks & textures on hair -->
+  <g stroke="#b8bac0" stroke-width="1.5" opacity="0.65" stroke-linecap="round">
+    <!-- Left temple grizzled grey strands -->
+    <path d="M242 280 C250 260 265 240 280 230"/>
+    <path d="M248 295 C255 275 272 255 290 245"/>
+    <path d="M240 310 C245 290 255 275 270 265"/>
+    <path d="M255 250 C270 230 290 215 315 205"/>
+
+    <!-- Right temple grizzled grey strands -->
+    <path d="M558 280 C550 260 535 240 520 230"/>
+    <path d="M552 295 C545 275 528 255 510 245"/>
+    <path d="M560 310 C555 290 545 275 530 265"/>
+    <path d="M545 250 C530 230 510 215 485 205"/>
+
+    <!-- Top crown pepper flecks -->
+    <path d="M340 145 C370 135 410 135 440 142"/>
+    <path d="M360 160 C390 152 420 152 450 158"/>
+    <path d="M330 170 C360 160 400 160 430 168"/>
+    <path d="M380 185 C400 180 415 180 435 184"/>
+  </g>
+
+  <!-- Dark hair texture strokes -->
+  <g stroke="#121110" stroke-width="2.5" opacity="0.7" stroke-linecap="round">
+    <path d="M250 265 C270 240 300 225 330 215"/>
+    <path d="M550 265 C530 240 500 225 470 215"/>
+    <path d="M320 135 C350 125 430 125 460 135"/>
+    <path d="M350 175 C380 168 410 168 440 175"/>
+  </g>
+
+  <!-- 9. Forehead Wrinkles (Dignified mature executive character) -->
+  <g stroke="#7c462b" stroke-width="2.2" opacity="0.45" stroke-linecap="round" fill="none">
+    <path d="M330 238 C370 230 430 230 470 238"/>
+    <path d="M340 252 C375 246 425 246 460 252"/>
+    <path d="M355 266 C380 262 420 262 445 266"/>
+  </g>
+
+  <!-- 10. Eyebrows (Salt & Pepper, thick and groomed) -->
+  <!-- Left Eyebrow -->
+  <g id="leftEyebrow">
+    <path d="M290 302 C315 292 345 292 370 304 C350 296 320 296 295 306 Z" fill="#252422"/>
+    <path d="M292 304 C318 293 348 294 368 305" stroke="#1f1e1c" stroke-width="5" stroke-linecap="round"/>
+    <!-- Grey flecks in eyebrow -->
+    <path d="M310 297 L322 293" stroke="#b0b3b8" stroke-width="1.8"/>
+    <path d="M335 295 L348 296" stroke="#b0b3b8" stroke-width="1.8"/>
+    <path d="M355 301 L365 303" stroke="#b0b3b8" stroke-width="1.5"/>
+  </g>
+
+  <!-- Right Eyebrow -->
+  <g id="rightEyebrow">
+    <path d="M510 302 C485 292 455 292 430 304 C450 296 480 296 505 306 Z" fill="#252422"/>
+    <path d="M508 304 C482 293 452 294 432 305" stroke="#1f1e1c" stroke-width="5" stroke-linecap="round"/>
+    <!-- Grey flecks in eyebrow -->
+    <path d="M490 297 L478 293" stroke="#b0b3b8" stroke-width="1.8"/>
+    <path d="M465 295 L452 296" stroke="#b0b3b8" stroke-width="1.8"/>
+    <path d="M445 301 L435 303" stroke="#b0b3b8" stroke-width="1.5"/>
+  </g>
+
+  <!-- Glabella / Frown Lines -->
+  <path d="M393 298 C394 308 393 318 391 324" stroke="#754329" stroke-width="2" opacity="0.5" stroke-linecap="round"/>
+  <path d="M407 298 C406 308 407 318 409 324" stroke="#754329" stroke-width="2" opacity="0.5" stroke-linecap="round"/>
+
+  <!-- 11. Eyes & Eyelids (Deep-set, warm, expressive brown eyes) -->
+  <!-- Left Eye -->
+  <g id="leftEye">
+    <!-- Eye socket shadow -->
+    <ellipse cx="332" cy="335" rx="38" ry="18" fill="#6d3d25" opacity="0.35"/>
+    <!-- Sclera (White of eye, warm tinted) -->
+    <path d="M305 336 C318 324 345 324 358 336 C345 346 318 346 305 336 Z" fill="#eef1f3"/>
+    <!-- Sclera subtle shade -->
+    <path d="M305 336 C318 325 345 325 358 336" stroke="#c0c7ce" stroke-width="1.5" fill="none"/>
+    <!-- Iris -->
+    <ellipse cx="333" cy="336" rx="12.5" ry="12.5" fill="url(#irisGrad)"/>
+    <circle cx="333" cy="336" r="5.5" fill="#000000"/>
+    <!-- Catchlight / Glint -->
+    <circle cx="330" cy="333" r="2.2" fill="#ffffff" opacity="0.9"/>
+    <circle cx="336" cy="338" r="1.1" fill="#ffffff" opacity="0.6"/>
+    <!-- Upper Eyelid crease & lashes -->
+    <path d="M302 335 C316 320 348 320 362 335" stroke="#2b1a11" stroke-width="3" fill="none"/>
+    <path d="M298 325 C316 314 348 314 366 325" stroke="#683d27" stroke-width="2" fill="none" opacity="0.6"/>
+    <!-- Lower Eyelid & soft bag line -->
+    <path d="M306 339 C320 348 344 348 357 339" stroke="#7d4b31" stroke-width="1.8" fill="none" opacity="0.55"/>
+    <path d="M302 346 C320 356 345 356 362 346" stroke="#6b3e27" stroke-width="1.8" fill="none" opacity="0.35"/>
+  </g>
+
+  <!-- Right Eye -->
+  <g id="rightEye">
+    <!-- Eye socket shadow -->
+    <ellipse cx="468" cy="335" rx="38" ry="18" fill="#6d3d25" opacity="0.35"/>
+    <!-- Sclera -->
+    <path d="M442 336 C455 324 482 324 495 336 C482 346 455 346 442 336 Z" fill="#eef1f3"/>
+    <path d="M442 336 C455 325 482 325 495 336" stroke="#c0c7ce" stroke-width="1.5" fill="none"/>
+    <!-- Iris -->
+    <ellipse cx="467" cy="336" rx="12.5" ry="12.5" fill="url(#irisGrad)"/>
+    <circle cx="467" cy="336" r="5.5" fill="#000000"/>
+    <!-- Catchlight -->
+    <circle cx="464" cy="333" r="2.2" fill="#ffffff" opacity="0.9"/>
+    <circle cx="470" cy="338" r="1.1" fill="#ffffff" opacity="0.6"/>
+    <!-- Upper Eyelid crease & lashes -->
+    <path d="M438 335 C452 320 484 320 498 335" stroke="#2b1a11" stroke-width="3" fill="none"/>
+    <path d="M434 325 C452 314 484 314 502 325" stroke="#683d27" stroke-width="2" fill="none" opacity="0.6"/>
+    <!-- Lower Eyelid & soft bag line -->
+    <path d="M443 339 C456 348 480 348 494 339" stroke="#7d4b31" stroke-width="1.8" fill="none" opacity="0.55"/>
+    <path d="M438 346 C456 356 480 356 498 346" stroke="#6b3e27" stroke-width="1.8" fill="none" opacity="0.35"/>
+  </g>
+
+  <!-- 12. Nose (Distinguished Indian structure, well defined bridge & tip) -->
+  <g id="nose">
+    <!-- Nose bridge shadow -->
+    <path d="M388 325 C388 360 382 395 376 415" stroke="#754329" stroke-width="3" fill="none" opacity="0.5"/>
+    <!-- Nose bridge highlight -->
+    <path d="M398 320 L398 410" stroke="#dcb090" stroke-width="5" fill="none" opacity="0.6" stroke-linecap="round"/>
+
+    <!-- Nose Tip & Nostrils -->
+    <ellipse cx="400" cy="418" rx="20" ry="14" fill="#a46d4e"/>
+    <ellipse cx="400" cy="415" rx="13" ry="9" fill="#c89777" opacity="0.5"/>
+
+    <!-- Left Alar / Nostril -->
+    <path d="M375 418 C370 422 370 428 376 430 C385 432 392 425 392 418" stroke="#62361e" stroke-width="2.2" fill="#754127"/>
+    <ellipse cx="382" cy="426" rx="5" ry="3.2" fill="#241108"/>
+
+    <!-- Right Alar / Nostril -->
+    <path d="M425 418 C430 422 430 428 424 430 C415 432 408 425 408 418" stroke="#62361e" stroke-width="2.2" fill="#754127"/>
+    <ellipse cx="418" cy="426" rx="5" ry="3.2" fill="#241108"/>
+
+    <!-- Under-nose shadow -->
+    <path d="M385 432 C395 436 405 436 415 432" stroke="#542b16" stroke-width="3" fill="none" opacity="0.6"/>
+  </g>
+
+  <!-- 13. Philtrum & Nasolabial folds (Smile / Expression lines) -->
+  <!-- Left Nasolabial line -->
+  <path d="M358 405 C350 440 350 475 365 500" stroke="#6e3c23" stroke-width="2.5" fill="none" opacity="0.45" stroke-linecap="round"/>
+  <!-- Right Nasolabial line -->
+  <path d="M442 405 C450 440 450 475 435 500" stroke="#6e3c23" stroke-width="2.5" fill="none" opacity="0.45" stroke-linecap="round"/>
+
+  <!-- 14. Mustache (Neat, salt-and-pepper, clipped over upper lip) -->
+  <g id="mustache">
+    <!-- Mustache base silhouette -->
+    <path d="M362 458 C375 442 395 444 400 446 C405 444 425 442 438 458 C425 464 405 462 400 460 C395 462 375 464 362 458 Z" fill="#252422"/>
+
+    <!-- Dark mustache hairs -->
+    <g stroke="#1a1918" stroke-width="1.8" stroke-linecap="round">
+      <path d="M370 450 L365 460"/>
+      <path d="M378 448 L374 462"/>
+      <path d="M386 447 L384 461"/>
+      <path d="M394 446 L394 460"/>
+      <path d="M400 447 L400 460"/>
+      <path d="M406 446 L406 460"/>
+      <path d="M414 447 L416 461"/>
+      <path d="M422 448 L426 462"/>
+      <path d="M430 450 L435 460"/>
+    </g>
+
+    <!-- Grey & Silver hairs in mustache -->
+    <g stroke="#bcc0c8" stroke-width="1.4" opacity="0.75" stroke-linecap="round">
+      <path d="M374 452 L370 460"/>
+      <path d="M382 450 L380 461"/>
+      <path d="M390 449 L391 459"/>
+      <path d="M402 449 L401 460"/>
+      <path d="M410 449 L412 460"/>
+      <path d="M418 451 L421 461"/>
+      <path d="M428 453 L432 459"/>
+    </g>
+  </g>
+
+  <!-- 15. Lips -->
+  <!-- Upper lip line below mustache -->
+  <path d="M372 466 C385 467 395 466 400 468 C405 466 415 467 428 466" stroke="#482216" stroke-width="2.5" fill="none"/>
+  <!-- Lower lip -->
+  <path d="M378 472 C390 488 410 488 422 472" fill="#9e5a42"/>
+  <path d="M378 472 C390 488 410 488 422 472" stroke="#683421" stroke-width="2" fill="none"/>
+  <path d="M388 477 C396 482 404 482 412 477" stroke="#c07e66" stroke-width="1.8" fill="none" opacity="0.6"/>
+
+  <!-- 16. Goatee / Stubble Beard (Trimmed, salt-and-pepper on chin and jawline) -->
+  <g id="stubbleBeard">
+    <!-- Soul patch under lower lip -->
+    <path d="M394 488 C396 498 404 498 406 488 Z" fill="#2d2b29" opacity="0.75"/>
+    <path d="M396 490 L396 496" stroke="#b0b3b8" stroke-width="1.3" opacity="0.8"/>
+    <path d="M404 490 L404 496" stroke="#b0b3b8" stroke-width="1.3" opacity="0.8"/>
+
+    <!-- Stubble dots across jaw and chin -->
+    <g fill="#242220" opacity="0.6">
+      <circle cx="370" cy="510" r="1.2"/><circle cx="378" cy="514" r="1.2"/><circle cx="386" cy="518" r="1.2"/>
+      <circle cx="394" cy="522" r="1.2"/><circle cx="400" cy="524" r="1.2"/><circle cx="406" cy="522" r="1.2"/>
+      <circle cx="414" cy="518" r="1.2"/><circle cx="422" cy="514" r="1.2"/><circle cx="430" cy="510" r="1.2"/>
+      <circle cx="365" cy="495" r="1.2"/><circle cx="372" cy="502" r="1.2"/><circle cx="428" cy="502" r="1.2"/>
+      <circle cx="435" cy="495" r="1.2"/><circle cx="382" cy="528" r="1.2"/><circle cx="400" cy="535" r="1.2"/>
+      <circle cx="418" cy="528" r="1.2"/><circle cx="390" cy="532" r="1.2"/><circle cx="410" cy="532" r="1.2"/>
+    </g>
+
+    <!-- Silver / Grey stubble flecks -->
+    <g fill="#c8cbd2" opacity="0.75">
+      <circle cx="374" cy="512" r="1.1"/><circle cx="382" cy="516" r="1.1"/><circle cx="390" cy="520" r="1.1"/>
+      <circle cx="398" cy="523" r="1.1"/><circle cx="402" cy="523" r="1.1"/><circle cx="410" cy="520" r="1.1"/>
+      <circle cx="418" cy="516" r="1.1"/><circle cx="426" cy="512" r="1.1"/><circle cx="368" cy="498" r="1.1"/>
+      <circle cx="432" cy="498" r="1.1"/><circle cx="386" cy="530" r="1.1"/><circle cx="400" cy="538" r="1.1"/>
+      <circle cx="414" cy="530" r="1.1"/><circle cx="395" cy="535" r="1.1"/><circle cx="405" cy="535" r="1.1"/>
+    </g>
+  </g>
+
+  <!-- 17. Studio Vignette & Finish Overlays -->
+  <linearGradient id="bottomFade" x1="0" y1="80%" x2="0" y2="100%">
+    <stop offset="0%" stop-color="#000000" stop-opacity="0"/>
+    <stop offset="100%" stop-color="#0e1115" stop-opacity="0.3"/>
+  </linearGradient>
+  <rect width="800" height="1000" fill="url(#bottomFade)"/>
+</svg>

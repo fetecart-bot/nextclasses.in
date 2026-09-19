@@ -66,7 +66,7 @@ export default function PolicyModal({
                 </span>
               </h3>
               <p className="text-xs text-neutral-400">
-                NextClass AI • Official Domain: <span className="text-cyan-400 font-mono">www.fetecart.in</span>
+                Nextclasses.in • Official Domain: <span className="text-cyan-400 font-mono">www.fetecart.in</span>
               </p>
             </div>
           </div>
@@ -171,7 +171,7 @@ export default function PolicyModal({
               <div className="border-b border-neutral-800 pb-3">
                 <h4 className="text-lg font-bold text-white flex items-center gap-2">
                   <Info className="w-5 h-5 text-orange-400" />
-                  <span>About Us • NextClass AI (Fetecart Store)</span>
+                  <span>About Us • Nextclasses.in (Fetecart Store)</span>
                 </h4>
                 <p className="text-xs text-neutral-400 mt-1">
                   Empowering Indian learners, educators, and professionals with practical Generative AI mastery
@@ -181,7 +181,7 @@ export default function PolicyModal({
               <div className="p-4 rounded-xl bg-neutral-950 border border-neutral-800 space-y-3">
                 <h5 className="font-bold text-white text-sm">Who We Are</h5>
                 <p className="text-neutral-300">
-                  <strong>NextClass AI</strong> is an Indian EdTech initiative operated under <strong>Fetecart Store</strong>, located in Thrissur, Kerala. We specialize in self-paced video masterclasses, interactive dashboards, and production-tested digital AI toolkits for students, teachers, competitive exam aspirants, and working professionals.
+                  <strong>Nextclasses.in</strong> is an Indian EdTech initiative operated under <strong>Fetecart Store</strong>, located in Thrissur, Kerala. We specialize in self-paced video masterclasses, interactive dashboards, and production-tested digital AI toolkits for students, teachers, competitive exam aspirants, and working professionals.
                 </p>
               </div>
 
@@ -206,7 +206,7 @@ export default function PolicyModal({
                 <div>
                   <h5 className="font-bold text-white text-sm mb-1.5">Registered Office & Merchant Details</h5>
                   <div className="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800 space-y-1 text-xs text-neutral-300">
-                    <p><strong className="text-white">Business Entity:</strong> Fetecart Store (NextClass AI)</p>
+                    <p><strong className="text-white">Business Entity:</strong> Fetecart Store (Nextclasses.in)</p>
                     <p><strong className="text-white">Official Office:</strong> Pattukulangara, Puduruthi, Thrissur, Kerala, India - 680623</p>
                     <p><strong className="text-white">Customer Support Phone:</strong> +91 82816 44058</p>
                     <p><strong className="text-white">Official Email:</strong> fetecart@gmail.com</p>
@@ -226,13 +226,13 @@ export default function PolicyModal({
                   <span>Pricing Policy & Fee Schedule</span>
                 </h4>
                 <p className="text-xs text-neutral-400 mt-1">
-                  Last updated: January 2025 • NextClass AI (operated at www.fetecart.in)
+                  Last updated: January 2025 • Nextclasses.in (operated at www.fetecart.in)
                 </p>
               </div>
 
               <div className="p-4 rounded-xl bg-neutral-950 border border-neutral-800 space-y-2">
                 <p className="text-neutral-300 font-medium">
-                  NextClass AI is dedicated to providing transparent, clear, and upfront pricing for all our self-paced masterclasses, video courses, prompt toolkits, and digital educational resources.
+                  Nextclasses.in is dedicated to providing transparent, clear, and upfront pricing for all our self-paced masterclasses, video courses, prompt toolkits, and digital educational resources.
                 </p>
               </div>
 
@@ -256,7 +256,7 @@ export default function PolicyModal({
                 <div>
                   <h5 className="font-bold text-white text-sm mb-1.5">3. Price Modifications</h5>
                   <p className="text-neutral-400">
-                    NextClass AI reserves the right to modify promotional rates, launch introductory offers, or revise course pricing at any time. Any price changes will not affect students who have already enrolled or completed transactions prior to the change.
+                    Nextclasses.in reserves the right to modify promotional rates, launch introductory offers, or revise course pricing at any time. Any price changes will not affect students who have already enrolled or completed transactions prior to the change.
                   </p>
                 </div>
 
@@ -279,7 +279,7 @@ export default function PolicyModal({
                   <span>Shipping & Delivery Policy</span>
                 </h4>
                 <p className="text-xs text-neutral-400 mt-1">
-                  Last updated: January 2025 • NextClass AI (operated at www.fetecart.in)
+                  Last updated: January 2025 • Nextclasses.in (operated at www.fetecart.in)
                 </p>
               </div>
 
@@ -289,7 +289,7 @@ export default function PolicyModal({
                   <span>100% Digital Delivery — No Physical Shipping Charges</span>
                 </div>
                 <p className="text-neutral-300">
-                  NextClass AI primarily offers digital educational programs, self-paced masterclasses, interactive dashboards, and downloadable assets.
+                  Nextclasses.in primarily offers digital educational programs, self-paced masterclasses, interactive dashboards, and downloadable assets.
                 </p>
               </div>
 
@@ -332,7 +332,7 @@ export default function PolicyModal({
                   <span>Terms and Conditions</span>
                 </h4>
                 <p className="text-xs text-neutral-400 mt-1">
-                  Last updated: January 2025 • NextClass AI (operated at www.fetecart.in)
+                  Last updated: January 2025 • Nextclasses.in (operated at www.fetecart.in)
                 </p>
               </div>
 
@@ -340,7 +340,7 @@ export default function PolicyModal({
                 <div>
                   <h5 className="font-bold text-white text-sm mb-1.5">1. Acceptance of Terms</h5>
                   <p className="text-neutral-400">
-                    By browsing, accessing, or purchasing any program or product from NextClass AI (operated through <span className="text-cyan-400">www.fetecart.in</span>), you agree to comply with and be bound by these Terms and Conditions. If you disagree with any part of these terms, please do not use our service.
+                    By browsing, accessing, or purchasing any program or product from Nextclasses.in (operated through <span className="text-cyan-400">www.fetecart.in</span>), you agree to comply with and be bound by these Terms and Conditions. If you disagree with any part of these terms, please do not use our service.
                   </p>
                 </div>
 
@@ -354,7 +354,7 @@ export default function PolicyModal({
                 <div>
                   <h5 className="font-bold text-white text-sm mb-1.5">3. Intellectual Property</h5>
                   <p className="text-neutral-400">
-                    All curriculum designs, prompt frameworks, video recordings, slides, and proprietary guides are the intellectual property of NextClass AI and its creators. Enrolled students are granted a personal, non-exclusive, non-transferable license to use materials for their own educational and professional advancement. Reselling or distributing course content is unlawful.
+                    All curriculum designs, prompt frameworks, video recordings, slides, and proprietary guides are the intellectual property of Nextclasses.in and its creators. Enrolled students are granted a personal, non-exclusive, non-transferable license to use materials for their own educational and professional advancement. Reselling or distributing course content is unlawful.
                   </p>
                 </div>
 
@@ -384,7 +384,7 @@ export default function PolicyModal({
                   <span>Privacy Policy</span>
                 </h4>
                 <p className="text-xs text-neutral-400 mt-1">
-                  Last updated: January 2025 • NextClass AI (operated at www.fetecart.in)
+                  Last updated: January 2025 • Nextclasses.in (operated at www.fetecart.in)
                 </p>
               </div>
 
@@ -416,7 +416,7 @@ export default function PolicyModal({
                 <div>
                   <h5 className="font-bold text-white text-sm mb-1.5">4. Payment Security (Razorpay)</h5>
                   <p className="text-neutral-400">
-                    Financial transactions are processed via Razorpay Payments (India) Private Limited, an RBI-authorized payment aggregator compliant with PCI-DSS Level 1 security standards. NextClass AI does not collect or retain card numbers, CVVs, or Netbanking passwords.
+                    Financial transactions are processed via Razorpay Payments (India) Private Limited, an RBI-authorized payment aggregator compliant with PCI-DSS Level 1 security standards. Nextclasses.in does not collect or retain card numbers, CVVs, or Netbanking passwords.
                   </p>
                 </div>
               </div>
@@ -432,7 +432,7 @@ export default function PolicyModal({
                   <span>Cancellation and Refund Policy</span>
                 </h4>
                 <p className="text-xs text-neutral-400 mt-1">
-                  Last updated: January 2025 • NextClass AI (operated at www.fetecart.in)
+                  Last updated: January 2025 • Nextclasses.in (operated at www.fetecart.in)
                 </p>
               </div>
 
