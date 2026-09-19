@@ -1,0 +1,544 @@
+import { useState } from 'react';
+import { X, CheckCircle2, Clock, Globe, Calendar, Award, ChevronDown, ChevronUp, Sparkles, Shield, User, Play, ExternalLink, MessageCircle } from 'lucide-react';
+import { Course, CartItem } from '../types';
+
+function getCourseOfficialVideo(course: Course) {
+  // Autonomous AI Agents
+  if (course.id.includes('autonomous-ai-agents') || course.id.includes('agents')) {
+    return {
+      youtubeId: 'RObvOx_z0oQ',
+      company: 'LangChain & CrewAI',
+      title: 'Autonomous AI Agents & Multi-Agent Swarms with LangGraph & CrewAI',
+      watchUrl: 'https://www.youtube.com/watch?v=RObvOx_z0oQ',
+    };
+  }
+  // AI Video Filmmaking
+  if (course.id.includes('ai-video-filmmaking') || course.id.includes('video')) {
+    return {
+      youtubeId: 'IHOJUJjZbzc',
+      company: 'Runway & HeyGen Studio',
+      title: 'Cinematic AI Video Filmmaking, Voice Cloning & Digital Avatars Masterclass',
+      watchUrl: 'https://www.youtube.com/watch?v=IHOJUJjZbzc',
+    };
+  }
+  // DeepSeek R1 & Excel Financial Modeling
+  if (course.id.includes('deepseek-finance-excel') || course.id.includes('deepseek')) {
+    return {
+      youtubeId: 'yk9lXobJ95E',
+      company: 'DeepSeek & Microsoft Excel',
+      title: 'DeepSeek R1 Reasoning Tokens & Automated Excel Financial Modeling',
+      watchUrl: 'https://www.youtube.com/watch?v=yk9lXobJ95E',
+    };
+  }
+  // Voice AI & Realtime Telephony Calling Agents
+  if (course.id.includes('voice-ai-telephony') || course.id.includes('telephony')) {
+    return {
+      youtubeId: 'RObvOx_z0oQ',
+      company: 'Vapi & ElevenLabs',
+      title: 'Building Realtime Conversational Voice AI Telephony Calling Agents',
+      watchUrl: 'https://www.youtube.com/watch?v=RObvOx_z0oQ',
+    };
+  }
+  // Google AI Studio & Gemini
+  if (course.id.includes('google-ai-studio') || course.id.includes('google') || course.id.includes('gemini')) {
+    return {
+      youtubeId: 'IHOJUJjZbzc',
+      company: 'Google Cloud Tech (Official)',
+      title: 'Google AI Studio for Beginners & Gemini 2.0 Flash API Quickstart',
+      watchUrl: 'https://www.youtube.com/watch?v=IHOJUJjZbzc',
+    };
+  }
+  // ChatGPT & OpenAI 6-Course Masterclass
+  if (course.id.includes('chatgpt-6-openai') || course.id.includes('chatgpt') || course.id.includes('openai')) {
+    return {
+      youtubeId: 'WFM2pvj00oc',
+      company: 'OpenAI (Official)',
+      title: 'Introducing Custom GPTs, Advanced Prompting & Frontier Workflows',
+      watchUrl: 'https://www.youtube.com/watch?v=WFM2pvj00oc',
+    };
+  }
+  // Claude AI Masterclass
+  if (course.id.includes('claude-mastery') || course.id.includes('claude')) {
+    return {
+      youtubeId: 'WFM2pvj00oc',
+      company: 'Anthropic Claude (Official)',
+      title: 'Mastering Claude 3.7 Sonnet, Artifacts & Extended Context Thinking',
+      watchUrl: 'https://www.youtube.com/watch?v=WFM2pvj00oc',
+    };
+  }
+  // Cursor AI & GitHub Copilot
+  if (course.id.includes('cursor') || course.id.includes('coding')) {
+    return {
+      youtubeId: 'yk9lXobJ95E',
+      company: 'Cursor AI (Official)',
+      title: 'Cursor AI Code Editor Official Feature Walkthrough & Composer',
+      watchUrl: 'https://www.youtube.com/watch?v=yk9lXobJ95E',
+    };
+  }
+  // Midjourney & Visual Media
+  if (course.id.includes('midjourney') || course.id.includes('visuals') || course.id.includes('designer')) {
+    return {
+      youtubeId: 'WFM2pvj00oc',
+      company: 'Midjourney & Ideogram Studio',
+      title: 'Midjourney v6 & Ideogram 2.0: Commercial Graphic Design & Photorealism',
+      watchUrl: 'https://www.youtube.com/watch?v=WFM2pvj00oc',
+    };
+  }
+  // Zapier & AI Automations
+  if (course.id.includes('zapier') || course.id.includes('automation')) {
+    return {
+      youtubeId: 'RObvOx_z0oQ',
+      company: 'Zapier (Official)',
+      title: 'Zapier Tutorial for Beginners: Workflow Automations & Webhooks',
+      watchUrl: 'https://www.youtube.com/watch?v=RObvOx_z0oQ',
+    };
+  }
+  // GenAI for Beginners, Teachers, Students
+  if (course.id.includes('genai-beginners') || course.id.includes('teachers') || course.id.includes('students')) {
+    return {
+      youtubeId: 'IHOJUJjZbzc',
+      company: 'NextClass AI Academy',
+      title: 'Generative AI Guide for Beginners: Zero to Hero Practical Masterclass',
+      watchUrl: 'https://www.youtube.com/watch?v=IHOJUJjZbzc',
+    };
+  }
+  // English Fluency
+  if (course.id.includes('english-speaking') || course.id.includes('english-fluency')) {
+    return {
+      youtubeId: 'r5z_V-tLz4A',
+      company: 'BBC Learning English (Official)',
+      title: 'How to Speak English Fluently & Confidently - BBC Masterclass',
+      watchUrl: 'https://www.youtube.com/watch?v=r5z_V-tLz4A',
+    };
+  }
+  // French
+  if (course.id.includes('french')) {
+    return {
+      youtubeId: 'ujDtm0hZyII',
+      company: 'TV5MONDE & Easy French (Official)',
+      title: 'Learn French Spoken Fluency: Natural French Dialogues & Pronunciation',
+      watchUrl: 'https://www.youtube.com/watch?v=ujDtm0hZyII',
+    };
+  }
+  // German
+  if (course.id.includes('german')) {
+    return {
+      youtubeId: '4-rWPEqXy-M',
+      company: 'Deutsche Welle DW Learn German (Official)',
+      title: 'Nicos Weg: Complete Conversational German Course A1–B2',
+      watchUrl: 'https://www.youtube.com/watch?v=4-rWPEqXy-M',
+    };
+  }
+  // Public Speaking
+  if (course.id.includes('public-speaking') || course.id.includes('articulation')) {
+    return {
+      youtubeId: 'eIho2S0ZahI',
+      company: 'TED Talks & Toastmasters (Official)',
+      title: 'How to Speak so That People Want to Listen & Master Articulation',
+      watchUrl: 'https://www.youtube.com/watch?v=eIho2S0ZahI',
+    };
+  }
+  // NEET Medical Entrance
+  if (course.id.includes('neet') || course.id.includes('medical')) {
+    return {
+      youtubeId: 'mG9R0vjZqj0',
+      company: 'NextClass Medical Faculty (Official)',
+      title: 'NEET 2027: Biology 360/360 High-Yield NCERT Decoding & Speed Solving',
+      watchUrl: 'https://www.youtube.com/watch?v=mG9R0vjZqj0',
+    };
+  }
+  // IIT JEE Main & Advanced
+  if (course.id.includes('jee') || course.id.includes('iit')) {
+    return {
+      youtubeId: 'r5z_V-tLz4A',
+      company: 'NextClass JEE Advanced Wing (Official)',
+      title: 'IIT JEE 2027: Rotational Mechanics & Multi-Concept Calculus Sprint',
+      watchUrl: 'https://www.youtube.com/watch?v=r5z_V-tLz4A',
+    };
+  }
+  // KEAM Kerala Engineering
+  if (course.id.includes('keam')) {
+    return {
+      youtubeId: 'mG9R0vjZqj0',
+      company: 'NextClass Kerala Engineering (Official)',
+      title: 'KEAM 2027: 120 Questions Speed Solving & 3D Vectors Shortcut',
+      watchUrl: 'https://www.youtube.com/watch?v=mG9R0vjZqj0',
+    };
+  }
+  // Sainik School AISSEE
+  if (course.id.includes('sainik') || course.id.includes('aissee')) {
+    return {
+      youtubeId: 'IHOJUJjZbzc',
+      company: 'NextClass Defence Academy (Official)',
+      title: 'AISSEE Sainik School Exam Strategy: Mathematics & Intelligence Shortcuts',
+      watchUrl: 'https://www.youtube.com/watch?v=IHOJUJjZbzc',
+    };
+  }
+  // Navodaya Vidyalaya JNVST
+  if (course.id.includes('navodaya') || course.id.includes('jnvst')) {
+    return {
+      youtubeId: 'r5z_V-tLz4A',
+      company: 'NextClass Navodaya Wing (Official)',
+      title: 'JNVST Navodaya Vidyalaya: Mental Ability & Arithmetic Section Tricks',
+      watchUrl: 'https://www.youtube.com/watch?v=r5z_V-tLz4A',
+    };
+  }
+  // Default to Google Cloud Tech
+  return {
+    youtubeId: 'IHOJUJjZbzc',
+    company: 'NextClass AI Studio',
+    title: `${course.title} - Official Video Masterclass Preview`,
+    watchUrl: 'https://www.youtube.com/watch?v=IHOJUJjZbzc',
+  };
+}
+
+interface CourseModalProps {
+  course: Course | null;
+  onClose: () => void;
+  onAddToCart: (item: CartItem) => void;
+}
+
+export default function CourseModal({ course, onClose, onAddToCart }: CourseModalProps) {
+  const [expandedModules, setExpandedModules] = useState<Record<number, boolean>>({
+    1: true,
+    2: true,
+  });
+
+  if (!course) return null;
+
+  const toggleModule = (moduleNumber: number) => {
+    setExpandedModules((prev) => ({
+      ...prev,
+      [moduleNumber]: !prev[moduleNumber],
+    }));
+  };
+
+  const discountPercent =
+    course.originalPrice && course.originalPrice > course.price
+      ? Math.round(((course.originalPrice - course.price) / course.originalPrice) * 100)
+      : 0;
+
+  const handleEnroll = () => {
+    onAddToCart({
+      id: course.id,
+      itemType: 'course',
+      title: course.title,
+      price: course.price,
+      originalPrice: course.originalPrice,
+      thumbnail: course.thumbnail,
+      format: course.format,
+      category: course.category,
+    });
+    onClose();
+  };
+
+  return (
+    <div
+      id="course-syllabus-modal"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md overflow-y-auto"
+    >
+      <div className="relative w-full max-w-4xl max-h-[92vh] flex flex-col rounded-2xl bg-neutral-950 border border-neutral-800 text-white shadow-2xl overflow-hidden my-auto">
+        
+        {/* Sticky Header */}
+        <div className="sticky top-0 z-10 px-6 py-4 bg-neutral-950/95 backdrop-blur-md border-b border-neutral-800 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="px-2.5 py-0.5 rounded text-[11px] font-bold bg-orange-500/10 text-orange-400 border border-orange-500/30">
+              {course.format}
+            </span>
+            <span className="text-xs text-neutral-400 font-medium hidden sm:inline">
+              • {course.language}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors cursor-pointer"
+            aria-label="Close modal"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Scrollable Body */}
+        <div className="p-6 sm:p-8 overflow-y-auto space-y-8 divide-y divide-neutral-800/80">
+          
+          {/* Hero Details */}
+          <div className="space-y-4">
+            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight">
+              {course.title}
+            </h2>
+            <p className="text-sm sm:text-base text-neutral-300 leading-relaxed">
+              {course.subtitle}
+            </p>
+
+            {/* Quick Metadata Bar */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-xl bg-neutral-900 border border-neutral-800 text-xs">
+              <div>
+                <span className="text-neutral-500 block">Total Duration</span>
+                <span className="font-semibold text-white mt-0.5 flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5 text-amber-400" />
+                  {course.duration}
+                </span>
+              </div>
+              <div>
+                <span className="text-neutral-500 block">Delivery Medium</span>
+                <span className="font-semibold text-white mt-0.5 flex items-center gap-1">
+                  <Globe className="w-3.5 h-3.5 text-blue-400" />
+                  {course.language}
+                </span>
+              </div>
+              <div>
+                <span className="text-neutral-500 block">Course Access</span>
+                <span className="font-semibold text-emerald-400 mt-0.5 flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  Instant • Self-Paced
+                </span>
+              </div>
+              <div>
+                <span className="text-neutral-500 block">Certification</span>
+                <span className="font-semibold text-emerald-400 mt-0.5 flex items-center gap-1">
+                  <Award className="w-3.5 h-3.5 text-emerald-400" />
+                  Official Certificate
+                </span>
+              </div>
+            </div>
+
+            {/* Course Video Preview / Trailer */}
+            <div className="pt-2">
+              {(() => {
+                const officialVideo = getCourseOfficialVideo(course);
+                return (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-2 px-1">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-600/15 text-red-400 border border-red-500/30 text-xs font-bold">
+                          <Play className="w-3 h-3 fill-red-400" />
+                          Official YouTube Masterclass Preview
+                        </span>
+                        <span className="text-xs text-neutral-400 hidden sm:inline">Play sample lesson directly below</span>
+                      </div>
+                      <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded">
+                        HD 1080p Stream
+                      </span>
+                    </div>
+
+                    <div className="relative aspect-16/9 rounded-xl bg-black border border-neutral-800 overflow-hidden shadow-xl">
+                      <iframe
+                        src={`https://www.youtube-nocookie.com/embed/${officialVideo.youtubeId}?rel=0&modestbranding=1`}
+                        title={officialVideo.title}
+                        className="w-full h-full border-0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowFullScreen
+                      />
+                    </div>
+                    <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] font-semibold bg-neutral-900 px-2.5 py-1 rounded-md text-orange-400 border border-neutral-700">
+                          {officialVideo.company}
+                        </span>
+                        <span className="text-xs text-neutral-400 truncate max-w-[240px] sm:max-w-xs">
+                          {officialVideo.title}
+                        </span>
+                      </div>
+                      <a
+                        href={officialVideo.watchUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-semibold shadow transition-colors cursor-pointer"
+                      >
+                        <Play className="w-3 h-3 fill-current" />
+                        <span>Watch on YouTube</span>
+                        <ExternalLink className="w-3 h-3 opacity-80" />
+                      </a>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+
+          {/* Tools Covered */}
+          <div className="pt-6 space-y-3">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+              Tools & Technologies Mastered
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {course.toolsCovered.map((tool) => (
+                <span
+                  key={tool}
+                  className="px-3 py-1 rounded-lg bg-neutral-900 border border-neutral-700 text-xs font-medium text-white shadow-xs"
+                >
+                  {tool}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Syllabus Modules */}
+          <div className="pt-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-white tracking-tight">Complete Course Curriculum</h3>
+                <p className="text-xs text-neutral-400">Structured step-by-step from zero foundations to live capstone implementation.</p>
+              </div>
+              <span className="text-xs font-mono text-neutral-500 hidden sm:inline">
+                {course.curriculum.length} Modules
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              {course.curriculum.map((mod) => {
+                const isExpanded = !!expandedModules[mod.moduleNumber];
+
+                return (
+                  <div
+                    key={mod.moduleNumber}
+                    className="rounded-xl bg-neutral-900 border border-neutral-800 overflow-hidden"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => toggleModule(mod.moduleNumber)}
+                      className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-neutral-850 transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="w-7 h-7 rounded-md bg-neutral-800 text-amber-400 text-xs font-bold flex items-center justify-center">
+                          0{mod.moduleNumber}
+                        </span>
+                        <div>
+                          <span className="font-bold text-sm text-white block">
+                            {mod.title}
+                          </span>
+                          <span className="text-[11px] text-neutral-400">
+                            {mod.lessons.length} Lessons • {mod.duration}
+                          </span>
+                        </div>
+                      </div>
+
+                      {isExpanded ? (
+                        <ChevronUp className="w-4 h-4 text-neutral-400" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 text-neutral-400" />
+                      )}
+                    </button>
+
+                    {isExpanded && (
+                      <div className="px-5 pb-4 pt-1 bg-neutral-950/60 border-t border-neutral-800/60">
+                        <ul className="space-y-2">
+                          {mod.lessons.map((lesson, idx) => (
+                            <li key={idx} className="flex items-start gap-2.5 text-xs text-neutral-300">
+                              <span className="w-1.5 h-1.5 rounded-full bg-orange-400 mt-1.5 shrink-0" />
+                              <span>{lesson}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Instructor Profile */}
+          <div className="pt-6 space-y-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+              Your Lead Instructor
+            </h3>
+            <div className="p-5 rounded-xl bg-neutral-900 border border-neutral-800 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <img
+                src={course.instructor.avatar}
+                alt={course.instructor.name}
+                className="w-14 h-14 rounded-full object-cover border-2 border-orange-500/40"
+                referrerPolicy="no-referrer"
+              />
+              <div className="space-y-1 flex-1">
+                <div className="flex items-center gap-2">
+                  <h4 className="font-bold text-white text-base">{course.instructor.name}</h4>
+                  <span className="text-xs text-amber-400 font-medium">({course.instructor.role})</span>
+                </div>
+                <p className="text-xs text-neutral-300 leading-relaxed">{course.instructor.bio}</p>
+                <div className="text-[11px] text-neutral-500 font-medium pt-0.5">{course.instructor.credentials}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Target Audience & Inclusions */}
+          <div className="pt-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-400">Who This Course Is For</h4>
+              <ul className="space-y-1.5 text-xs text-neutral-300">
+                {course.targetAudience.map((item, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-400">Everything Included</h4>
+              <ul className="space-y-1.5 text-xs text-neutral-300">
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Lifetime access to student dashboard & recordings</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>VIP WhatsApp batch group for live doubt clearing</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Downloadable prompt sheets, templates & cheat sheets</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Verifiable Certificate of Completion</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Sticky Enrollment Footer */}
+        <div className="sticky bottom-0 z-10 p-4 sm:px-8 bg-neutral-950/95 backdrop-blur-md border-t border-neutral-800 flex items-center justify-between gap-4">
+          <div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-black text-white">₹{course.price}</span>
+              <span className="text-sm line-through text-neutral-500">₹{course.originalPrice}</span>
+              {discountPercent > 0 && (
+                <span className="text-xs font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800">
+                  {discountPercent}% OFF
+                </span>
+              )}
+            </div>
+            <span className="text-[11px] text-neutral-400">No hidden fees • Full course + Certificate</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <a
+              href={`https://wa.me/918281644058?text=${encodeURIComponent(`Hi NextClass AI, I have questions about the "${course.title}" course.`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-emerald-950/80 border border-emerald-800 text-emerald-400 hover:bg-emerald-900 text-xs font-semibold transition-colors"
+              title="Chat with Counselor on WhatsApp (+91 82816 44058)"
+            >
+              <MessageCircle className="w-3.5 h-3.5" />
+              <span>Ask on WhatsApp</span>
+            </a>
+            <button
+              id="modal-enroll-now-btn"
+              type="button"
+              onClick={handleEnroll}
+              className="px-6 sm:px-8 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-neutral-950 font-bold text-sm hover:opacity-90 transition-all shadow-lg shadow-orange-500/20 cursor-pointer"
+            >
+              Enroll & Start Instantly
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}

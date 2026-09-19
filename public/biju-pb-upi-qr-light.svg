@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 520" width="100%" height="100%">
+  <defs>
+    <style>
+      .name-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 28px; font-weight: 800; fill: #ffffff; letter-spacing: 2px; }
+      .upi-prefix { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 20px; font-weight: 600; fill: #94a3b8; }
+      .upi-id { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 22px; font-weight: 800; fill: #ffffff; }
+    </style>
+  </defs>
+
+  <rect width="420" height="520" rx="32" fill="#151b27" />
+  <text x="210" y="65" text-anchor="middle" class="name-title">NEXTCLASS AI</text>
+
+  <rect x="50" y="100" width="320" height="320" rx="26" fill="#212836" stroke="#2e384d" stroke-width="2" />
+  <rect x="68" y="118" width="284" height="284" rx="18" fill="#ffffff" />
+
+  <g transform="translate(74, 124) scale(5.16)">
+    <path fill="#ffffff" d="M0 0h51v51H0z"/>
+<path stroke="#000000" d="M1 1.5h7m3 0h1m1 0h2m5 0h2m1 0h3m2 0h1m2 0h4m6 0h1m1 0h7M1 2.5h1m5 0h1m1 0h1m3 0h3m1 0h2m3 0h1m1 0h1m3 0h1m1 0h1m1 0h1m2 0h3m1 0h3m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m3 0h1m1 0h1m1 0h5m2 0h1m4 0h1m1 0h1m1 0h5m1 0h2m1 0h2m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m2 0h1m2 0h1m2 0h1m2 0h4m2 0h2m1 0h4m2 0h2m4 0h1m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m2 0h1m3 0h2m2 0h3m2 0h5m3 0h2m3 0h1m6 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h3m2 0h2m2 0h3m1 0h2m3 0h1m2 0h3m3 0h1m1 0h2m3 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M9 8.5h4m1 0h1m2 0h1m3 0h3m3 0h2m1 0h3m1 0h1m1 0h1m1 0h1m1 0h1M5 9.5h4m2 0h1m1 0h2m1 0h1m1 0h1m3 0h6m3 0h2m2 0h2m1 0h3m2 0h2m3 0h1M3 10.5h1m6 0h3m1 0h4m1 0h3m1 0h1m2 0h1m2 0h1m1 0h2m2 0h1m3 0h1m1 0h1m2 0h1m2 0h1m1 0h1M1 11.5h4m1 0h3m1 0h1m2 0h5m3 0h2m2 0h2m1 0h1m1 0h4m1 0h1m1 0h1m2 0h2m3 0h3m1 0h1M2 12.5h5m1 0h1m1 0h1m2 0h2m3 0h2m9 0h1m1 0h5m3 0h4m2 0h2m1 0h1M1 13.5h1m2 0h2m1 0h1m2 0h1m1 0h2m3 0h2m1 0h1m3 0h2m1 0h3m2 0h1m2 0h1m2 0h1m1 0h2m2 0h2m2 0h1M2 14.5h4m3 0h1m1 0h1m6 0h1m2 0h1m2 0h1m1 0h1m1 0h2m4 0h1m4 0h2m1 0h1m1 0h1m1 0h2M1 15.5h1m1 0h3m1 0h1m1 0h2m2 0h1m1 0h4m1 0h4m2 0h1m6 0h4m2 0h1m2 0h3m1 0h1m2 0h1M1 16.5h1m2 0h1m1 0h1m1 0h3m3 0h2m1 0h1m2 0h1m1 0h4m5 0h2m1 0h2m1 0h1m6 0h1m3 0h2M5 17.5h1m1 0h1m1 0h5m1 0h2m5 0h1m1 0h1m1 0h1m2 0h3m2 0h1m1 0h2m1 0h1m4 0h2m1 0h3M2 18.5h1m1 0h2m2 0h3m5 0h3m2 0h5m1 0h2m1 0h1m1 0h1m4 0h6m2 0h2M1 19.5h5m1 0h1m1 0h1m1 0h1m2 0h1m2 0h1m1 0h1m1 0h3m9 0h1m1 0h1m1 0h2m1 0h1m1 0h1m2 0h1m1 0h2M3 20.5h1m4 0h2m2 0h5m1 0h2m1 0h2m1 0h2m1 0h1m2 0h3m1 0h2m1 0h1m4 0h4m1 0h2M1 21.5h3m3 0h2m2 0h1m3 0h1m1 0h2m2 0h3m2 0h4m3 0h1m4 0h2m4 0h4m1 0h1M1 22.5h1m2 0h2m3 0h2m1 0h2m4 0h1m1 0h2m1 0h1m2 0h2m1 0h3m2 0h1m4 0h2m2 0h1m1 0h1m1 0h2M3 23.5h7m4 0h2m1 0h4m2 0h9m1 0h2m2 0h1m1 0h7M1 24.5h1m1 0h3m3 0h1m1 0h1m1 0h2m6 0h3m3 0h2m1 0h1m4 0h2m1 0h1m2 0h1m3 0h3M2 25.5h2m1 0h1m1 0h1m1 0h2m2 0h2m1 0h1m3 0h4m1 0h1m1 0h1m1 0h3m3 0h7m1 0h1m1 0h4M3 26.5h3m3 0h1m2 0h1m6 0h5m3 0h6m5 0h2m1 0h1m3 0h1m2 0h2M5 27.5h7m1 0h2m2 0h1m2 0h1m1 0h6m2 0h4m6 0h6m3 0h1M2 28.5h2m1 0h1m2 0h1m1 0h2m1 0h1m1 0h1m1 0h1m1 0h1m1 0h2m1 0h2m1 0h2m1 0h2m2 0h2m1 0h3m1 0h3m1 0h1m2 0h2M7 29.5h3m7 0h7m1 0h2m5 0h1m1 0h1m2 0h4m3 0h1m1 0h1m1 0h2M1 30.5h1m2 0h3m3 0h3m3 0h2m2 0h1m2 0h1m3 0h1m1 0h1m1 0h4m1 0h4m1 0h3m2 0h1M2 31.5h3m1 0h3m2 0h6m2 0h3m2 0h2m2 0h2m1 0h1m2 0h1m1 0h2m3 0h1m4 0h1m2 0h1M1 32.5h2m1 0h2m3 0h2m1 0h1m3 0h1m7 0h1m1 0h4m1 0h2m5 0h2m4 0h1m3 0h1M3 33.5h1m3 0h1m1 0h1m2 0h1m2 0h1m1 0h1m1 0h3m3 0h1m3 0h1m2 0h2m3 0h4m2 0h3m1 0h1m1 0h1M1 34.5h1m1 0h1m1 0h1m2 0h3m2 0h1m2 0h2m2 0h1m4 0h2m1 0h1m4 0h5m2 0h2m1 0h1m2 0h1m2 0h1M1 35.5h1m1 0h2m2 0h1m5 0h1m3 0h2m1 0h1m1 0h6m2 0h1m3 0h3m2 0h4m3 0h1M1 36.5h4m1 0h1m5 0h3m2 0h2m1 0h1m2 0h3m2 0h1m1 0h1m2 0h2m1 0h1m1 0h1m1 0h1m4 0h1m2 0h1M1 37.5h4m1 0h2m1 0h3m2 0h1m1 0h2m4 0h2m7 0h1m1 0h1m1 0h1m2 0h2m3 0h1m2 0h1m1 0h2M2 38.5h2m1 0h1m2 0h1m1 0h3m1 0h1m1 0h2m2 0h2m1 0h1m1 0h1m4 0h1m1 0h3m2 0h1m1 0h1m5 0h1m1 0h1m1 0h1M2 39.5h1m3 0h2m3 0h1m1 0h1m1 0h1m2 0h2m2 0h6m4 0h1m1 0h1m1 0h1m2 0h1m1 0h3m1 0h2m1 0h1M2 40.5h3m3 0h6m1 0h1m1 0h1m1 0h1m2 0h1m1 0h2m1 0h1m1 0h1m1 0h3m4 0h2m1 0h1m3 0h1m3 0h1M1 41.5h3m3 0h1m1 0h1m3 0h2m8 0h5m2 0h1m4 0h2m1 0h1m2 0h5m1 0h3M9 42.5h1m1 0h1m1 0h2m3 0h1m2 0h3m3 0h2m3 0h1m1 0h2m1 0h1m2 0h2m3 0h1m2 0h2M1 43.5h7m1 0h1m1 0h1m1 0h2m1 0h1m6 0h1m1 0h1m1 0h1m1 0h3m1 0h5m3 0h1m1 0h1m1 0h4M1 44.5h1m5 0h1m1 0h1m1 0h4m3 0h3m2 0h1m3 0h1m2 0h1m3 0h3m4 0h1m3 0h1m1 0h1M1 45.5h1m1 0h3m1 0h1m1 0h1m2 0h3m2 0h2m1 0h1m2 0h6m1 0h2m1 0h2m1 0h1m2 0h7m1 0h2M1 46.5h1m1 0h3m1 0h1m2 0h1m1 0h5m1 0h1m1 0h2m3 0h2m4 0h3m3 0h1m1 0h1m2 0h6m1 0h1M1 47.5h1m1 0h3m1 0h1m3 0h3m2 0h6m5 0h4m2 0h1m2 0h1m1 0h6m2 0h3M1 48.5h1m5 0h1m2 0h1m1 0h1m1 0h4m1 0h1m1 0h1m4 0h1m3 0h2m1 0h4m1 0h1m1 0h1m2 0h1m1 0h4M1 49.5h7m2 0h1m1 0h2m1 0h1m3 0h1m1 0h4m2 0h1m1 0h1m3 0h1m1 0h1m2 0h1m2 0h1m2 0h2m1 0h3"/>
+  </g>
+
+  <!-- HDFC Bank Center Emblem -->
+  <g transform="translate(182, 232)">
+    <rect x="-4" y="-4" width="64" height="64" rx="10" fill="#ffffff" />
+    <rect x="0" y="0" width="56" height="56" rx="6" fill="#da291c" />
+    <rect x="0" y="19" width="56" height="18" fill="#ffffff" />
+    <rect x="19" y="0" width="18" height="56" fill="#ffffff" />
+    <rect x="16" y="16" width="24" height="24" rx="3" fill="#004c8f" />
+  </g>
+
+  <g transform="translate(210, 472)">
+    <text text-anchor="middle">
+      <tspan class="upi-prefix">» UPI ID: </tspan>
+      <tspan class="upi-id">8281644058@hdfc</tspan>
+    </text>
+  </g>
+</svg>
