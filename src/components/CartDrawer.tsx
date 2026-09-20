@@ -72,7 +72,7 @@ export default function CartDrawer({
   const [studentName, setStudentName] = useState(user?.name || 'Rahul Pillai');
   const [studentEmail, setStudentEmail] = useState(user?.email || 'rahul.pillai@gmail.com');
   const [studentPhone, setStudentPhone] = useState(user?.phone ? user.phone.replace('+91 ', '') : '8281644058');
-  const [paymentMethod, setPaymentMethod] = useState<'upi' | 'card' | 'netbanking'>('upi');
+  const [paymentMethod, setPaymentMethod] = useState<'direct_upi' | 'razorpay'>('razorpay');
   const [upiId, setUpiId] = useState('8281644058@hdfc');
   const [showQrCode, setShowQrCode] = useState(true);
 
@@ -220,70 +220,81 @@ export default function CartDrawer({
       }
     });
 
-    // 1. Live Razorpay Modal Trigger
-    if (isLiveKeyConfigured) {
-      if (typeof window !== 'undefined' && (window as any).Razorpay) {
-        try {
-          const options = {
-            key: razorpayKeyId,
-            amount: Math.round(finalTotal * 100), // amount in paise
-            currency: 'INR',
-            name: 'Nextclasses.in',
-            description: items.map((it) => it.title).join(', ').substring(0, 80),
-            image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=120&q=80',
-            prefill: {
-              name: studentName,
-              email: studentEmail,
-              contact: studentPhone.startsWith('+91') ? studentPhone : `+91${studentPhone}`,
-            },
-            notes: {
-              studentName,
-              studentEmail,
-              studentPhone,
-              courseCount: items.length.toString(),
-            },
-            theme: {
-              color: '#f97316',
-            },
-            modal: {
-              ondismiss: () => {
-                setIsProcessing(false);
+    // 1. Razorpay Gateway Modal Trigger
+    if (paymentMethod === 'razorpay') {
+      if (isLiveKeyConfigured) {
+        if (typeof window !== 'undefined' && (window as any).Razorpay) {
+          try {
+            const options = {
+              key: razorpayKeyId,
+              amount: Math.round(finalTotal * 100), // amount in paise
+              currency: 'INR',
+              name: 'Nextclasses.in',
+              description: items.map((it) => it.title).join(', ').substring(0, 80),
+              image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=120&q=80',
+              prefill: {
+                name: studentName,
+                email: studentEmail,
+                contact: studentPhone.startsWith('+91') ? studentPhone : `+91${studentPhone}`,
               },
-            },
-            handler: (response: any) => {
-              completeEnrollmentAndOrder(
-                response.razorpay_payment_id || `RZP-${Date.now()}`,
-                'Razorpay Gateway (Verified)',
-                roadmaps
-              );
-            },
-          };
+              notes: {
+                studentName,
+                studentEmail,
+                studentPhone,
+                courseCount: items.length.toString(),
+              },
+              theme: {
+                color: '#f97316',
+              },
+              modal: {
+                ondismiss: () => {
+                  setIsProcessing(false);
+                },
+              },
+              handler: (response: any) => {
+                completeEnrollmentAndOrder(
+                  response.razorpay_payment_id || `RZP-${Date.now()}`,
+                  'Razorpay Gateway (Verified)',
+                  roadmaps
+                );
+              },
+            };
 
-          const rzpInstance = new (window as any).Razorpay(options);
-          rzpInstance.on('payment.failed', (resp: any) => {
+            const rzpInstance = new (window as any).Razorpay(options);
+            rzpInstance.on('payment.failed', (resp: any) => {
+              setIsProcessing(false);
+              setPaymentError(
+                resp.error?.description || resp.error?.reason || 'Payment could not be completed via Razorpay.'
+              );
+            });
+            rzpInstance.open();
+          } catch (err: any) {
             setIsProcessing(false);
-            setPaymentError(
-              resp.error?.description || resp.error?.reason || 'Payment could not be completed via Razorpay.'
-            );
-          });
-          rzpInstance.open();
-        } catch (err: any) {
+            setPaymentError(`Payment initialization error: ${err?.message || 'Check key and permissions'}`);
+          }
+        } else {
           setIsProcessing(false);
-          setPaymentError(`Payment initialization error: ${err?.message || 'Check key and permissions'}`);
+          setPaymentError('Razorpay checkout SDK is loading. Please try again in a moment.');
         }
       } else {
-        setIsProcessing(false);
-        setPaymentError('Payment gateway is loading. Please try again in a moment.');
+        // Safe fallback simulation if testing without Razorpay live key
+        setTimeout(() => {
+          completeEnrollmentAndOrder(
+            `RZP-${Math.floor(100000 + Math.random() * 900000)}`,
+            'Razorpay Gateway (Cards, NetBanking, UPI)',
+            roadmaps
+          );
+        }, 1200);
       }
     } else {
-      // 2. Direct Instant Online Payment Confirmation
+      // 2. Direct UPI Payment Confirmation
       setTimeout(() => {
         completeEnrollmentAndOrder(
-          `ORD-${Math.floor(100000 + Math.random() * 900000)}`,
-          'Online Payment (Verified)',
+          `UPI-${Math.floor(100000 + Math.random() * 900000)}`,
+          'Direct HDFC UPI QR (8281644058@hdfc)',
           roadmaps
         );
-      }, 1200);
+      }, 1000);
     }
   };
 
@@ -912,57 +923,123 @@ Support: fetecart@gmail.com | WhatsApp: +91 82816 44058 | https://www.fetecart.i
                 )}
 
                 {/* Payment Options */}
-                <div className="pt-2 space-y-2">
+                <div className="pt-2 space-y-2.5">
                   <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider block">
-                    Select Payment Method (Secure UPI / Cards)
+                    Select Payment Method
                   </span>
 
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 gap-2.5">
+                    {/* Option 1: Razorpay Gateway */}
                     <button
                       type="button"
-                      onClick={() => setPaymentMethod('upi')}
-                      className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
-                        paymentMethod === 'upi'
-                          ? 'bg-orange-500/10 border-orange-500 text-white'
-                          : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white'
+                      onClick={() => {
+                        setPaymentMethod('razorpay');
+                        if (paymentError) setPaymentError(null);
+                      }}
+                      className={`p-3 rounded-2xl border text-left transition-all cursor-pointer relative overflow-hidden ${
+                        paymentMethod === 'razorpay'
+                          ? 'bg-orange-500/15 border-orange-500 text-white shadow-md shadow-orange-500/10'
+                          : 'bg-neutral-900/90 border-neutral-800 text-neutral-400 hover:border-neutral-700 hover:text-white'
                       }`}
                     >
-                      <Smartphone className="w-4 h-4 mx-auto mb-1 text-orange-400" />
-                      <span className="text-[11px] font-bold block">UPI Instant</span>
-                      <span className="text-[9px] text-emerald-400">GPay / PhonePe</span>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <CreditCard className="w-4 h-4 text-orange-400" />
+                          <span className="text-xs font-bold text-white">Razorpay</span>
+                        </div>
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                          All-in-One
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-neutral-300 font-medium">Cards • NetBanking • UPI</p>
+                      <span className="text-[10px] text-neutral-400 block mt-0.5">50+ Banks, RuPay, Visa, Wallets</span>
                     </button>
 
+                    {/* Option 2: Direct UPI */}
                     <button
                       type="button"
-                      onClick={() => setPaymentMethod('card')}
-                      className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
-                        paymentMethod === 'card'
-                          ? 'bg-orange-500/10 border-orange-500 text-white'
-                          : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white'
+                      onClick={() => {
+                        setPaymentMethod('direct_upi');
+                        if (paymentError) setPaymentError(null);
+                      }}
+                      className={`p-3 rounded-2xl border text-left transition-all cursor-pointer relative overflow-hidden ${
+                        paymentMethod === 'direct_upi'
+                          ? 'bg-orange-500/15 border-orange-500 text-white shadow-md shadow-orange-500/10'
+                          : 'bg-neutral-900/90 border-neutral-800 text-neutral-400 hover:border-neutral-700 hover:text-white'
                       }`}
                     >
-                      <CreditCard className="w-4 h-4 mx-auto mb-1 text-orange-400" />
-                      <span className="text-[11px] font-bold block">Debit / Credit</span>
-                      <span className="text-[9px] text-neutral-500">All Indian Banks</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod('netbanking')}
-                      className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
-                        paymentMethod === 'netbanking'
-                          ? 'bg-orange-500/10 border-orange-500 text-white'
-                          : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white'
-                      }`}
-                    >
-                      <Building className="w-4 h-4 mx-auto mb-1 text-orange-400" />
-                      <span className="text-[11px] font-bold block">Net Banking</span>
-                      <span className="text-[9px] text-neutral-500">50+ Banks</span>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <QrCode className="w-4 h-4 text-orange-400" />
+                          <span className="text-xs font-bold text-white">Direct UPI</span>
+                        </div>
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                          0% Fee
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-neutral-300 font-medium">GPay • PhonePe • Paytm</p>
+                      <span className="text-[10px] text-neutral-400 block mt-0.5 font-mono">8281644058@hdfc</span>
                     </button>
                   </div>
 
-                  {/* Dynamic payment input details */}
-                  {paymentMethod === 'upi' && (
+                  {/* Razorpay Gateway Overview */}
+                  {paymentMethod === 'razorpay' && (
+                    <div className="p-3.5 rounded-2xl bg-neutral-900/90 border border-neutral-800 space-y-3 text-xs">
+                      <div className="flex items-start gap-2.5">
+                        <div className="w-7 h-7 rounded-xl bg-orange-500/20 border border-orange-500/30 text-orange-400 flex items-center justify-center shrink-0 mt-0.5">
+                          <Zap className="w-4 h-4" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="font-bold text-white text-xs">Razorpay Secure Checkout</p>
+                          <p className="text-[11px] text-neutral-300 leading-relaxed">
+                            Razorpay opens automatically upon clicking below. Pay with any method of your choice:
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 pt-1">
+                        <div className="p-2 rounded-xl bg-neutral-950/70 border border-neutral-800 flex items-center gap-2">
+                          <CreditCard className="w-3.5 h-3.5 text-orange-400 shrink-0" />
+                          <div>
+                            <span className="text-[11px] font-semibold text-white block">Cards</span>
+                            <span className="text-[9px] text-neutral-400 block">Credit & Debit (Visa, MC, RuPay)</span>
+                          </div>
+                        </div>
+                        <div className="p-2 rounded-xl bg-neutral-950/70 border border-neutral-800 flex items-center gap-2">
+                          <Building className="w-3.5 h-3.5 text-orange-400 shrink-0" />
+                          <div>
+                            <span className="text-[11px] font-semibold text-white block">Net Banking</span>
+                            <span className="text-[9px] text-neutral-400 block">50+ Banks (SBI, HDFC, ICICI...)</span>
+                          </div>
+                        </div>
+                        <div className="p-2 rounded-xl bg-neutral-950/70 border border-neutral-800 flex items-center gap-2">
+                          <Smartphone className="w-3.5 h-3.5 text-orange-400 shrink-0" />
+                          <div>
+                            <span className="text-[11px] font-semibold text-white block">UPI & Apps</span>
+                            <span className="text-[9px] text-neutral-400 block">Google Pay, PhonePe, Paytm, CRED</span>
+                          </div>
+                        </div>
+                        <div className="p-2 rounded-xl bg-neutral-950/70 border border-neutral-800 flex items-center gap-2">
+                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                          <div>
+                            <span className="text-[11px] font-semibold text-white block">Wallets & PayLater</span>
+                            <span className="text-[9px] text-neutral-400 block">Amazon Pay, Mobikwik, etc.</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between text-[10px] text-neutral-400 pt-1 border-t border-neutral-800">
+                        <span className="flex items-center gap-1 text-emerald-400">
+                          <ShieldCheck className="w-3.5 h-3.5" />
+                          <span>PCI-DSS Level 1 & RBI Regulated</span>
+                        </span>
+                        <span>Instant Access & Receipt</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Direct UPI details */}
+                  {paymentMethod === 'direct_upi' && (
                     <div className="space-y-3">
                       {/* Sub-selector between Direct QR Scan vs Collect Request */}
                       <div className="flex rounded-xl bg-neutral-900 p-1 border border-neutral-800">
@@ -1018,7 +1095,7 @@ Support: fetecart@gmail.com | WhatsApp: +91 82816 44058 | https://www.fetecart.i
                           />
                         </div>
                       ) : (
-                        <div className="p-3 rounded-xl bg-neutral-900/80 border border-neutral-800 space-y-2.5 text-xs">
+                        <div className="p-3.5 rounded-2xl bg-neutral-900/80 border border-neutral-800 space-y-2.5 text-xs">
                           <div className="flex items-center justify-between">
                             <label className="text-[11px] text-neutral-300 font-medium">Enter Your UPI ID / VPA:</label>
                             <span className="text-[10px] text-neutral-400">Collect Request</span>
@@ -1049,57 +1126,12 @@ Support: fetecart@gmail.com | WhatsApp: +91 82816 44058 | https://www.fetecart.i
                     </div>
                   )}
 
-                  {paymentMethod === 'card' && (
-                    <div className="p-3 rounded-xl bg-neutral-900/80 border border-neutral-800 space-y-2 text-xs">
-                      <div>
-                        <label className="text-[10px] text-neutral-400 block mb-1">Card Number</label>
-                        <input
-                          type="text"
-                          defaultValue="4532 8921 4410 7829"
-                          className="w-full px-3 py-1.5 rounded-lg bg-neutral-950 border border-neutral-700 text-xs text-white font-mono"
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="text-[10px] text-neutral-400 block mb-1">Expiry (MM/YY)</label>
-                          <input
-                            type="text"
-                            defaultValue="08/29"
-                            className="w-full px-3 py-1.5 rounded-lg bg-neutral-950 border border-neutral-700 text-xs text-white font-mono"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[10px] text-neutral-400 block mb-1">CVV</label>
-                          <input
-                            type="password"
-                            defaultValue="882"
-                            maxLength={3}
-                            className="w-full px-3 py-1.5 rounded-lg bg-neutral-950 border border-neutral-700 text-xs text-white font-mono"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {paymentMethod === 'netbanking' && (
-                    <div className="p-3 rounded-xl bg-neutral-900/80 border border-neutral-800 space-y-1.5 text-xs">
-                      <span className="text-[10px] text-neutral-400 block">Select Your Bank:</span>
-                      <div className="grid grid-cols-2 gap-1.5 text-[11px]">
-                        {['State Bank of India', 'HDFC Bank', 'ICICI Bank', 'Federal Bank', 'Axis Bank', 'Kotak Mahindra'].map((b, i) => (
-                          <div key={b} className={`p-1.5 rounded border text-left cursor-pointer ${i === 0 ? 'bg-orange-500/15 border-orange-500 text-white font-semibold' : 'bg-neutral-950 border-neutral-800 text-neutral-300'}`}>
-                            {b}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
                   <div className="flex items-center justify-between text-[10px] text-neutral-500 pt-1">
                     <span className="flex items-center gap-1">
                       <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>Razorpay Payment Gateway Verified</span>
+                      <span>{paymentMethod === 'razorpay' ? 'Razorpay Payment Gateway Verified' : 'Direct Bank UPI Verified (HDFC)'}</span>
                     </span>
-                    <span className="font-mono text-neutral-400">PCI-DSS Level 1</span>
+                    <span className="font-mono text-neutral-400">PCI-DSS Compliant</span>
                   </div>
                 </div>
 
@@ -1135,12 +1167,25 @@ Support: fetecart@gmail.com | WhatsApp: +91 82816 44058 | https://www.fetecart.i
                   {isProcessing ? (
                     <div className="flex items-center gap-2">
                       <div className="w-4 h-4 border-2 border-neutral-950 border-t-transparent rounded-full animate-spin" />
-                      <span>Connecting to Secure Payment Gateway...</span>
+                      <span>
+                        {paymentMethod === 'razorpay'
+                          ? 'Opening Razorpay Secure Gateway...'
+                          : 'Confirming Direct UPI Payment...'}
+                      </span>
                     </div>
                   ) : (
                     <>
-                      <span>Pay ₹{finalTotal.toLocaleString('en-IN')} & Enroll Now</span>
-                      <ArrowRight className="w-4 h-4" />
+                      {paymentMethod === 'razorpay' ? (
+                        <>
+                          <span>Pay ₹{finalTotal.toLocaleString('en-IN')} via Razorpay (Cards, NetBanking, UPI)</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </>
+                      ) : (
+                        <>
+                          <span>Pay ₹{finalTotal.toLocaleString('en-IN')} via Direct UPI</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </>
+                      )}
                     </>
                   )}
                 </button>

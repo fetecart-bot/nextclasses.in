@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
-import { X, Lock, KeyRound, Eye, EyeOff, ShieldCheck, LogOut, Loader2, Award, QrCode } from 'lucide-react';
+import { X, Lock, KeyRound, Eye, EyeOff, ShieldCheck, LogOut, Loader2, BookOpen, QrCode } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { COURSES_DATA } from '../data';
 
 interface StudentAuthModalProps {
   onClose?: () => void;
@@ -12,7 +13,7 @@ export default function StudentAuthModal({ onClose, onSuccess }: StudentAuthModa
 
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
-  const [standard, setStandard] = useState<'class-6' | 'class-9'>('class-6');
+  const [selectedCourseId, setSelectedCourseId] = useState(COURSES_DATA[0]?.id || 'course-aissee-sainik-6');
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,7 +39,7 @@ export default function StudentAuthModal({ onClose, onSuccess }: StudentAuthModa
     }
 
     setIsSubmitting(true);
-    const res = loginWithCredentials(cleanId, cleanPass, standard);
+    const res = loginWithCredentials(cleanId, cleanPass, selectedCourseId);
     setIsSubmitting(false);
 
     if (res.success) {
@@ -121,40 +122,28 @@ export default function StudentAuthModal({ onClose, onSuccess }: StudentAuthModa
               </div>
             </div>
 
-            {/* Standard / Class Selection */}
-            <div>
-              <label className="text-[11px] font-bold text-neutral-300 uppercase tracking-wider block mb-1.5 flex items-center justify-between">
-                <span className="flex items-center gap-1">
-                  <Award className="w-3.5 h-3.5 text-orange-400" />
-                  Select Class / Target Standard
-                </span>
-                <span className="text-[10px] text-orange-400 font-semibold">AISSEE 2027</span>
+            {/* Course Selection Dropdown */}
+            <div className="space-y-1">
+              <label htmlFor="auth-course-select" className="text-xs font-medium text-neutral-300 flex items-center gap-1.5">
+                <BookOpen className="w-3.5 h-3.5 text-orange-400" />
+                <span>Select Enrolled Course</span>
               </label>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  id="auth-select-standard-class6"
-                  onClick={() => setStandard('class-6')}
-                  className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all text-center cursor-pointer ${
-                    standard === 'class-6'
-                      ? 'bg-orange-500/20 border-orange-500 text-white shadow-sm'
-                      : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white'
-                  }`}
+              <div className="relative">
+                <select
+                  id="auth-course-select"
+                  value={selectedCourseId}
+                  onChange={(e) => {
+                    setSelectedCourseId(e.target.value);
+                    if (loginError) setLoginError(null);
+                  }}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-xs text-white focus:outline-none focus:border-orange-500 font-medium cursor-pointer"
                 >
-                  Class 6 Cadet (10-12 yrs)
-                </button>
-                <button
-                  type="button"
-                  id="auth-select-standard-class9"
-                  onClick={() => setStandard('class-9')}
-                  className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all text-center cursor-pointer ${
-                    standard === 'class-9'
-                      ? 'bg-orange-500/20 border-orange-500 text-white shadow-sm'
-                      : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white'
-                  }`}
-                >
-                  Class 9 Cadet (13-15 yrs)
-                </button>
+                  {COURSES_DATA.map((course) => (
+                    <option key={course.id} value={course.id} className="bg-[#0b101b] text-white">
+                      {course.title}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 

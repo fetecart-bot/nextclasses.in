@@ -1677,7 +1677,7 @@ export default function StudentPortalModal({
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [loginStandard, setLoginStandard] = useState<'class-6' | 'class-9'>('class-6');
+  const [loginCourseId, setLoginCourseId] = useState(initialCourseId || COURSES_DATA[0]?.id || 'course-aissee-sainik-6');
 
   // Determine active course (strictly prefers student's enrolled course and standard)
   const defaultCourse = useMemo(() => {
@@ -1795,7 +1795,7 @@ export default function StudentPortalModal({
       return;
     }
     setIsLoggingIn(true);
-    const res = loginWithCredentials(loginIdentifier.trim(), loginPassword.trim(), loginStandard);
+    const res = loginWithCredentials(loginIdentifier.trim(), loginPassword.trim(), loginCourseId);
     setIsLoggingIn(false);
     if (!res.success) {
       setLoginError(res.message || 'Invalid credentials. Please verify or register via enrollment.');
@@ -1865,54 +1865,27 @@ export default function StudentPortalModal({
 
             {/* Login Form */}
             <form onSubmit={handlePortalLogin} className="space-y-3.5">
-              {/* Standard Selection */}
+              {/* Course Dropdown */}
               <div>
-                <label className="text-[11px] font-bold text-neutral-300 uppercase tracking-wider block mb-1.5 flex items-center justify-between">
-                  <span className="flex items-center gap-1">
-                    <Award className="w-3.5 h-3.5 text-orange-400" />
-                    Select Standard / Class
-                  </span>
-                  <span className="text-[10px] text-orange-400 font-semibold">Required for Syllabus</span>
+                <label htmlFor="portal-login-course-select" className="text-[11px] font-bold text-neutral-300 uppercase tracking-wider block mb-1.5 flex items-center gap-1.5">
+                  <BookOpen className="w-3.5 h-3.5 text-orange-400" />
+                  <span>Select Enrolled Course</span>
                 </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    id="login-select-standard-class6"
-                    onClick={() => setLoginStandard('class-6')}
-                    className={`p-2.5 rounded-xl border text-left transition-all flex flex-col justify-between cursor-pointer ${
-                      loginStandard === 'class-6'
-                        ? 'bg-orange-500/15 border-orange-500 text-white shadow-md shadow-orange-500/10'
-                        : 'bg-neutral-900/90 border-neutral-800 text-neutral-400 hover:border-neutral-700 hover:text-neutral-300'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between w-full">
-                      <span className="text-xs font-black text-white">Class 6 (Std VI)</span>
-                      <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${loginStandard === 'class-6' ? 'bg-orange-500 text-neutral-950' : 'bg-neutral-800 text-neutral-400'}`}>
-                        300 M
-                      </span>
-                    </div>
-                    <span className="text-[10px] text-neutral-400 mt-1">Maths (150M) • Reasoning • GK • English</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    id="login-select-standard-class9"
-                    onClick={() => setLoginStandard('class-9')}
-                    className={`p-2.5 rounded-xl border text-left transition-all flex flex-col justify-between cursor-pointer ${
-                      loginStandard === 'class-9'
-                        ? 'bg-orange-500/15 border-orange-500 text-white shadow-md shadow-orange-500/10'
-                        : 'bg-neutral-900/90 border-neutral-800 text-neutral-400 hover:border-neutral-700 hover:text-neutral-300'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between w-full">
-                      <span className="text-xs font-black text-white">Class 9 (Std IX)</span>
-                      <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${loginStandard === 'class-9' ? 'bg-orange-500 text-neutral-950' : 'bg-neutral-800 text-neutral-400'}`}>
-                        400 M
-                      </span>
-                    </div>
-                    <span className="text-[10px] text-neutral-400 mt-1">NCERT Math (200M) • Science • Social</span>
-                  </button>
-                </div>
+                <select
+                  id="portal-login-course-select"
+                  value={loginCourseId}
+                  onChange={(e) => {
+                    setLoginCourseId(e.target.value);
+                    if (loginError) setLoginError(null);
+                  }}
+                  className="w-full px-3 py-2.5 rounded-xl bg-neutral-900/90 border border-neutral-800 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors font-medium cursor-pointer"
+                >
+                  {COURSES_DATA.map((course) => (
+                    <option key={course.id} value={course.id} className="bg-[#0b101b] text-white">
+                      {course.title}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
@@ -1968,7 +1941,7 @@ export default function StudentPortalModal({
                 className="w-full py-3 rounded-xl bg-orange-500 hover:bg-orange-400 text-neutral-950 font-extrabold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-orange-500/20 cursor-pointer disabled:opacity-50"
               >
                 {isLoggingIn ? <Loader2 className="w-4 h-4 animate-spin text-neutral-950" /> : <Lock className="w-4 h-4 text-neutral-950" />}
-                <span>Sign In as {loginStandard === 'class-6' ? 'Class 6' : 'Class 9'} Cadet</span>
+                <span>Sign In to Student Portal</span>
               </button>
             </form>
 

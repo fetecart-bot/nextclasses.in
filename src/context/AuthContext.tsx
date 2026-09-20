@@ -9,7 +9,7 @@ interface AuthContextType {
   openAuthModal: () => void;
   closeAuthModal: () => void;
   login: (data: { name: string; email: string; phone: string; targetExamCode?: string; targetExamDate?: string; courseId?: string }) => void;
-  loginWithCredentials: (usernameOrEmail: string, passwordInput: string, standardChoice?: 'class-6' | 'class-9' | string) => { success: boolean; message?: string; user?: StudentUser };
+  loginWithCredentials: (usernameOrEmail: string, passwordInput: string, courseIdOrStandard?: string) => { success: boolean; message?: string; user?: StudentUser };
   loginWithAccount: (account: StudentUser) => void;
   setStudentStandard: (standard: 'class-6' | 'class-9') => void;
   logout: () => void;
@@ -58,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loginWithCredentials = (
     usernameOrEmail: string, 
     passwordInput: string,
-    standardChoice?: 'class-6' | 'class-9' | string
+    courseIdOrStandard?: string
   ) => {
     const verified = verifyStudentCredentials(usernameOrEmail, passwordInput);
     if (!verified) {
@@ -68,13 +68,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       };
     }
 
-    const effectiveStandard = standardChoice || verified.standard || 'class-6';
+    const courseChoice = courseIdOrStandard || verified.courseId || 'course-aissee-sainik-6';
+    let effectiveStandard: 'class-6' | 'class-9' = verified.standard === 'class-9' ? 'class-9' : 'class-6';
+    if (courseChoice === 'class-9' || courseChoice === 'course-aissee-sainik-9') {
+      effectiveStandard = 'class-9';
+    } else if (courseChoice === 'class-6' || courseChoice === 'course-aissee-sainik-6') {
+      effectiveStandard = 'class-6';
+    }
+
     const specificSainikCourseId = effectiveStandard === 'class-9' ? 'course-aissee-sainik-9' : 'course-aissee-sainik-6';
     
-    // Construct enrolledCourseIds including specific class course
+    // Construct enrolledCourseIds including specific selected course
     const baseEnrolled = verified.enrolledCourseIds || (verified.courseId ? [verified.courseId] : ['course-aissee-sainik']);
     const updatedEnrolled = [...baseEnrolled];
-    if (!updatedEnrolled.includes(specificSainikCourseId)) {
+    if (courseChoice && !courseChoice.startsWith('class-') && !updatedEnrolled.includes(courseChoice)) {
+      updatedEnrolled.unshift(courseChoice);
+    }
+    if (!updatedEnrolled.includes(specificSainikCourseId) && (courseChoice.includes('sainik') || !verified.courseId)) {
       updatedEnrolled.unshift(specificSainikCourseId);
     }
 
