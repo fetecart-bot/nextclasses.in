@@ -184,7 +184,7 @@ export default function AdminDispatchModal({
     const username = claim.credentialsGenerated?.username || claim.studentName.toLowerCase().replace(/[^a-z0-9]/g, '_');
     const password = claim.credentialsGenerated?.password || 'NextClass@2027';
 
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.fetecart.in';
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.nextclasses.in';
     const message = `🎉 *NEXTCLASSES.IN - ENROLLMENT VERIFIED*\n\nDear *${claim.studentName}*,\n\nWe have verified your payment of *₹${claim.amount.toLocaleString('en-IN')}* via UPI (UTR: ${claim.utrNumber}) in our HDFC Bank account for:\n📚 *${claim.courseTitle}*\n\nYour official student portal login credentials:\n🌐 *Student Portal:* ${origin}\n👤 *Username:* ${username}\n🔑 *Password:* ${password}\n\nStudy materials, mock tests, and video lessons are now unlocked! Need help? WhatsApp us directly at +91 82816 44058.`;
 
     const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;

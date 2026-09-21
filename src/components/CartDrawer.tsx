@@ -401,7 +401,7 @@ Channels: WhatsApp (+91 ${completedOrderDetails.phone}) + Student Learning Porta
 Guarantee: 100% 7-Day Money-Back Guarantee
 =====================================================
 Thank you for choosing Nextclasses.in!
-Support: fetecart@gmail.com | WhatsApp: +91 82816 44058 | https://www.fetecart.in
+Support: fetecart@gmail.com | WhatsApp: +91 82816 44058 | https://www.nextclasses.in
     `.trim();
 
     const element = document.createElement('a');

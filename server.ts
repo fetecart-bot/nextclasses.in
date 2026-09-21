@@ -5,6 +5,8 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 
+import { getComprehensiveCounselorAnswer, SupportedLanguage } from "./src/data/counselorKnowledge";
+
 let aiClient: GoogleGenAI | null = null;
 function getAI(): GoogleGenAI {
   if (!aiClient) {
@@ -86,79 +88,70 @@ ${JSON.stringify(texts)}`;
 
   // AI Voice Receptionist Chat Endpoint (Priya - Multilingual Indian Accent Academic Counselor)
   app.post("/api/voice-receptionist/chat", async (req, res) => {
+    const chosenLang = ((req.body && req.body.language) || "en") as SupportedLanguage;
+    const message = (req.body && req.body.message) || "";
+
     try {
-      const { message, history, language = "en" } = req.body;
       if (!message || typeof message !== "string") {
         return res.status(400).json({ error: "Message string is required" });
       }
 
-      const langMap: Record<string, { name: string; nativeName: string; greeting: string; fallback: string }> = {
-        ml: {
-          name: "Malayalam",
-          nativeName: "മലയാളം",
-          greeting: "നമസ്കാരം! ഞാൻ പ്രിയ, നെക്സ്റ്റ്ക്ലാസ് അക്കാദമിയിൽ നിന്നാണ്. എഐ കോഴ്സുകളെക്കുറിച്ച് അറിയാൻ ഞാൻ സഹായിക്കാം.",
-          fallback: "നമസ്കാരം! നെക്സ്റ്റ്ക്ലാസ് അക്കാദമിയിലേക്ക് സ്വാഗതം. ഞങ്ങളുടെ ഗൂഗിൾ എഐ, ഡീപ്സീക്ക് കോഴ്സുകൾ വെരിഫൈഡ് സർട്ടിഫിക്കറ്റോടെ ലഭ്യമാണ്. വാട്സാപ്പിൽ 82816 44058 എന്ന നമ്പറിലും ബന്ധപ്പെടാം."
-        },
-        ta: {
-          name: "Tamil",
-          nativeName: "தமிழ்",
-          greeting: "வணக்கம்! நான் பிரியா, நெக்ஸ்ட்கிளாஸ் அகாடமியின் கல்வி ஆலோசகர். எங்கள் ஏஐ கோர்ஸ்கள் பற்றி அறிய உங்களுக்கு உதவட்டுமா?",
-          fallback: "வணக்கம்! நெக்ஸ்ட்கிளாஸ் அகாடமிக்கு வரவேற்கிறோம். எங்கள் ஏஐ மாஸ்டர்கிளாஸ்கள் சரிபார்க்கப்பட்ட சான்றிதழுடன் கிடைக்கின்றன. வாட்ஸ்அப்பில் 82816 44058 இல் எங்களை தொடர்பு கொள்ளலாம்."
-        },
-        te: {
-          name: "Telugu",
-          nativeName: "తెలుగు",
-          greeting: "నమస్కారం! నేను ప్రియ, నెక్స్ట్‌క్లాస్ అకాడమీ అడ్వైజర్. మా ఏఐ కోర్సుల వివరాలు తెలుసుకోవడానికి నేను మీకు సహాయం చేస్తాను.",
-          fallback: "నమస్కారం! నెక్స్ట్‌క్లాస్ అకాడమీకి స్వాగతం. గూగుల్ ఏఐ మరియు డీప్‌సీక్ కోర్సులు ధృవీకరించబడిన సర్టిఫికెట్‌తో అందుబాటులో ఉన్నాయి. వాట్సాప్ 82816 44058 లో సంప్రదించవచ్చు."
-        },
-        kn: {
-          name: "Kannada",
-          nativeName: "ಕನ್ನಡ",
-          greeting: "ನಮಸ್ಕಾರ! ನಾನು ಪ್ರಿಯಾ, ನೆಕ್ಸ್ಟ್‌ಕ್ಲಾಸ್ ಅಕಾಡೆಮಿಯ ಅಡ್ವೈಸರ್. ನಮ್ಮ ಎಐ ಕೋರ್ಸ್‌ಗಳ ಬಗ್ಗೆ ತಿಳಿಯಲು ನಾನು ನಿಮಗೆ ಸಹಾಯ ಮಾಡುತ್ತೇನೆ.",
-          fallback: "ನಮಸ್ಕಾರ! ನೆಕ್ಸ್ಟ್‌ಕ್ಲಾಸ್ ಅಕಾಡೆಮಿಗೆ ಸ್ವಾಗತ. ನಮ್ಮ ಎಐ ಕೋರ್ಸ್‌ಗಳು ವೆರಿಫೈಡ್ ಸರ್ಟಿಫಿಕೇಟ್‌ನೊಂದಿಗೆ ಲಭ್ಯವಿವೆ. ವಾಟ್ಸಾಪ್ 82816 44058 ಮೂಲಕವೂ ಸಂಪರ್ಕಿಸಬಹುದು."
-        },
-        hi: {
-          name: "Hindi",
-          nativeName: "हिंदी",
-          greeting: "नमस्ते! मैं प्रिया हूँ, नेक्स्टक्लास अकादमी की सीनियर एकेडमिक काउंसलर। मैं एआई कोर्सेज़ और सर्टिफिकेशन के बारे में आपकी कैसे मदद करूँ?",
-          fallback: "नमस्ते! नेक्स्टक्लास अकादमी में आपका स्वागत है। हमारे गूगल एआई, डीपसीक और वॉइस एआई कोर्सेज़ वेरिफाइड सर्टिफिकेट के साथ उपलब्ध हैं। आप व्हाट्सएप 82816 44058 पर भी संपर्क कर सकते हैं।"
-        },
-        en: {
-          name: "Indian English",
-          nativeName: "English (India)",
-          greeting: "Namaste! I am Priya, Senior Academic Counselor at NextClass AI Academy. How may I help you explore our certified AI courses today?",
-          fallback: "Namaste! Thank you for calling NextClass AI. We offer industry-recognized masterclasses in Google AI Studio, DeepSeek R1, and Voice AI starting from fourteen hundred ninety-nine rupees. You can also connect directly with our counselor on WhatsApp at 82816 44058!"
-        }
+      const langMap: Record<string, { name: string; nativeName: string }> = {
+        ml: { name: "Malayalam", nativeName: "മലയാളം" },
+        ta: { name: "Tamil", nativeName: "தமிழ்" },
+        te: { name: "Telugu", nativeName: "తెలుగు" },
+        kn: { name: "Kannada", nativeName: "ಕನ್ನಡ" },
+        hi: { name: "Hindi", nativeName: "हिंदी" },
+        en: { name: "Indian English", nativeName: "English (India)" }
       };
 
-      const currentLang = langMap[language] || langMap.en;
+      const currentLang = langMap[chosenLang] || langMap.en;
       const ai = getAI();
-      const systemInstruction = `You are Priya, an articulate, friendly Indian female Senior Academic Counselor and Voice AI Receptionist at NextClass AI Academy (NextClasses.in / www.fetecart.in).
-You are speaking live over an audio voice call with a student, professional, or visitor in India.
+      const systemInstruction = `You are Priya, Senior Academic Counselor and Voice AI Receptionist at NextClass AI Academy (NextClasses.in / www.nextclasses.in).
+You are speaking live with a prospective student, parent, or professional over the phone.
 Current conversation language: ${currentLang.name} (${currentLang.nativeName}).
-You must converse politely and fluently in ${currentLang.name}. If the caller uses mixed English or transliteration (such as Manglish for Malayalam, Tanglish for Tamil, or Hinglish for Hindi), understand them effortlessly and reply in friendly, conversational ${currentLang.name}.
 
-CRITICAL VOICE SYNTHESIS RULES (Your response will be spoken aloud to the caller via speech synthesizer):
-1. Keep replies concise and natural for human speech: 2 to 3 conversational sentences (maximum 40-50 words).
-2. DO NOT use asterisks (*), markdown formatting, bullet points, emojis, or code blocks, because text-to-speech engines will mispronounce them.
-3. Speak numbers and amounts conversationally in the chosen language (e.g., in English "fourteen hundred ninety-nine rupees", or in Hindi "चौदह सौ निन्यानवे रुपये", in Malayalam "ആയിരത്തി നാനൂറ്റി തൊണ്ണൂറ്റിയൊമ്പത് രൂപ").
-4. Recommend matching courses:
-   - For beginners/creatives: Midjourney v6 or Generative AI Fundamentals.
-   - For coders/engineers: Google AI Studio & Gemini Masterclass or Cursor AI Developer Suite.
-   - For finance & business: DeepSeek R1 & Advanced Excel Financial Modeling.
-   - For automation: Voice AI & Realtime Telephony Agents or n8n AI Automation.
-   - For school students: AISSEE 2027 Sainik School, NEET, and JEE CBT mock tests.
-5. Emphasize that all courses include verifiable certificates, regional language mentoring, and instant portal access.
-6. If the user wants human assistance, invite them to message our counselor team on WhatsApp at 82816 44058.`;
+PRIMARY DIRECTIVE:
+Provide FULL, THOROUGH, DETAILED, and ACCURATE information. NEVER give short or vague answers. Callers need comprehensive curriculum details, exact fee figures, practical project work, certification validity, and admission steps.
 
-      const prompt = `Conversation history so far:
-${Array.isArray(history) ? history.slice(-4).map((h: any) => `${h.role === "user" ? "Student" : "Priya"}: ${h.text}`).join("\n") : "None"}
+ACADEMIC & COURSE OFFERINGS:
+1. Google AI Studio & Gemini Masterclass (₹1,499):
+   - Server-side prompt engineering, multimodal reasoning with vision and audio.
+   - Official @google/genai SDK integration, function calling, structured JSON output, and cloud deployment.
+2. DeepSeek R1 AI & Financial Engineering (₹1,799):
+   - Open-weight reasoning models vs standard LLMs.
+   - Offline local Ollama setup on personal PC for 100% financial privacy.
+   - Chain-of-thought financial engineering, balance sheet and cash flow extraction, algorithmic stock valuation, and automated Excel models with Python.
+3. Real-Time Voice AI Telephony & Vapi (₹1,799):
+   - Sub-second latency conversational voice pipelines (STT, LLM, TTS).
+   - Vapi.ai, LiveKit WebRTC, and purchasing Twilio Indian phone numbers.
+   - Inbound customer support bots, appointment scheduling, and CRM syncing.
+4. Claude 3.7 Sonnet Developer Suite (₹1,499):
+   - Hybrid thinking, artifact engineering, and autonomous software development.
+5. Sainik School (AISSEE Classes 6 & 9) & NEET Mock Prep:
+   - Full NTA NCERT curriculum covering Mathematics, Intelligence, English, General Science, and Social Studies.
+   - Weekly full-length CBT mock tests, 10-year previous solved papers with video solutions, and medical interview guidance.
 
-Student just said: "${message}"
+FEES, CERTIFICATES & ADMISSION:
+- Fees are transparent: ₹1,499 for Google AI Studio / Claude; ₹1,799 for DeepSeek R1 / Voice AI.
+- Includes lifetime masterclass video access, complete source code, verifiable certificate, and live weekend doubt clearing.
+- All courses include an official ISO 9001:2015 verified digital certificate with a scannable tamper-proof QR code to showcase on LinkedIn.
+- Instant enrollment: Scan the UPI QR on www.nextclasses.in using Google Pay, PhonePe, Paytm, or BHIM. Send payment confirmation to WhatsApp at 82816 44058 for 5-minute LMS activation.
 
-Respond as Priya concisely, warmly, and in pure spoken dialogue in ${currentLang.name}:`;
+VOICE SYNTHESIS RULES:
+- Speak naturally and warmly in ${currentLang.name}.
+- DO NOT use markdown symbols, asterisks (*), hashtags (#), or emojis. Use spoken transitions like "First, ... Second, ... In addition, ...".
+- Speak currency and numbers naturally.`;
 
-      const response = await ai.models.generateContent({
+      const prompt = `Conversation history:
+${Array.isArray(req.body.history) ? req.body.history.slice(-4).map((h: any) => `${h.role === "user" ? "Student" : "Priya"}: ${h.text}`).join("\n") : "None"}
+
+Student just asked: "${message}"
+
+Give a comprehensive, thorough, and articulate counseling answer as Priya in pure spoken ${currentLang.name}:`;
+
+      // Race Gemini against timeout so voice callers never get stuck waiting
+      const geminiPromise = ai.models.generateContent({
         model: "gemini-3.8-flash",
         contents: prompt,
         config: {
@@ -167,28 +160,23 @@ Respond as Priya concisely, warmly, and in pure spoken dialogue in ${currentLang
         },
       });
 
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Gemini timeout")), 3200)
+      );
+
+      const response: any = await Promise.race([geminiPromise, timeoutPromise]);
       let reply = (response.text || "").trim();
-      // Strip any stray markdown symbols for clean speech synthesis
       reply = reply.replace(/[*#_~`]/g, "").replace(/\s+/g, " ").trim();
 
-      if (!reply) {
-        reply = currentLang.greeting;
+      if (!reply || reply.length < 30) {
+        reply = getComprehensiveCounselorAnswer(message, chosenLang);
       }
 
       return res.json({ success: true, reply, language: currentLang.name });
     } catch (err: any) {
-      console.error("Voice receptionist error:", err);
-      const chosenLang = (req.body && req.body.language) || "en";
-      const fallbacks: Record<string, string> = {
-        ml: "നമസ്കാരം! നെക്സ്റ്റ്ക്ലാസ് അക്കാദമിയിലേക്ക് സ്വാഗതം. ഞങ്ങളുടെ എഐ കോഴ്സുകൾ വെരിഫൈഡ് സർട്ടിഫിക്കറ്റോടെ ലഭ്യമാണ്. കൂടുതൽ വിവരങ്ങൾക്ക് വാട്സാപ്പിൽ 82816 44058 എന്ന നമ്പറിൽ ബന്ധപ്പെടാം.",
-        ta: "வணக்கம்! நெக்ஸ்ட்கிளாஸ் அகாடமிக்கு வரவேற்கிறோம். எங்கள் ஏஐ மாஸ்டர்கிளாஸ்கள் சான்றிதழுடன் கிடைக்கின்றன. வாட்ஸ்அப் 82816 44058 இல் எங்களை தொடர்பு கொள்ளலாம்.",
-        te: "నమస్కారం! నెక్స్ట్‌క్లాస్ అకాడమీకి స్వాగతం. ఏఐ కోర్సుల కోసం వాట్సాప్ 82816 44058 లో సంప్రదించవచ్చు.",
-        kn: "ನಮಸ್ಕಾರ! ನೆಕ್ಸ್ಟ್‌ಕ್ಲಾಸ್ ಅಕಾಡೆಮಿಗೆ ಸ್ವಾಗತ. ಎಐ ಕೋರ್ಸ್‌ಗಳ ಮಾಹಿತಿಗಾಗಿ ವಾಟ್ಸಾಪ್ 82816 44058 ನಲ್ಲಿ ಸಂಪರ್ಕಿಸಿ.",
-        hi: "नमस्ते! नेक्स्टक्लास अकादमी में आपका स्वागत है। हमारे एआई कोर्सेज़ वेरिफाइड सर्टिफिकेट के साथ उपलब्ध हैं। आप व्हाट्सएप 82816 44058 पर संपर्क कर सकते हैं।",
-        en: "Namaste! Thank you for calling NextClass AI. We offer industry-recognized masterclasses in Google AI Studio, DeepSeek R1, and Voice AI starting from fourteen hundred ninety-nine rupees. You can also connect directly with our counselor on WhatsApp at 82816 44058!"
-      };
-      const fallbackReply = fallbacks[chosenLang] || fallbacks.en;
-      return res.json({ success: true, reply: fallbackReply, fallback: true, errorDetails: err?.message || String(err) });
+      console.warn("Using comprehensive counselor knowledge base fallback:", err?.message || err);
+      const comprehensiveReply = getComprehensiveCounselorAnswer(message, chosenLang);
+      return res.json({ success: true, reply: comprehensiveReply, fallback: true });
     }
   });
 
@@ -284,10 +272,10 @@ Respond as Priya concisely, warmly, and in pure spoken dialogue in ${currentLang
     }
   });
 
-  // Robots.txt & Sitemap for custom domain www.fetecart.in
+  // Robots.txt & Sitemap for custom domain www.nextclasses.in
   app.get("/robots.txt", (req, res) => {
     res.type("text/plain");
-    res.send("User-agent: *\nAllow: /\nSitemap: https://www.fetecart.in/sitemap.xml\nHost: www.fetecart.in\n");
+    res.send("User-agent: *\nAllow: /\nSitemap: https://www.nextclasses.in/sitemap.xml\nHost: www.nextclasses.in\n");
   });
 
   app.get("/sitemap.xml", (req, res) => {
@@ -295,22 +283,22 @@ Respond as Priya concisely, warmly, and in pure spoken dialogue in ${currentLang
     res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://www.fetecart.in/</loc>
+    <loc>https://www.nextclasses.in/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://www.fetecart.in/#courses</loc>
+    <loc>https://www.nextclasses.in/#courses</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://www.fetecart.in/#products</loc>
+    <loc>https://www.nextclasses.in/#products</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://www.fetecart.in/#mock-tests</loc>
+    <loc>https://www.nextclasses.in/#mock-tests</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -320,8 +308,8 @@ Respond as Priya concisely, warmly, and in pure spoken dialogue in ${currentLang
   // Custom Domain Configuration & DNS Status API
   app.get("/api/domain/status", (req, res) => {
     res.json({
-      customDomain: "www.fetecart.in",
-      apexDomain: "fetecart.in",
+      customDomain: "www.nextclasses.in",
+      apexDomain: "nextclasses.in",
       cnameTarget: "ghs.googlehosted.com.",
       targetHost: "www",
       status: "configured",
@@ -702,7 +690,7 @@ Respond as Priya concisely, warmly, and in pure spoken dialogue in ${currentLang
             from: `"Nextclasses Payment Alerts" <${process.env.SMTP_USER}>`,
             to: adminEmail,
             subject: `🔔 New UPI Payment Claim: ₹${claim.amount} from ${claim.studentName} (UTR: ${claim.utrNumber})`,
-            text: `A new UPI payment verification claim has been submitted on Nextclasses.in:\n\nStudent: ${claim.studentName}\nEmail: ${claim.email}\nPhone: +91 ${claim.phone}\nCourse: ${claim.courseTitle}\nAmount: ₹${claim.amount}\n12-Digit UTR: ${claim.utrNumber}\nPayment App: ${claim.paymentApp || 'UPI'}\nSubmitted At: ${claim.submittedAt}\n\nPlease cross-verify this UTR in your HDFC bank mobile app before approving in the Admin Panel.\nNextclasses Admin: https://www.fetecart.in/?admin=true`,
+            text: `A new UPI payment verification claim has been submitted on Nextclasses.in:\n\nStudent: ${claim.studentName}\nEmail: ${claim.email}\nPhone: +91 ${claim.phone}\nCourse: ${claim.courseTitle}\nAmount: ₹${claim.amount}\n12-Digit UTR: ${claim.utrNumber}\nPayment App: ${claim.paymentApp || 'UPI'}\nSubmitted At: ${claim.submittedAt}\n\nPlease cross-verify this UTR in your HDFC bank mobile app before approving in the Admin Panel.\nNextclasses Admin: https://www.nextclasses.in/?admin=true`,
           });
         } catch (mailErr) {
           console.warn("[ADMIN NOTIFICATION NOTICE] Could not send SMTP alert to admin:", mailErr);

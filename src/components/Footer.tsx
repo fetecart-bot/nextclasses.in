@@ -62,12 +62,12 @@ export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicy
               </a>
               <span className="text-neutral-700">•</span>
               <a
-                href="https://www.fetecart.in"
+                href="https://www.nextclasses.in"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 text-cyan-400 hover:text-cyan-300 transition-colors font-medium"
               >
-                <span>www.fetecart.in</span>
+                <span>www.nextclasses.in</span>
               </a>
             </div>
           </div>

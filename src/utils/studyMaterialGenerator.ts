@@ -711,7 +711,7 @@ export function generatePrintableStudyMaterialHtml(courseId: string, studentName
     </table>
 
     <div class="footer">
-      Nextclasses.in Academic Council • 24/7 Academic Support on WhatsApp: +91 82816 44058 • https://www.fetecart.in<br>
+      Nextclasses.in Academic Council • 24/7 Academic Support on WhatsApp: +91 82816 44058 • https://www.nextclasses.in<br>
       © 2026–2027 Nextclasses.in. All rights reserved.
     </div>
   </div>
@@ -753,7 +753,7 @@ export function generateWhatsAppDispatchMessage(
 
   const pack = STUDY_MATERIALS_DATABASE[effectiveId] || STUDY_MATERIALS_DATABASE['course-aissee-sainik-6'] || STUDY_MATERIALS_DATABASE['course-aissee-sainik'];
 
-  const origin = typeof window !== 'undefined' && window.location ? window.location.origin : 'https://www.fetecart.in';
+  const origin = typeof window !== 'undefined' && window.location ? window.location.origin : 'https://www.nextclasses.in';
   const portalUrl = `${origin}/?portal=true`;
 
   const isClass6 = effectiveId.includes('-6') || standardChoice === 'class-6';

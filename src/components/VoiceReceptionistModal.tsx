@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { getComprehensiveCounselorAnswer, SupportedLanguage } from '../data/counselorKnowledge';
 import {
   Phone,
   PhoneOff,
@@ -49,8 +50,9 @@ export const VOICE_LANGUAGES: Record<VoiceLanguageCode, VoiceLanguageConfig> = {
     ttsLangPrefix: 'en',
     azureVoice: 'en-IN-NeerjaNeural',
     samplePhrase: 'Namaste! I am Priya, your academic advisor at NextClass.',
-    welcomeMessage: 'Namaste! Welcome to NextClass AI Academy. I am Priya, your senior academic counselor. How may I help you explore our certified AI courses today?',
+    welcomeMessage: 'Namaste! Welcome to NextClass AI Academy. I am Priya, your senior academic counselor. I can provide complete details on our Google AI Studio, DeepSeek R1 Finance, Real-Time Voice AI, and Sainik School prep programs, along with fees, verifiable certificates, and UPI admission. How may I guide you today?',
     quickChips: [
+      'Full Details on All Courses',
       'DeepSeek R1 Course & Fees',
       'Voice AI & Vapi Telephony',
       'Google AI Studio Course',
@@ -68,8 +70,9 @@ export const VOICE_LANGUAGES: Record<VoiceLanguageCode, VoiceLanguageConfig> = {
     ttsLangPrefix: 'ml',
     azureVoice: 'ml-IN-SobhanaNeural',
     samplePhrase: 'നമസ്കാരം! ഞാൻ പ്രിയ, നെക്സ്റ്റ്ക്ലാസ് അക്കാദമിയിൽ നിന്നാണ്.',
-    welcomeMessage: 'നമസ്കാരം! ഞാൻ പ്രിയ, നെക്സ്റ്റ്ക്ലാസ് അക്കാദമിയിൽ നിന്നാണ്. എഐ കോഴ്സുകളെക്കുറിച്ചും ഫീസിനെക്കുറിച്ചും അറിയാൻ ഞാൻ സഹായിക്കാം. എന്താണ് അറിയേണ്ടത്?',
+    welcomeMessage: 'നമസ്കാരം! നെക്സ്റ്റ്ക്ലാസ് എഐ അക്കാദമിയിലേക്ക് സ്വാഗതം. ഞാൻ പ്രിയ, സീനിയർ അക്കാദമിക് കൗൺസിലർ. ഗൂഗിൾ എഐ, ഡീപ്സീക്ക് R1 ഫിനാൻസ്, റിയൽ-ടൈം വോയ്സ് എഐ, സൈനിക് സ്കൂൾ പ്രവേശന പരീക്ഷകൾ എന്നിവയെക്കുറിച്ചുള്ള എല്ലാ വിവരങ്ങളും ഞാൻ നൽകാം. എന്താണ് അറിയാൻ ആഗ്രഹിക്കുന്നത്?',
     quickChips: [
+      'എല്ലാ കോഴ്സുകളുടെയും പൂർണ്ണ വിവരങ്ങൾ',
       'ഡീപ്സീക്ക് R1 കോഴ്സ് ഫീസ്?',
       'വോയ്സ് എഐ കോഴ്സ് വിവരങ്ങൾ',
       'ഗൂഗിൾ എഐ സ്റ്റുഡിയോ കോഴ്സ്',
@@ -87,8 +90,9 @@ export const VOICE_LANGUAGES: Record<VoiceLanguageCode, VoiceLanguageConfig> = {
     ttsLangPrefix: 'ta',
     azureVoice: 'ta-IN-PallaviNeural',
     samplePhrase: 'வணக்கம்! நான் பிரியா, நெக்ஸ்ட்கிளாஸ் அகாடமி ஆலோசகர்.',
-    welcomeMessage: 'வணக்கம்! நான் பிரியா, நெக்ஸ்ட்கிளாஸ் அகாடமியின் கல்வி ஆலோசகர். எங்கள் ஏஐ மாஸ்டர்கிளாஸ்கள் பற்றி அறிய உங்களுக்கு உதவட்டுமா?',
+    welcomeMessage: 'வணக்கம்! நெக்ஸ்ட்கிளாஸ் ஏஐ அகாடமிக்கு வரவேற்கிறோம். நான் பிரியா, சீனியர் கல்வி ஆலோசகர். கூகிள் ஏഐ, டீப்ஸீக் R1, வாய்ஸ் ஏഐ மற்றும் சைனிக் பள்ளி நுழைவுத் தேர்வு கோர்ஸ்கள் குறித்த முழு விவரங்களையும் கட்டணங்களையும் உங்களுக்கு விளக்க தயாராக உள்ளேன். எதை பற்றி அறிய விரும்புகிறீர்கள்?',
     quickChips: [
+      'அனைத்து கோர்ஸ்களின் முழு விவரங்கள்',
       'டீப்ஸீக் ஆர்1 கோர்ஸ் கட்டணம்',
       'வாய்ஸ் ஏஐ & வாபி தகவல்கள்',
       'சான்றிதழ் கிடைக்குமா?',
@@ -105,11 +109,12 @@ export const VOICE_LANGUAGES: Record<VoiceLanguageCode, VoiceLanguageConfig> = {
     ttsLangPrefix: 'te',
     azureVoice: 'te-IN-ShrutiNeural',
     samplePhrase: 'నమస్కారం! నేను ప్రియ, నెక్స్ట్‌క్లాస్ అకాడమీ అడ్వైజర్.',
-    welcomeMessage: 'నమస్కారం! నేను ప్రియ, నెక్స్ట్‌క్లాస్ అకాడమీ అడ్వైజర్. మా సర్టిఫైడ్ ఏఐ కోర్సుల వివరాలు తెలుసుకోవడానికి నేను మీకు సహాయం చేస్తాను.',
+    welcomeMessage: 'నమస్కారం! నెక్స్ట్‌క్లాస్ ఏఐ అకాడమీకి స్వాగతం. నేను ప్రియ, సీనియర్ అకాడమిక్ కౌన్సెలర్. గూగుల్ ఏఐ, డీప్‌సీక్ R1 ఫైనాన్షియల్ మోడలింగ్, వాయిస్ ఏഐ మరియు సైనిక్ స్కూల్ పరీక్షల పూర్తి వివరాలు మరియు ఫీజుల గురించి నేను మీకు మార్గదర్శనం చేస్తాను. దేని గురించి తెలుసుకోవాలనుకుంటున్నారు?',
     quickChips: [
+      'అన్ని కోర్సుల పూర్తి వివరాలు',
       'డీప్‌సీక్ ఆర్1 కోర్సు ఫీజు ఎంత?',
       'వాయిస్ ఏఐ టెలిఫోనీ కోర్సు',
-      'సర్టిಫికేట్ ఎలా వస్తుంది?',
+      'సర్టిఫికేట్ ఎలా వస్తుంది?',
       'యూపీఐ ద్వారా చెల్లింపు ఎలా చేయాలి?',
     ],
   },
@@ -122,8 +127,9 @@ export const VOICE_LANGUAGES: Record<VoiceLanguageCode, VoiceLanguageConfig> = {
     ttsLangPrefix: 'kn',
     azureVoice: 'kn-IN-SapnaNeural',
     samplePhrase: 'ನಮಸ್ಕಾರ! ನಾನು ಪ್ರಿಯಾ, ನೆಕ್ಸ್ಟ್‌ಕ್ಲಾಸ್ ಅಕಾಡೆಮಿಯ ಅಡ್ವೈಸರ್.',
-    welcomeMessage: 'ನಮಸ್ಕಾರ! ನಾನು ಪ್ರಿಯಾ, ನೆಕ್ಸ್ಟ್‌ಕ್ಲಾಸ್ ಅಕಾಡೆಮಿಯ ಅಡ್ವೈಸರ್. ನಮ್ಮ ಎಐ ಕೋರ್ಸ್‌ಗಳ ಬಗ್ಗೆ ತಿಳಿಯಲು ನಾನು ನಿಮಗೆ ಸಹಾಯ ಮಾಡುತ್ತೇನೆ.',
+    welcomeMessage: 'ನಮಸ್ಕಾರ! ನೆಕ್ಸ್ಟ್‌ಕ್ಲಾಸ್ ಎಐ ಅಕಾಡೆಮಿಗೆ ಸ್ವಾಗತ. ನಾನು ಪ್ರಿಯಾ, ಸೀನಿಯರ್ ಅಕಾಡೆಮಿಕ್ ಕೌನ್ಸಿಲರ್. ಗೂಗಲ್ ಎಐ, ಡೀಪ್‌ಸೀಕ್ R1, ವಾಯ್ಸ್ ಎಐ ಮತ್ತು ಸೈನಿಕ ಸ್ಕೂಲ್ ಪ್ರವೇಶ ಪರೀಕ್ಷಾ ತರಬೇತಿಯ ಸಂಪೂರ್ಣ ಮಾಹಿತಿ ಮತ್ತು ಶುಲ್ಕದ ವಿವರಗಳನ್ನು ನೀಡಲು ಸಿದ್ಧಳಾಗಿದ್ದೇನೆ. ನೀವು ಏನನ್ನು ತಿಳಿಯಲು ಬಯಸುತ್ತೀರಿ?',
     quickChips: [
+      'ಎಲ್ಲಾ ಕೋರ್ಸ್‌ಗಳ ಸಂಪೂರ್ಣ ಮಾಹಿತಿ',
       'ಡೀಪ್‌ಸೀಕ್ ಕೋರ್ಸ್ ಶುಲ್ಕ ಎಷ್ಟು?',
       'ವಾಯ್ಸ್ ಎಐ ಕೋರ್ಸ್ ಮಾಹಿತಿ',
       'ಸರ್ಟಿಫಿಕೇಟ್ ಸಿಗುತ್ತದೆಯೇ?',
@@ -139,8 +145,9 @@ export const VOICE_LANGUAGES: Record<VoiceLanguageCode, VoiceLanguageConfig> = {
     ttsLangPrefix: 'hi',
     azureVoice: 'hi-IN-SwaraNeural',
     samplePhrase: 'नमस्ते! मैं प्रिया हूँ, नेक्स्टक्लास अकादमी की सीनियर काउंसलर।',
-    welcomeMessage: 'नमस्ते! मैं प्रिया हूँ, नेक्स्टक्लास अकादमी की सीनियर एकेडमिक काउंसलर। मैं एआई कोर्सेज़, फीस और वेरिफाइड सर्टिफिकेशन के बारे में आपकी कैसे मदद करूँ?',
+    welcomeMessage: 'नमस्ते! नेक्स्टक्लास एआई अकादमी में आपका स्वागत है। मैं प्रिया हूँ, आपकी सीनियर एकेडमिक काउंसलर। गूगल एआई स्टूडियो, डीपसीक R1 फाइनेंस, रियल-टाइम वॉइस एआई और सैनिक स्कूल प्रवेश परीक्षा की पूरी जानकारी, फीस और वेरिफाइड सर्टिफिकेट के बारे में आप मुझसे पूछ सकते हैं। आप किस बारे में जानना चाहते हैं?',
     quickChips: [
+      'सभी कोर्सेज़ की पूरी जानकारी',
       'डीपसीक R1 कोर्स की फीस कितनी है?',
       'वॉइस एआई और टेलीफोनी कोर्स',
       'क्या वेरिफाइड सर्टिफिकेट मिलेगा?',
@@ -688,116 +695,9 @@ export const VoiceReceptionistModal: React.FC<VoiceReceptionistModalProps> = ({
     setTimeout(() => setCopiedConfig(false), 2500);
   };
 
-  // Local knowledge response generator (ultra-fast sub-second latency with multilingual fallbacks)
+  // Local knowledge response generator (ultra-fast sub-second latency with multilingual comprehensive knowledge)
   const getIntelligentLocalAnswer = (query: string, lang: VoiceLanguageCode = selectedLanguage): string => {
-    const q = query.toLowerCase();
-
-    // Regional fallback answers if backend Gemini is offline
-    if (lang === 'ml') {
-      if (q.includes('ഫീസ്') || q.includes('പണം') || q.includes('വില') || q.includes('fee') || q.includes('price')) {
-        return 'നെക്സ്റ്റ്ക്ലാസ് എഐ കോഴ്സുകൾ 1,499 രൂപ മുതൽ ആരംഭിക്കുന്നു. ഡീപ്സീക്ക് R1, വോയ്സ് എഐ കോഴ്സുകൾക്ക് 1,799 രൂപയാണ് ഫീസ്. യുപിഐ വഴി പണമടയ്ക്കാം.';
-      }
-      if (q.includes('സർട്ടിഫിക്കറ്റ്') || q.includes('certificate')) {
-        return 'അതെ, എല്ലാ കോഴ്സുകൾക്കൊപ്പവും വെരിഫൈഡ് ക്യുആർ കോഡുള്ള സർട്ടിഫിക്കറ്റ് ലഭ്യമാണ്. ഇത് ലിങ്ക്ഡ്ഇൻ പ്രൊഫൈലിൽ പങ്കിടാം.';
-      }
-      if (q.includes('ഡീപ്സീക്ക്') || q.includes('deepseek')) {
-        return 'ഡീപ്സീക്ക് R1 ഫിനാൻഷ്യൽ മോഡലിംഗ് കോഴ്സ് ഫീസ് 1,799 രൂപയാണ്. ലൈഫ് ടൈം ആക്സസും പ്രൊജക്റ്റ് ഗൈഡൻസും ലഭിക്കും.';
-      }
-      if (q.includes('സൈനിക്') || q.includes('sainik') || q.includes('neet')) {
-        return 'ഞങ്ങൾ സൈനിക് സ്കൂൾ AISSEE പ്രവേശന പരീക്ഷയ്ക്കും നീറ്റ് പരീക്ഷയ്ക്കും സമഗ്രമായ ക്ലാസുകളും മോക്ക് ടെസ്റ്റുകളും നൽകുന്നു.';
-      }
-      return 'നെക്സ്റ്റ്ക്ലാസ് അക്കാദമിയിൽ ഗൂഗിൾ എഐ സ്റ്റുഡിയോ, ഡീപ്സീക്ക്, വോയ്സ് എഐ, സൈനിക് സ്കൂൾ എൻട്രൻസ് ക്ലാസുകൾ ലഭ്യമാണ്. കൂടുതൽ വിവരങ്ങൾക്ക് വാട്സാപ്പിൽ 82816 44058 എന്ന നമ്പറിൽ ബന്ധപ്പെടാം.';
-    }
-
-    if (lang === 'ta') {
-      if (q.includes('கட்டணம்') || q.includes('பணம்') || q.includes('விலை') || q.includes('fee')) {
-        return 'நெக்ஸ்ட்கிளாஸ் ஏஐ மாஸ்டர்கிளாஸ்கள் ரூபாய் 1,499 முதல் தொடங்குகின்றன. வாய்ஸ் ஏஐ மற்றும் டீப்ஸீக் கோர்ஸ்கள் ரூபாய் 1,799 ஆகும்.';
-      }
-      if (q.includes('சான்றிதழ்') || q.includes('certificate')) {
-        return 'ஆம், நிச்சயமாக! அனைத்து கோர்ஸ்களுக்கும் சரிபார்க்கப்பட்ட க்யூஆர் கோட் சான்றிதழ் வழங்கப்படும்.';
-      }
-      return 'நெக்ஸ்ட்கிளாஸ் அகாடமியில் பிராக்டிகல் ஏஐ மற்றும் நுழைவுத் தேர்வு கோர்ஸ்கள் உள்ளன. வாட்ஸ்அப்பில் 82816 44058 என்ற எண்ணில் தொடர்பு கொள்ளலாம்.';
-    }
-
-    if (lang === 'te') {
-      if (q.includes('ఫీజు') || q.includes('ఖర్చు') || q.includes('ధర') || q.includes('fee')) {
-        return 'నెక్స్ట్‌క్లాస్ ఏఐ కోర్సులు రూ. 1,499 నుండి ప్రారంభమవుతాయి. వాయిస్ ఏఐ మరియు డీప్‌సీక్ ఆర్1 రూ. 1,799 మాత్రమే.';
-      }
-      if (q.includes('సర్టిఫికేట్') || q.includes('certificate')) {
-        return 'అవును, ప్రతి కోర్సు పూర్తి చేసిన తర్వాత వెరిఫైడ్ డిజిటల్ సర్టిఫికేట్ లభిస్తుంది.';
-      }
-      return 'నెక్స్ట్‌క్లాస్ ప్రాక్టికల్ ఏఐ కోర్సులు మరియు సైనిక్ స్కూల్ ప్రిపరేషన్ అందిస్తుంది. వివరాల కోసం వాట్సాప్ 82816 44058 లో సంప్రదించండి.';
-    }
-
-    if (lang === 'kn') {
-      if (q.includes('ಶುಲ್ಕ') || q.includes('ಹಣ') || q.includes('ದರ') || q.includes('fee')) {
-        return 'ನೆಕ್ಸ್ಟ್‌ಕ್ಲಾಸ್ ಎಐ ಕೋರ್ಸ್‌ಗಳು ರೂ. 1,499 ರಿಂದ ಪ್ರಾರಂಭವಾಗುತ್ತವೆ. ವಾಯ್ಸ್ ಎಐ ಮತ್ತು ಡೀಪ್‌ಸೀಕ್ ಕೋರ್ಸ್‌ಗಳು ರೂ. 1,799 ಇವೆ.';
-      }
-      if (q.includes('ಪ್ರಮಾಣಪತ್ರ') || q.includes('certificate')) {
-        return 'ಹೌದು, ಎಲ್ಲಾ ಕೋರ್ಸ್‌ಗಳಿಗೆ ಅಧಿಕೃತ ಪರಿಶೀಲಿಸಬಹುದಾದ ಕ್ಯೂಆರ್ ಕೋಡ್ ಪ್ರಮಾಣಪತ್ರ ಸಿಗುತ್ತದೆ.';
-      }
-      return 'ನೆಕ್ಸ್ಟ್‌ಕ್ಲಾಸ್ ಎಐ ಅಕಾಡೆಮಿಯಲ್ಲಿ ಗೂಗಲ್ ಎಐ, ಡೀಪ್‌ಸೀಕ್ ಮತ್ತು ಸೈನಿಕ್ ಸ್ಕೂಲ್ ಪ್ರವೇಶ ಪರೀಕ್ಷಾ ತರಬೇತಿ ಲಭ್ಯವಿದೆ. ವಾಟ್ಸಾಪ್ 82816 44058 ಸಂಪರ್ಕಿಸಿ.';
-    }
-
-    if (lang === 'hi') {
-      if (q.includes('फीस') || q.includes('कीमत') || q.includes('चार्ज') || q.includes('fee') || q.includes('price')) {
-        return 'नेक्स्टक्लास एआई कोर्सेज़ मात्र 1,499 रुपये से शुरू हैं। डीपसीक R1 और वॉइस एआई टेलीफोनी कोर्स 1,799 रुपये के हैं। यूपीआई पेमेंट उपलब्ध है।';
-      }
-      if (q.includes('सर्टिफिकेट') || q.includes('certificate')) {
-        return 'जी हाँ, बिल्कुल! सभी कोर्सेज़ के साथ वेरिफाइड क्यूआर कोड सर्टिफिकेट मिलता है जिसे आप लिंक्डइन पर लगा सकते हैं।';
-      }
-      if (q.includes('सैनिक') || q.includes('sainik') || q.includes('neet')) {
-        return 'हम सैनिक स्कूल AISSEE प्रवेश परीक्षा और नीट मॉक टेस्ट की पूरी तैयारी करवाते हैं।';
-      }
-      return 'नेक्स्टक्लास अकादमी में गूगल एआई स्टूडियो, डीपसीक R1 और वॉइस टेलीफोनी के प्रैक्टिकल कोर्सेज़ उपलब्ध हैं। आप व्हाट्सएप पर 82816 44058 पर बात कर सकते हैं।';
-    }
-
-    // Default English
-    if (q.includes('hello') || q.includes('hi') || q.includes('namaste') || q.includes('hey')) {
-      return "Namaste! Welcome to NextClass AI Academy. I am Priya, your senior academic counselor and voice receptionist. How may I help you select the ideal AI or competitive exam course today?";
-    }
-
-    if (q.includes('deepseek') || q.includes('finance') || q.includes('excel') || q.includes('accounting')) {
-      return "Our DeepSeek R1 and Advanced Excel Financial Modeling course is seventeen hundred ninety-nine rupees. It covers dynamic three-statement models, automated balance sheet reconciliation, and offline local Ollama setup. You get instant access and a verified certificate!";
-    }
-
-    if (q.includes('voice') || q.includes('telephony') || q.includes('vapi') || q.includes('receptionist')) {
-      return "Our Voice AI and Realtime Telephony course is seventeen hundred ninety-nine rupees. You will learn to build sub-second latency voice receptionists using Vapi, LiveKit WebRTC, and connect real Twilio telephone numbers!";
-    }
-
-    if (q.includes('google') || q.includes('gemini') || q.includes('studio')) {
-      return "The Google AI Studio and Gemini Masterclass is fourteen hundred ninety-nine rupees. It includes server-side prompt engineering, multimodality with images, and video learning guides.";
-    }
-
-    if (q.includes('claude') || q.includes('sonnet') || q.includes('anthropic')) {
-      return "The Claude 3.7 Sonnet Masterclass is fourteen hundred ninety-nine rupees. It teaches hybrid reasoning tokens, artifact engineering, and full-stack software development.";
-    }
-
-    if (q.includes('cursor') || q.includes('copilot') || q.includes('code') || q.includes('coding')) {
-      return "The Cursor AI and GitHub Copilot Developer Suite is fourteen hundred ninety-nine rupees. It enables non-coders and developers alike to build production apps with Composer and terminal agent workflows.";
-    }
-
-    if (q.includes('sainik') || q.includes('aissee') || q.includes('school') || q.includes('entrance') || q.includes('neet') || q.includes('keam')) {
-      return "NextClass provides comprehensive AISSEE 2027 Sainik School preparation for Class 6 and Class 9, along with NEET and JEE CBT mock tests. You receive complete NCERT question banks and weekly study dispatches.";
-    }
-
-    if (q.includes('fee') || q.includes('price') || q.includes('cost') || q.includes('discount') || q.includes('offer')) {
-      return "Our practical AI masterclasses start at just fourteen hundred ninety-nine rupees, with lifetime access to all learning materials, code workbooks, and verifiable certificates. We also support UPI Scan and Pay.";
-    }
-
-    if (q.includes('certificate') || q.includes('certif') || q.includes('degree') || q.includes('iso')) {
-      return "Yes, absolutely! Every course includes an industry-recognized certificate with a verifiable QR code, which you can showcase on LinkedIn and in your career portfolio.";
-    }
-
-    if (q.includes('malayalam') || q.includes('tamil') || q.includes('telugu') || q.includes('kannada') || q.includes('hindi') || q.includes('language')) {
-      return "Yes! I speak Malayalam, Tamil, Telugu, Kannada, Hindi, and English. You can switch the language anytime using the language selector bar above.";
-    }
-
-    if (q.includes('human') || q.includes('counselor') || q.includes('whatsapp') || q.includes('call') || q.includes('phone number')) {
-      return "You can connect directly with our human counselor on WhatsApp at 82816 44058. They will be delighted to guide your enrollment and answer specific questions.";
-    }
-
-    return "Thank you for asking! NextClass offers practical AI masterclasses in Google AI Studio, DeepSeek R1, Voice AI, and Coding, starting at fourteen hundred ninety-nine rupees. You can click any course on screen or chat with our team on WhatsApp at 82816 44058.";
+    return getComprehensiveCounselorAnswer(query, (lang || 'en') as SupportedLanguage);
   };
 
   // Handle incoming user speech
