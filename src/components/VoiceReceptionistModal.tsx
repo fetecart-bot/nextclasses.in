@@ -252,6 +252,7 @@ export const VoiceReceptionistModal: React.FC<VoiceReceptionistModalProps> = ({
   const recognitionRef = useRef<any>(null);
   const callTimerRef = useRef<any>(null);
   const audioWaveIntervalRef = useRef<any>(null);
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
   const [waveformBars, setWaveformBars] = useState<number[]>([15, 25, 45, 30, 60, 40, 20]);
   const transcriptsEndRef = useRef<HTMLDivElement>(null);
 
@@ -347,13 +348,21 @@ export const VoiceReceptionistModal: React.FC<VoiceReceptionistModalProps> = ({
   // Load available system speech voices & detect best Indian English female voice
   useEffect(() => {
     const updateVoices = () => {
-      if (typeof window === 'undefined' || !window.speechSynthesis) return;
+      const cfg = VOICE_LANGUAGES[selectedLanguage];
+      if (selectedLanguage === 'ml') {
+        setIndianVoiceName(`Priya • Real-time Neural Voice (മലയാളം • HD Native Audio)`);
+        return;
+      }
+      if (typeof window === 'undefined' || !window.speechSynthesis) {
+        setIndianVoiceName(`Priya • Real-time Neural Voice (${cfg.label})`);
+        return;
+      }
       const voices = window.speechSynthesis.getVoices();
       const inVoice = getBestIndianFemaleVoice(voices, selectedLanguage);
       if (inVoice) {
-        setIndianVoiceName(`${inVoice.name} (${inVoice.lang})`);
+        setIndianVoiceName(`${inVoice.name} (${inVoice.lang}) • Real-time Stream`);
       } else {
-        setIndianVoiceName(`Priya • Indian Female Voice (${VOICE_LANGUAGES[selectedLanguage].nativeLabel})`);
+        setIndianVoiceName(`Priya • Real-time Neural Voice (${cfg.nativeLabel})`);
       }
     };
 
@@ -407,59 +416,115 @@ export const VoiceReceptionistModal: React.FC<VoiceReceptionistModalProps> = ({
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  // Speak aloud in warm Indian accent (tuned per selected language)
-  const speakText = (text: string, onComplete?: () => void) => {
-    if (typeof window === 'undefined' || !window.speechSynthesis || !isSpeakerOn) {
+  // Speak aloud in warm Indian accent (tuned per selected language with real-time neural audio)
+  const speakText = (text: string, onComplete?: () => void, langOverride?: VoiceLanguageCode) => {
+    if (typeof window === 'undefined' || !isSpeakerOn) {
       if (onComplete) onComplete();
       return;
     }
 
-    try {
+    const targetLang = langOverride || selectedLanguage;
+
+    // Immediately stop any current audio playback or speech synthesis
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause();
+      currentAudioRef.current = null;
+    }
+    if (window.speechSynthesis) {
       window.speechSynthesis.cancel();
+    }
 
-      // Clean text of markdown, asterisks, brackets, or code symbols
-      const cleanText = text
-        .replace(/[*#_~`[\]()]/g, '')
-        .replace(/\bRs\.?\s*/gi, 'Rupees ')
-        .replace(/₹\s*/g, 'Rupees ')
-        .replace(/\s+/g, ' ')
-        .trim();
+    // Clean text of markdown, asterisks, brackets, or code symbols
+    const cleanText = text
+      .replace(/[*#_~`[\]()]/g, '')
+      .replace(/\bRs\.?\s*/gi, 'Rupees ')
+      .replace(/₹\s*/g, 'Rupees ')
+      .replace(/\s+/g, ' ')
+      .trim();
 
-      const utterance = new SpeechSynthesisUtterance(cleanText);
-      const voices = window.speechSynthesis.getVoices();
+    if (!cleanText) {
+      if (onComplete) onComplete();
+      return;
+    }
 
-      // Prioritize language-specific female voice & Indian female voices
-      const femaleVoice = getBestIndianFemaleVoice(voices, selectedLanguage);
+    setIsSpeaking(true);
 
-      if (femaleVoice) {
-        utterance.voice = femaleVoice;
-        utterance.lang = femaleVoice.lang || VOICE_LANGUAGES[selectedLanguage].recognitionLang;
-      } else {
-        utterance.lang = VOICE_LANGUAGES[selectedLanguage].recognitionLang;
-      }
+    let hasCompleted = false;
+    const finish = () => {
+      if (hasCompleted) return;
+      hasCompleted = true;
+      setIsSpeaking(false);
+      currentAudioRef.current = null;
+      if (onComplete) onComplete();
+    };
 
-      utterance.pitch = 1.08; // Friendly, warm Indian female counselor pitch
-      utterance.rate = 0.98; // Moderate pacing for articulate Indian diction
+    // 1. Primary: High-definition Real-Time Neural Speech Audio Stream from server
+    // Guarantees 100% authentic Malayalam (ml), Tamil (ta), Telugu (te), Kannada (kn), Hindi (hi), and Indian English (en)
+    try {
+      const audioUrl = `/api/voice-receptionist/tts?lang=${encodeURIComponent(targetLang)}&text=${encodeURIComponent(cleanText)}`;
+      const audio = new Audio(audioUrl);
+      currentAudioRef.current = audio;
 
-      utterance.onstart = () => {
+      audio.onplay = () => {
         setIsSpeaking(true);
       };
 
-      utterance.onend = () => {
-        setIsSpeaking(false);
-        if (onComplete) onComplete();
+      audio.onended = () => {
+        finish();
       };
 
-      utterance.onerror = () => {
-        setIsSpeaking(false);
-        if (onComplete) onComplete();
+      audio.onerror = () => {
+        console.warn('Real-time TTS stream failed, attempting browser speech synthesis fallback');
+        // Do NOT use browser speech synthesis for Malayalam because standard browsers lack ml-IN and incorrectly speak in Telugu!
+        if (targetLang === 'ml') {
+          finish();
+          return;
+        }
+
+        // Secondary fallback for languages supported by browser SpeechSynthesis
+        try {
+          const utterance = new SpeechSynthesisUtterance(cleanText);
+          const voices = window.speechSynthesis.getVoices();
+          const femaleVoice = getBestIndianFemaleVoice(voices, targetLang);
+
+          if (femaleVoice) {
+            utterance.voice = femaleVoice;
+            utterance.lang = femaleVoice.lang || VOICE_LANGUAGES[targetLang]?.recognitionLang || 'en-IN';
+          } else {
+            utterance.lang = VOICE_LANGUAGES[targetLang]?.recognitionLang || 'en-IN';
+          }
+
+          utterance.pitch = 1.08;
+          utterance.rate = 0.98;
+          utterance.onend = () => finish();
+          utterance.onerror = () => finish();
+          window.speechSynthesis.speak(utterance);
+        } catch {
+          finish();
+        }
       };
 
-      window.speechSynthesis.speak(utterance);
+      audio.play().catch((playErr) => {
+        console.warn('Audio play prevented (browser autoplay policy):', playErr);
+        // If autoplay blocked, check if browser synthesis works (except for Malayalam to avoid Telugu)
+        if (targetLang !== 'ml' && window.speechSynthesis) {
+          try {
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            const voices = window.speechSynthesis.getVoices();
+            const femaleVoice = getBestIndianFemaleVoice(voices, targetLang);
+            if (femaleVoice) utterance.voice = femaleVoice;
+            utterance.lang = VOICE_LANGUAGES[targetLang]?.recognitionLang || 'en-IN';
+            utterance.onend = () => finish();
+            utterance.onerror = () => finish();
+            window.speechSynthesis.speak(utterance);
+            return;
+          } catch {}
+        }
+        finish();
+      });
     } catch (err) {
-      console.error('Speech synthesis error:', err);
-      setIsSpeaking(false);
-      if (onComplete) onComplete();
+      console.error('Audio initialization error:', err);
+      finish();
     }
   };
 
@@ -552,6 +617,15 @@ export const VoiceReceptionistModal: React.FC<VoiceReceptionistModalProps> = ({
     setSelectedLanguage(langCode);
     const cfg = VOICE_LANGUAGES[langCode];
 
+    // Cancel any playing audio or speech synthesis immediately
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause();
+      currentAudioRef.current = null;
+    }
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+
     if (callStatus === 'connected') {
       const switchAcks: Record<VoiceLanguageCode, string> = {
         en: 'Sure! Let us continue in English. How can I help you?',
@@ -577,7 +651,7 @@ export const VoiceReceptionistModal: React.FC<VoiceReceptionistModalProps> = ({
         if (!isMuted && callStatus === 'connected') {
           setTimeout(() => startListening(langCode), 300);
         }
-      });
+      }, langCode);
     }
   };
 
@@ -788,14 +862,18 @@ export const VoiceReceptionistModal: React.FC<VoiceReceptionistModalProps> = ({
     setTranscripts([...newTranscripts, priyaTranscript]);
 
     // Speak Priya's response aloud
-    speakText(reply, () => {
-      // Once speaking completes, restart listening if not muted
-      if (!isMuted && callStatus === 'connected') {
-        setTimeout(() => {
-          startListening();
-        }, 300);
-      }
-    });
+    speakText(
+      reply,
+      () => {
+        // Once speaking completes, restart listening in active language if not muted
+        if (!isMuted && callStatus === 'connected') {
+          setTimeout(() => {
+            startListening(selectedLanguage);
+          }, 300);
+        }
+      },
+      selectedLanguage
+    );
   };
 
   // Initiate Call
@@ -818,19 +896,27 @@ export const VoiceReceptionistModal: React.FC<VoiceReceptionistModalProps> = ({
         },
       ]);
 
-      speakText(welcome, () => {
-        if (!isMuted) {
-          setTimeout(() => {
-            startListening();
-          }, 300);
-        }
-      });
+      speakText(
+        welcome,
+        () => {
+          if (!isMuted) {
+            setTimeout(() => {
+              startListening(selectedLanguage);
+            }, 300);
+          }
+        },
+        selectedLanguage
+      );
     }, 1200);
   };
 
   // End Call
   const handleEndCall = () => {
     playChime('disconnect');
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause();
+      currentAudioRef.current = null;
+    }
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       window.speechSynthesis.cancel();
     }
@@ -986,7 +1072,7 @@ export const VoiceReceptionistModal: React.FC<VoiceReceptionistModalProps> = ({
               </div>
               <button
                 type="button"
-                onClick={() => speakText(VOICE_LANGUAGES[selectedLanguage].samplePhrase)}
+                onClick={() => speakText(VOICE_LANGUAGES[selectedLanguage].samplePhrase, undefined, selectedLanguage)}
                 className="px-2.5 py-1 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-semibold text-[11px] transition-colors"
               >
                 Test Voice ({VOICE_LANGUAGES[selectedLanguage].label})

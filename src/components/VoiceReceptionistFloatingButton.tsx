@@ -28,10 +28,10 @@ export const VoiceReceptionistFloatingButton: React.FC<VoiceReceptionistFloating
           <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
         </span>
         <span className="text-xs font-semibold tracking-wide">
-          Talk to <span className="text-emerald-400 font-bold">Priya</span> • AI Receptionist
+          Talk to <span className="text-emerald-400 font-bold">Priya</span> • Voice AI
         </span>
-        <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[9px] font-mono uppercase tracking-wider">
-          Indian Accent
+        <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[9px] font-mono tracking-wider">
+          മലയാളം • Multilingual
         </span>
       </button>
 

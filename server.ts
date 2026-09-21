@@ -159,7 +159,7 @@ Student just said: "${message}"
 Respond as Priya concisely, warmly, and in pure spoken dialogue in ${currentLang.name}:`;
 
       const response = await ai.models.generateContent({
-        model: "gemini-3.6-flash",
+        model: "gemini-3.8-flash",
         contents: prompt,
         config: {
           systemInstruction,
@@ -189,6 +189,98 @@ Respond as Priya concisely, warmly, and in pure spoken dialogue in ${currentLang
       };
       const fallbackReply = fallbacks[chosenLang] || fallbacks.en;
       return res.json({ success: true, reply: fallbackReply, fallback: true, errorDetails: err?.message || String(err) });
+    }
+  });
+
+  // Real-Time TTS Streaming endpoint for genuine regional audio (Malayalam, Tamil, Telugu, Kannada, Hindi, English)
+  app.get("/api/voice-receptionist/tts", async (req, res) => {
+    try {
+      const rawText = String(req.query.text || "").trim();
+      const lang = String(req.query.lang || "en").toLowerCase();
+
+      if (!rawText) {
+        return res.status(400).send("Text parameter is required");
+      }
+
+      const langMap: Record<string, string> = {
+        ml: "ml",
+        ta: "ta",
+        te: "te",
+        kn: "kn",
+        hi: "hi",
+        en: "en-IN",
+      };
+
+      const targetTl = langMap[lang] || "en-IN";
+
+      // Clean text of characters that might disrupt speech synthesis
+      const cleanText = rawText
+        .replace(/[*#_~`[\]()]/g, "")
+        .replace(/₹\s*/g, "Rupees ")
+        .replace(/\bRs\.?\s*/gi, "Rupees ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      // Split into sentence chunks under 150 characters for optimal TTS rendering
+      const sentences = cleanText.match(/[^.!?|]+[.!?|]*/g) || [cleanText];
+      const chunks: string[] = [];
+      let currentChunk = "";
+
+      for (const sentence of sentences) {
+        const trimmed = sentence.trim();
+        if (!trimmed) continue;
+        if ((currentChunk + " " + trimmed).trim().length <= 150) {
+          currentChunk = (currentChunk + " " + trimmed).trim();
+        } else {
+          if (currentChunk) chunks.push(currentChunk);
+          if (trimmed.length <= 150) {
+            currentChunk = trimmed;
+          } else {
+            // Cut very long sentence into ~140 char pieces safely
+            for (let i = 0; i < trimmed.length; i += 140) {
+              chunks.push(trimmed.slice(i, i + 140));
+            }
+            currentChunk = "";
+          }
+        }
+      }
+      if (currentChunk) chunks.push(currentChunk);
+
+      if (chunks.length === 0) {
+        return res.status(400).send("No valid text to speak");
+      }
+
+      // Fetch each chunk's MP3 stream concurrently
+      const bufferPromises = chunks.map(async (chunk) => {
+        const encoded = encodeURIComponent(chunk);
+        const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encoded}&tl=${targetTl}&client=tw-ob`;
+        const response = await fetch(url, {
+          headers: {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Referer": "https://translate.google.com/",
+          },
+        });
+        if (!response.ok) {
+          throw new Error(`TTS fetch failed with status ${response.status}`);
+        }
+        const arrayBuf = await response.arrayBuffer();
+        return Buffer.from(arrayBuf);
+      });
+
+      const audioBuffers = await Promise.all(bufferPromises);
+      const combinedAudio = Buffer.concat(audioBuffers);
+
+      res.set({
+        "Content-Type": "audio/mpeg",
+        "Content-Length": combinedAudio.length.toString(),
+        "Cache-Control": "public, max-age=86400",
+        "Accept-Ranges": "bytes",
+      });
+
+      return res.end(combinedAudio);
+    } catch (err: any) {
+      console.error("Real-time TTS error:", err);
+      return res.status(500).json({ error: "Failed to generate TTS audio", details: err?.message });
     }
   });
 
