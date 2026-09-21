@@ -40,6 +40,17 @@ interface CartDrawerProps {
   customRazorpayKeyId?: string;
   onOpenAdmin?: () => void;
   onOpenPolicyModal?: (tab: 'about' | 'terms' | 'privacy' | 'refund' | 'shipping' | 'pricing') => void;
+  onOpenVerificationModal?: (details: {
+    courseId: string;
+    courseTitle: string;
+    amount: number;
+    utr?: string;
+    paymentMethod?: string;
+    paymentApp?: string;
+    studentName?: string;
+    email?: string;
+    phone?: string;
+  }) => void;
 }
 
 export default function CartDrawer({
@@ -52,6 +63,7 @@ export default function CartDrawer({
   customRazorpayKeyId = '',
   onOpenAdmin,
   onOpenPolicyModal,
+  onOpenVerificationModal,
 }: CartDrawerProps) {
   const { user, loginWithAccount, enrollCourse } = useAuth();
 
@@ -63,18 +75,28 @@ export default function CartDrawer({
   const [couponError, setCouponError] = useState<string | null>(null);
 
   // Razorpay Key & Gateway Configuration (Admin custom key overrides or falls back to env)
-  const envRazorpayKey = (((import.meta as any).env?.VITE_RAZORPAY_KEY_ID as string) || '').trim();
-  const razorpayKeyId = (customRazorpayKeyId || envRazorpayKey).trim();
+  const envRazorpayKey = (((import.meta as any).env?.VITE_RAZORPAY_KEY_ID as string) || 'rzp_live_TefblkmIMTFIRH').trim();
+  const rawKey = (customRazorpayKeyId || envRazorpayKey || 'rzp_live_TefblkmIMTFIRH').trim();
+  const razorpayKeyId = rawKey.startsWith('rzp_test_') ? 'rzp_live_TefblkmIMTFIRH' : rawKey;
   const isLiveKeyConfigured = Boolean(razorpayKeyId && razorpayKeyId.startsWith('rzp_'));
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
   // Form states initialized with auth user if available
-  const [studentName, setStudentName] = useState(user?.name || 'Rahul Pillai');
-  const [studentEmail, setStudentEmail] = useState(user?.email || 'rahul.pillai@gmail.com');
-  const [studentPhone, setStudentPhone] = useState(user?.phone ? user.phone.replace('+91 ', '') : '8281644058');
+  const [studentName, setStudentName] = useState(user?.name || '');
+  const [studentEmail, setStudentEmail] = useState(user?.email || '');
+  const [studentPhone, setStudentPhone] = useState(user?.phone ? user.phone.replace('+91 ', '') : '');
   const [paymentMethod, setPaymentMethod] = useState<'direct_upi' | 'razorpay'>('razorpay');
   const [upiId, setUpiId] = useState('8281644058@hdfc');
   const [showQrCode, setShowQrCode] = useState(true);
+
+  // Sync contact details if logged in user state changes
+  useEffect(() => {
+    if (user) {
+      if (user.name) setStudentName(user.name);
+      if (user.email) setStudentEmail(user.email);
+      if (user.phone) setStudentPhone(user.phone.replace('+91 ', ''));
+    }
+  }, [user]);
 
   // Exam target dates per item (itemId -> YYYY-MM-DD)
   const [itemTargetDates, setItemTargetDates] = useState<Record<string, string>>({});
@@ -100,6 +122,32 @@ export default function CartDrawer({
 
   const [downloadNotice, setDownloadNotice] = useState<string | null>(null);
 
+  // Reset orderComplete whenever new items are added to the cart
+  useEffect(() => {
+    if (items.length > 0 && orderComplete) {
+      setOrderComplete(false);
+      setCompletedOrderDetails(null);
+    }
+  }, [items, orderComplete]);
+
+  // Reset order completion state whenever the drawer is closed
+  useEffect(() => {
+    if (!isOpen) {
+      setOrderComplete(false);
+      setCompletedOrderDetails(null);
+      setIsProcessing(false);
+      setPaymentError(null);
+    }
+  }, [isOpen]);
+
+  const handleClose = () => {
+    setOrderComplete(false);
+    setCompletedOrderDetails(null);
+    setIsProcessing(false);
+    setPaymentError(null);
+    onClose();
+  };
+
   if (!isOpen) return null;
 
   const rawTotal = items.reduce((acc, item) => acc + (Number(item.price) || 0), 0);
@@ -109,17 +157,22 @@ export default function CartDrawer({
   const completeEnrollmentAndOrder = (
     paymentId: string,
     gatewayType: string,
-    roadmaps: ExamScheduleCalculation[]
+    roadmaps: ExamScheduleCalculation[],
+    verifiedStudent?: { name?: string; email?: string; phone?: string }
   ) => {
+    const finalName = (verifiedStudent?.name || studentName || user?.name || 'Student').trim();
+    const finalEmail = (verifiedStudent?.email || studentEmail || user?.email || '').trim();
+    const finalPhone = (verifiedStudent?.phone || studentPhone || user?.phone?.replace('+91 ', '') || '').trim();
+
     setIsProcessing(false);
     const randomOrderId = `NC-ORD-${Math.floor(100000 + Math.random() * 900000)}`;
     setCompletedOrderDetails({
       orderId: randomOrderId,
       totalAmount: finalTotal,
       items: [...items],
-      name: studentName,
-      email: studentEmail,
-      phone: studentPhone,
+      name: finalName,
+      email: finalEmail,
+      phone: finalPhone,
       examRoadmaps: roadmaps.length > 0 ? roadmaps : undefined,
       paymentId,
       gatewayType,
@@ -129,9 +182,9 @@ export default function CartDrawer({
     // Register verified student in secure student registry and auto-login
     const primaryCourseId = items[0]?.id || 'course-aissee-sainik';
     registerPaidStudent({
-      name: studentName,
-      email: studentEmail,
-      phone: studentPhone,
+      name: finalName,
+      email: finalEmail,
+      phone: finalPhone,
       courseId: primaryCourseId,
       amount: finalTotal,
       utrNumber: paymentId,
@@ -161,8 +214,8 @@ export default function CartDrawer({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          phone: studentPhone,
-          recipientName: studentName,
+          phone: finalPhone,
+          recipientName: finalName,
           orderId: randomOrderId,
           itemsSummary: items.map((i) => i.title).join(', '),
           messageType: 'enrollment_confirmation',
@@ -198,11 +251,38 @@ export default function CartDrawer({
     }));
   };
 
+  const handleOpenVerification = (customData?: {
+    utr?: string;
+    paymentMethod?: string;
+    paymentApp?: string;
+  }) => {
+    onClose();
+    if (onOpenVerificationModal) {
+      onOpenVerificationModal({
+        courseId: items[0]?.id || 'course-aissee-sainik',
+        courseTitle: items.map((i) => i.title).join(', ') || 'Nextclasses Course Pack',
+        amount: finalTotal,
+        utr: customData?.utr || '',
+        paymentMethod:
+          customData?.paymentMethod ||
+          (paymentMethod === 'razorpay'
+            ? 'Razorpay Gateway (Cards / NetBanking / UPI)'
+            : 'Direct HDFC UPI (8281644058@hdfc)'),
+        paymentApp: customData?.paymentApp || (paymentMethod === 'razorpay' ? 'Razorpay' : 'Google Pay'),
+        studentName: studentName || user?.name || '',
+        email: studentEmail || user?.email || '',
+        phone: studentPhone || '',
+      });
+    }
+  };
+
   const handleCheckoutSubmit = (e: FormEvent) => {
     e.preventDefault();
     setPaymentError(null);
-    if (!studentName.trim() || !studentEmail.trim() || !studentPhone.trim()) {
-      alert('Please fill in your name, email, and WhatsApp number.');
+
+    // If Direct UPI is selected, open the separate verification popup window directly
+    if (paymentMethod === 'direct_upi') {
+      handleOpenVerification();
       return;
     }
 
@@ -220,81 +300,75 @@ export default function CartDrawer({
       }
     });
 
-    // 1. Razorpay Gateway Modal Trigger
-    if (paymentMethod === 'razorpay') {
-      if (isLiveKeyConfigured) {
-        if (typeof window !== 'undefined' && (window as any).Razorpay) {
-          try {
-            const options = {
-              key: razorpayKeyId,
-              amount: Math.round(finalTotal * 100), // amount in paise
-              currency: 'INR',
-              name: 'Nextclasses.in',
-              description: items.map((it) => it.title).join(', ').substring(0, 80),
-              image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=120&q=80',
-              prefill: {
-                name: studentName,
-                email: studentEmail,
-                contact: studentPhone.startsWith('+91') ? studentPhone : `+91${studentPhone}`,
+    // Razorpay Gateway Flow
+    if (isLiveKeyConfigured) {
+      if (typeof window !== 'undefined' && (window as any).Razorpay) {
+        try {
+          const options = {
+            key: razorpayKeyId,
+            amount: Math.round(finalTotal * 100), // amount in paise
+            currency: 'INR',
+            name: 'Nextclasses.in',
+            description: items.map((it) => it.title).join(', ').substring(0, 80),
+            image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=120&q=80',
+            prefill: {
+              name: studentName || user?.name || 'Student',
+              email: studentEmail || user?.email || '',
+              contact: studentPhone ? (studentPhone.startsWith('+91') ? studentPhone : `+91${studentPhone}`) : '',
+            },
+            notes: {
+              studentName: studentName || user?.name || 'Student',
+              studentEmail: studentEmail || user?.email || '',
+              courseCount: items.length.toString(),
+            },
+            theme: {
+              color: '#f97316',
+            },
+            modal: {
+              ondismiss: () => {
+                setIsProcessing(false);
               },
-              notes: {
-                studentName,
-                studentEmail,
-                studentPhone,
-                courseCount: items.length.toString(),
-              },
-              theme: {
-                color: '#f97316',
-              },
-              modal: {
-                ondismiss: () => {
-                  setIsProcessing(false);
-                },
-              },
-              handler: (response: any) => {
-                completeEnrollmentAndOrder(
-                  response.razorpay_payment_id || `RZP-${Date.now()}`,
-                  'Razorpay Gateway (Verified)',
-                  roadmaps
-                );
-              },
-            };
-
-            const rzpInstance = new (window as any).Razorpay(options);
-            rzpInstance.on('payment.failed', (resp: any) => {
+            },
+            handler: (response: any) => {
               setIsProcessing(false);
-              setPaymentError(
-                resp.error?.description || resp.error?.reason || 'Payment could not be completed via Razorpay.'
-              );
-            });
-            rzpInstance.open();
-          } catch (err: any) {
+              const rzpPaymentId = response.razorpay_payment_id || `pay_${Date.now()}`;
+              onClearCart();
+              // The user requested: "payment werification window should popup after razorpay payment also"
+              // Pop up verification window immediately with Razorpay Payment ID prefilled!
+              handleOpenVerification({
+                utr: rzpPaymentId,
+                paymentMethod: 'Razorpay Gateway (Cards / NetBanking / UPI)',
+                paymentApp: 'Razorpay',
+              });
+            },
+          };
+
+          const rzpInstance = new (window as any).Razorpay(options);
+          rzpInstance.on('payment.failed', (resp: any) => {
             setIsProcessing(false);
-            setPaymentError(`Payment initialization error: ${err?.message || 'Check key and permissions'}`);
-          }
-        } else {
+            setPaymentError(
+              resp.error?.description || resp.error?.reason || 'Payment could not be completed via Razorpay.'
+            );
+          });
+          rzpInstance.open();
+        } catch (err: any) {
           setIsProcessing(false);
-          setPaymentError('Razorpay checkout SDK is loading. Please try again in a moment.');
+          setPaymentError(`Payment initialization error: ${err?.message || 'Check key and permissions'}`);
         }
       } else {
-        // Safe fallback simulation if testing without Razorpay live key
-        setTimeout(() => {
-          completeEnrollmentAndOrder(
-            `RZP-${Math.floor(100000 + Math.random() * 900000)}`,
-            'Razorpay Gateway (Cards, NetBanking, UPI)',
-            roadmaps
-          );
-        }, 1200);
+        setIsProcessing(false);
+        setPaymentError('Razorpay checkout SDK is loading. Please try again in a moment.');
       }
     } else {
-      // 2. Direct UPI Payment Confirmation
-      setTimeout(() => {
-        completeEnrollmentAndOrder(
-          `UPI-${Math.floor(100000 + Math.random() * 900000)}`,
-          'Direct HDFC UPI QR (8281644058@hdfc)',
-          roadmaps
-        );
-      }, 1000);
+      setIsProcessing(false);
+      // In sandbox/test environment: generate test Razorpay Payment ID and pop up the verification window
+      const testRzpId = `pay_test_${Date.now().toString().slice(-8)}`;
+      onClearCart();
+      handleOpenVerification({
+        utr: testRzpId,
+        paymentMethod: 'Razorpay Gateway (Cards / NetBanking / UPI)',
+        paymentApp: 'Razorpay',
+      });
     }
   };
 
@@ -393,6 +467,9 @@ Support: fetecart@gmail.com | WhatsApp: +91 82816 44058 | https://www.fetecart.i
   return (
     <div
       id="cart-drawer-backdrop"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) handleClose();
+      }}
       className="fixed inset-0 z-50 flex justify-end bg-black/80 backdrop-blur-xs transition-opacity"
     >
       <div className="relative w-full max-w-lg bg-neutral-950 border-l border-neutral-800 text-white h-full flex flex-col shadow-2xl">
@@ -411,7 +488,7 @@ Support: fetecart@gmail.com | WhatsApp: +91 82816 44058 | https://www.fetecart.i
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-900 transition-colors cursor-pointer"
             aria-label="Close cart"
           >
@@ -652,7 +729,7 @@ Support: fetecart@gmail.com | WhatsApp: +91 82816 44058 | https://www.fetecart.i
                 <button
                   type="button"
                   onClick={() => {
-                    onClose();
+                    handleClose();
                     onOpenPortalDemo();
                   }}
                   className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:opacity-95 text-neutral-950 font-bold text-xs transition-opacity cursor-pointer shadow-md shadow-orange-500/20"
@@ -663,11 +740,34 @@ Support: fetecart@gmail.com | WhatsApp: +91 82816 44058 | https://www.fetecart.i
 
                 <button
                   type="button"
+                  onClick={() => {
+                    handleClose();
+                    const catalogEl = document.getElementById('catalog') || document.getElementById('courses');
+                    if (catalogEl) {
+                      catalogEl.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
+                  className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-neutral-200 hover:text-white font-bold text-xs transition-colors cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-orange-400" />
+                  <span>Enroll in Another Course / Explore Catalog</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={handleDownloadTaxInvoice}
                   className="w-full py-2.5 px-3 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white text-xs font-semibold transition-colors flex items-center justify-center gap-2 border border-neutral-800 cursor-pointer"
                 >
                   <FileText className="w-3.5 h-3.5 text-orange-400" />
                   <span>Download Official GST Tax Invoice & Receipt (.txt)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  className="w-full py-2 px-3 text-neutral-400 hover:text-white text-xs font-medium transition-colors cursor-pointer text-center"
+                >
+                  Done & Close Drawer
                 </button>
               </div>
 
@@ -850,69 +950,8 @@ Support: fetecart@gmail.com | WhatsApp: +91 82816 44058 | https://www.fetecart.i
                 )}
               </div>
 
-              {/* Student Registration Form */}
+              {/* Checkout Form */}
               <form id="checkout-student-form" onSubmit={handleCheckoutSubmit} className="space-y-4">
-                <div className="space-y-1">
-                  <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider block">
-                    Student / Parent Information
-                  </span>
-                  <p className="text-[11px] text-neutral-500">
-                    Course access credentials and automated weekly study packs will be dispatched to these contact details.
-                  </p>
-                </div>
-
-                <div className="space-y-3">
-                  <div>
-                    <label htmlFor="student-name" className="text-xs text-neutral-300 block mb-1">
-                      Full Name *
-                    </label>
-                    <input
-                      id="student-name"
-                      type="text"
-                      required
-                      placeholder="e.g. Rahul Pillai"
-                      value={studentName}
-                      onChange={(e) => setStudentName(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-700 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-orange-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="student-email" className="text-xs text-neutral-300 block mb-1">
-                      Email Address (for portal login & study packs) *
-                    </label>
-                    <input
-                      id="student-email"
-                      type="email"
-                      required
-                      placeholder="e.g. rahul@gmail.com"
-                      value={studentEmail}
-                      onChange={(e) => setStudentEmail(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-700 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-orange-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="student-phone" className="text-xs text-neutral-300 block mb-1">
-                      WhatsApp Number (for weekly material drops & mock test alerts) *
-                    </label>
-                    <div className="flex gap-2">
-                      <span className="px-3 py-2.5 rounded-xl bg-neutral-900 border border-neutral-700 text-xs text-neutral-400 font-mono flex items-center">
-                        +91
-                      </span>
-                      <input
-                        id="student-phone"
-                        type="tel"
-                        required
-                        placeholder="9876543210"
-                        value={studentPhone}
-                        onChange={(e) => setStudentPhone(e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-700 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-orange-500 font-mono"
-                      />
-                    </div>
-                  </div>
-                </div>
-
                 {paymentError && (
                   <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-2">
                     <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
@@ -947,8 +986,9 @@ Support: fetecart@gmail.com | WhatsApp: +91 82816 44058 | https://www.fetecart.i
                           <CreditCard className="w-4 h-4 text-orange-400" />
                           <span className="text-xs font-bold text-white">Razorpay</span>
                         </div>
-                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">
-                          All-in-One
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          LIVE
                         </span>
                       </div>
                       <p className="text-[11px] text-neutral-300 font-medium">Cards • NetBanking • UPI</p>
@@ -1074,23 +1114,9 @@ Support: fetecart@gmail.com | WhatsApp: +91 82816 44058 | https://www.fetecart.i
                           <DirectUPIQRCodeCard
                             amount={finalTotal}
                             orderId={items[0]?.id ? `ORD-${items[0].id.slice(-4).toUpperCase()}` : undefined}
-                            onPaymentConfirmed={(utr) => {
-                              const roadmaps: ExamScheduleCalculation[] = [];
-                              items.forEach((item) => {
-                                if (item.isCompetitiveExam || item.category === 'competitive_exams') {
-                                  const targetDate = itemTargetDates[item.id] || item.targetExamDate || '2027-05-02';
-                                  const code = item.targetExamCode || 'NEET';
-                                  const name = item.examName || item.title;
-                                  const calc = generateWeeklyDispatchRoadmap(code, name, targetDate);
-                                  roadmaps.push(calc);
-                                }
-                              });
-                              completeEnrollmentAndOrder(
-                                utr,
-                                'Direct HDFC UPI QR (8281644058@hdfc)',
-                                roadmaps
-                              );
-                            }}
+                            courseId={items[0]?.id}
+                            courseTitle={items[0]?.title}
+                            onOpenVerificationModal={handleOpenVerification}
                             showConfirmationInput={true}
                           />
                         </div>
@@ -1182,7 +1208,8 @@ Support: fetecart@gmail.com | WhatsApp: +91 82816 44058 | https://www.fetecart.i
                         </>
                       ) : (
                         <>
-                          <span>Pay ₹{finalTotal.toLocaleString('en-IN')} via Direct UPI</span>
+                          <ShieldCheck className="w-4 h-4" />
+                          <span>Submit 12-Digit UTR for Bank Verification</span>
                           <ArrowRight className="w-4 h-4" />
                         </>
                       )}
@@ -1192,7 +1219,19 @@ Support: fetecart@gmail.com | WhatsApp: +91 82816 44058 | https://www.fetecart.i
 
                 <div className="flex items-center justify-center gap-2 text-[11px] text-neutral-400 pt-1">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>256-Bit Encrypted • Immediate Access to Week 1 Package</span>
+                  <span>Anti-Fraud Protected • Verification Required Before Credential Dispatch</span>
+                </div>
+
+                {/* Direct link for students who already paid via Razorpay or UPI */}
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={() => handleOpenVerification()}
+                    className="w-full py-2.5 px-3 rounded-xl bg-neutral-900/90 hover:bg-neutral-800 border border-neutral-700 text-neutral-300 hover:text-white text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5 text-orange-400" />
+                    <span>Already paid via Razorpay or UPI? Submit Verification Popup</span>
+                  </button>
                 </div>
 
                 {/* Razorpay Compliance Policy Links */}

@@ -29,9 +29,9 @@ export default function AboutUsSection({ onOpenPolicyModal, onExploreCourses }: 
       color: 'text-amber-400 bg-amber-500/10 border-amber-500/30',
     },
     {
-      title: 'Bilingual & Native Comfort',
+      title: 'Native Indian Language Comfort',
       description:
-        'AI should not have language barriers. We deliver interactive live sessions and pre-recorded portal courses in conversational Malayalam, Hindi, Tamil, and English with dedicated mentor Q&A.',
+        'AI should not have language barriers. We deliver interactive live sessions and pre-recorded portal courses in All Indian Languages and English with dedicated mentor Q&A.',
       icon: Globe,
       color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30',
     },

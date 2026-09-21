@@ -357,7 +357,7 @@ export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicy
                 type="button"
                 id="footer-admin-tiny-link"
                 onClick={onOpenAdmin}
-                className="opacity-30 hover:opacity-100 transition-opacity text-[10px] text-neutral-500 hover:text-neutral-300 inline-flex items-center gap-1 cursor-pointer ml-1"
+                className="opacity-25 hover:opacity-100 transition-opacity text-[10px] text-neutral-500 hover:text-neutral-300 inline-flex items-center gap-1 cursor-pointer ml-1"
                 title="Staff Portal (Password Protected)"
               >
                 <KeyRound className="w-2.5 h-2.5" />

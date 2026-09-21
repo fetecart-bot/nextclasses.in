@@ -22,7 +22,7 @@ interface Message {
   text: string;
   timestamp: string;
   action?: {
-    type: 'open_upi' | 'navigate' | 'coupon';
+    type: 'open_upi' | 'navigate' | 'coupon' | 'open_voice';
     payload?: string;
     label: string;
   };
@@ -33,6 +33,7 @@ interface AIChatBotProps {
   onNavigateTo?: (sectionId: string) => void;
   onOpenMockTest?: () => void;
   onOpenCart?: () => void;
+  onOpenVoiceReceptionist?: () => void;
 }
 
 export const AIChatBot: React.FC<AIChatBotProps> = ({
@@ -40,6 +41,7 @@ export const AIChatBot: React.FC<AIChatBotProps> = ({
   onNavigateTo,
   onOpenMockTest,
   onOpenCart,
+  onOpenVoiceReceptionist,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
@@ -156,7 +158,17 @@ export const AIChatBot: React.FC<AIChatBotProps> = ({
       };
     }
 
-    if (q.includes('human') || q.includes('whatsapp') || q.includes('call') || q.includes('support') || q.includes('contact')) {
+    if (q.includes('voice') || q.includes('receptionist') || q.includes('priya') || q.includes('vapi') || q.includes('call') || q.includes('accent') || q.includes('talk')) {
+      return {
+        text: "You can talk directly to **Priya**, our **AI Voice Receptionist with a natural Indian Accent**! She can answer course queries, syllabus breakdowns, fees, and enrollment steps over a real-time voice call right in your browser.",
+        action: {
+          type: 'open_voice',
+          label: '📞 Call Priya (AI Voice Receptionist)',
+        },
+      };
+    }
+
+    if (q.includes('human') || q.includes('whatsapp') || q.includes('support') || q.includes('contact')) {
       return {
         text: "Our academic support team is available 24/7. You can connect with our human counselors directly on WhatsApp for personalized batch guidance or payment help.",
         action: {
@@ -209,6 +221,9 @@ export const AIChatBot: React.FC<AIChatBotProps> = ({
     if (action.type === 'open_upi') {
       if (onOpenUpiModal) onOpenUpiModal();
       setIsOpen(false);
+    } else if (action.type === 'open_voice') {
+      if (onOpenVoiceReceptionist) onOpenVoiceReceptionist();
+      setIsOpen(false);
     } else if (action.type === 'coupon') {
       if (onOpenCart) onOpenCart();
       setIsOpen(false);
@@ -249,6 +264,20 @@ export const AIChatBot: React.FC<AIChatBotProps> = ({
             </div>
 
             <div className="flex items-center gap-1">
+              {onOpenVoiceReceptionist && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsOpen(false);
+                    onOpenVoiceReceptionist();
+                  }}
+                  className="px-2 py-1 rounded-lg bg-emerald-600/90 hover:bg-emerald-500 text-white text-[11px] font-bold flex items-center gap-1 shadow-sm transition-all active:scale-95"
+                  title="Switch to live Voice Call with Priya (Indian Accent)"
+                >
+                  <PhoneCall className="w-3 h-3 text-emerald-100" />
+                  <span>Voice Call</span>
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => setMessages(initialMessages)}

@@ -11,6 +11,7 @@ interface DirectUPIModalProps {
   courseTitle?: string;
   onPaymentConfirmed?: (utrNumber: string) => void;
   onOpenPortal?: () => void;
+  onOpenVerificationModal?: () => void;
 }
 
 export const DirectUPIModal: React.FC<DirectUPIModalProps> = ({
@@ -22,6 +23,7 @@ export const DirectUPIModal: React.FC<DirectUPIModalProps> = ({
   courseTitle,
   onPaymentConfirmed,
   onOpenPortal,
+  onOpenVerificationModal,
 }) => {
   if (!isOpen) return null;
 
@@ -56,12 +58,9 @@ export const DirectUPIModal: React.FC<DirectUPIModalProps> = ({
             orderId={orderId}
             courseId={courseId}
             courseTitle={courseTitle}
-            onPaymentConfirmed={(utr) => {
-              if (onPaymentConfirmed) onPaymentConfirmed(utr);
-            }}
-            onOpenPortal={() => {
+            onOpenVerificationModal={() => {
               onClose();
-              if (onOpenPortal) onOpenPortal();
+              if (onOpenVerificationModal) onOpenVerificationModal();
             }}
             showConfirmationInput={true}
           />

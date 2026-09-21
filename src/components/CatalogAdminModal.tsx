@@ -1,11 +1,28 @@
-import { useState, FormEvent } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { 
   X, Plus, Trash2, Edit3, Check, RefreshCw, Download, 
-  Package, BookOpen, AlertTriangle, ShieldCheck, Globe, DollarSign, 
+  Package, BookOpen, AlertTriangle, ShieldCheck, DollarSign, 
   Layers, Sparkles, ExternalLink, Copy, Link2, Video, Play, Tv, Eye, EyeOff,
-  CreditCard, Key, Smartphone, HelpCircle, CheckCircle2, Lock, Unlock, LogOut
+  CreditCard, Key, Smartphone, HelpCircle, CheckCircle2, Lock, Unlock, LogOut,
+  Search, Clock, MessageCircle, Send, UserCheck, Loader2, Mail
 } from 'lucide-react';
 import { AIProduct, Course, ProductCategory, CourseCategory, PortalVideoLesson } from '../types';
+import { 
+  getPaymentClaims, 
+  approvePaymentClaim, 
+  rejectPaymentClaim, 
+  PaymentClaim 
+} from '../utils/paymentClaims';
+import { 
+  getRegisteredStudents, 
+  generateGmailComposeUrl, 
+  sendStudentCredentialsEmail, 
+  RegisteredStudentAccount 
+} from '../utils/studentRegistry';
+import { 
+  downloadStudyMaterialFile, 
+  generateWhatsAppDispatchMessage 
+} from '../utils/studyMaterialGenerator';
 
 export function extractYouTubeId(urlOrId: string): string {
   if (!urlOrId) return '';
@@ -27,6 +44,7 @@ interface CatalogAdminModalProps {
   courses: Course[];
   portalVideos?: PortalVideoLesson[];
   razorpayKeyId?: string;
+  initialTab?: 'reconciliation' | 'products' | 'courses' | 'videos' | 'payments' | 'security';
   onSaveRazorpayKey?: (key: string) => void;
   onAddProduct: (product: AIProduct) => void;
   onUpdateProduct: (product: AIProduct) => void;
@@ -47,7 +65,8 @@ export default function CatalogAdminModal({
   products,
   courses,
   portalVideos = [],
-  razorpayKeyId = '',
+  razorpayKeyId = 'rzp_live_TefblkmIMTFIRH',
+  initialTab,
   onSaveRazorpayKey,
   onAddProduct,
   onUpdateProduct,
@@ -61,7 +80,7 @@ export default function CatalogAdminModal({
   onResetPortalVideos,
   onResetToDefault,
 }: CatalogAdminModalProps) {
-  const [activeTab, setActiveTab] = useState<'products' | 'courses' | 'videos' | 'payments' | 'domain' | 'security'>('products');
+  const [activeTab, setActiveTab] = useState<'reconciliation' | 'products' | 'courses' | 'videos' | 'payments' | 'security'>(initialTab || 'reconciliation');
   const [inputRazorpayKey, setInputRazorpayKey] = useState<string>(razorpayKeyId);
   const [keySavedNotice, setKeySavedNotice] = useState<string | null>(null);
 
@@ -186,7 +205,7 @@ export default function CatalogAdminModal({
     subtitle: '',
     category: 'ai_platforms',
     level: 'Beginner',
-    language: 'Malayalam & English',
+    language: 'All Indian Languages & English',
     price: 1999,
     originalPrice: 4999,
     badge: 'Bestseller ⚡',
@@ -219,54 +238,134 @@ export default function CatalogAdminModal({
   const [itemToDelete, setItemToDelete] = useState<{ id: string; type: 'product' | 'course' | 'video'; title: string } | null>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
-  // Custom Domain State (Preconfigured with www.fetecart.in)
-  const [customDomain, setCustomDomain] = useState<string>(() => {
-    try {
-      return localStorage.getItem('nextclass_custom_domain') || 'www.fetecart.in';
-    } catch {
-      return 'www.fetecart.in';
-    }
-  });
-  const [copiedField, setCopiedField] = useState<string | null>(null);
-  const [isCheckingDns, setIsCheckingDns] = useState<boolean>(false);
-  const [dnsCheckResult, setDnsCheckResult] = useState<{ status: 'success' | 'info'; message: string } | null>(null);
+  // --- PAYMENT RECONCILIATION & CLAIMS STATE ---
+  const [claims, setClaims] = useState<PaymentClaim[]>([]);
+  const [claimsFilter, setClaimsFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+  const [claimsSearchQuery, setClaimsSearchQuery] = useState('');
+  const [processingClaimId, setProcessingClaimId] = useState<string | null>(null);
+  const [claimStatusNotice, setClaimStatusNotice] = useState<string | null>(null);
+  const [copiedUtrId, setCopiedUtrId] = useState<string | null>(null);
+  const [registeredStudents, setRegisteredStudents] = useState<RegisteredStudentAccount[]>([]);
+  const [showStudentsList, setShowStudentsList] = useState(false);
+  const [rejectingClaim, setRejectingClaim] = useState<PaymentClaim | null>(null);
+  const [rejectReason, setRejectReason] = useState('Payment not found in bank statement / invalid transaction ref');
 
-  const handleCopy = (text: string, fieldKey: string) => {
+  const loadClaimsData = () => {
     try {
-      navigator.clipboard.writeText(text);
-      setCopiedField(fieldKey);
-      setTimeout(() => setCopiedField(null), 2500);
+      const allClaims = getPaymentClaims();
+      setClaims(allClaims);
+      const students = getRegisteredStudents();
+      setRegisteredStudents(students);
+    } catch {
+      // ignore
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      loadClaimsData();
+    }
+  }, [isOpen]);
+
+  const handleApproveClaim = async (claim: PaymentClaim) => {
+    setProcessingClaimId(claim.id);
+    setClaimStatusNotice(null);
+    try {
+      const result = await approvePaymentClaim(claim.id, 'Admin (fetecart@gmail.com)');
+      if (result.success && result.account) {
+        setClaimStatusNotice(`✓ Approved! Generated Credentials for ${claim.studentName} (@${result.account.username}). Study materials unlocked!`);
+        loadClaimsData();
+      } else {
+        setClaimStatusNotice(`⚠️ Approval error: ${result.error || 'Failed to approve'}`);
+      }
+    } catch (err: any) {
+      setClaimStatusNotice(`⚠️ Error approving claim: ${err?.message || 'Unexpected error'}`);
+    } finally {
+      setProcessingClaimId(null);
+      setTimeout(() => setClaimStatusNotice(null), 6000);
+    }
+  };
+
+  const handleInitiateReject = (claim: PaymentClaim) => {
+    setRejectingClaim(claim);
+    setRejectReason('Payment not found in bank statement / invalid transaction ref');
+  };
+
+  const handleConfirmReject = async () => {
+    if (!rejectingClaim) return;
+    const claimToReject = rejectingClaim;
+    const finalReason = rejectReason.trim() || 'Payment not found in bank statement / invalid transaction ref';
+
+    setProcessingClaimId(claimToReject.id);
+    try {
+      await rejectPaymentClaim(claimToReject.id, finalReason);
+      setClaimStatusNotice(`✓ Claim ${claimToReject.claimCode} from ${claimToReject.studentName} marked as REJECTED.`);
+      setRejectingClaim(null);
+      loadClaimsData();
+    } catch (err: any) {
+      setClaimStatusNotice(`⚠️ Failed to reject claim: ${err?.message || 'Error rejecting claim'}`);
+    } finally {
+      setProcessingClaimId(null);
+      setTimeout(() => setClaimStatusNotice(null), 5000);
+    }
+  };
+
+  const handleCopyUtr = (utr: string, claimId: string) => {
+    try {
+      navigator.clipboard?.writeText(utr);
+      setCopiedUtrId(claimId);
+      setTimeout(() => setCopiedUtrId(null), 2500);
     } catch {
       // fallback
     }
   };
 
-  const handleTestDns = async () => {
-    setIsCheckingDns(true);
-    try {
-      const res = await fetch('/api/domain/status');
-      const data = await res.json();
-      setDnsCheckResult({
-        status: 'success',
-        message: `Domain ${customDomain} is mapped! Target: ${data.cnameTarget} | SSL Provider: ${data.sslProvider}. Status: READY.`
-      });
-    } catch {
-      setDnsCheckResult({
-        status: 'info',
-        message: `Domain DNS target is ghs.googlehosted.com. SSL certificate provisions automatically upon DNS propagation.`
-      });
-    } finally {
-      setIsCheckingDns(false);
-    }
+  const handleSendClaimWhatsApp = (claim: PaymentClaim) => {
+    let cleanPhone = claim.phone.replace(/[^0-9]/g, '');
+    if (cleanPhone.length === 10) cleanPhone = '91' + cleanPhone;
+
+    const username = claim.credentialsGenerated?.username || claim.studentName.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    const password = claim.credentialsGenerated?.password || 'NextClass@2027';
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.fetecart.in';
+
+    const message = `🎉 *NEXTCLASSES.IN - ENROLLMENT VERIFIED*\n\nDear *${claim.studentName}*,\n\nWe have verified your payment of *₹${claim.amount.toLocaleString('en-IN')}* (${claim.paymentMethod}, Ref: ${claim.utrNumber}) in our account for:\n📚 *${claim.courseTitle}*\n\nYour official student portal login credentials:\n🌐 *Student Portal:* ${origin}\n👤 *Username:* ${username}\n🔑 *Password:* ${password}\n\nStudy materials, mock tests, and video lessons are now unlocked! Need help? WhatsApp us at +91 82816 44058.`;
+
+    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
   };
 
-  const handleSaveDomain = (newDomain: string) => {
-    setCustomDomain(newDomain);
-    try {
-      localStorage.setItem('nextclass_custom_domain', newDomain);
-    } catch {
-      // ignore
+  const handleSendClaimEmail = async (claim: PaymentClaim) => {
+    const username = claim.credentialsGenerated?.username || claim.studentName.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    const password = claim.credentialsGenerated?.password || 'NextClass@2027';
+
+    const mockAccount: RegisteredStudentAccount = {
+      id: 'acc-' + Date.now(),
+      name: claim.studentName,
+      email: claim.email,
+      phone: claim.phone,
+      username,
+      password,
+      courseId: claim.courseId,
+      courseTitle: claim.courseTitle,
+      enrolledCourseIds: [claim.courseId],
+      targetExamCode: 'AISSEE',
+      learningGoal: 'Course Enrollment',
+      registeredAt: new Date().toISOString().split('T')[0],
+      amount: claim.amount,
+    };
+
+    const res = await sendStudentCredentialsEmail(mockAccount);
+    if (res.outboundSmtpSent) {
+      setClaimStatusNotice(`✓ Credentials & study pack sent directly to ${claim.email} via SMTP!`);
+    } else {
+      const gmailUrl = res.gmailComposeUrl || generateGmailComposeUrl(mockAccount);
+      window.open(gmailUrl, '_blank');
+      setClaimStatusNotice(`✓ Opened in Gmail! Click 'Send' to deliver directly to ${claim.email}.`);
     }
+    setTimeout(() => setClaimStatusNotice(null), 5000);
+  };
+
+  const handleDownloadStudyPack = (courseId: string, studentName: string) => {
+    downloadStudyMaterialFile(courseId, studentName);
   };
 
   if (!isOpen) return null;
@@ -338,7 +437,7 @@ export default function CatalogAdminModal({
       subtitle: '',
       category: 'ai_platforms',
       level: 'Beginner',
-      language: 'Malayalam & English',
+      language: 'All Indian Languages & English',
       price: 1999,
       originalPrice: 4999,
       badge: 'Bestseller ⚡',
@@ -376,7 +475,7 @@ export default function CatalogAdminModal({
         subtitle: courseForm.subtitle || '',
         category: (courseForm.category as CourseCategory) || 'ai_platforms',
         level: (courseForm.level as any) || 'Beginner',
-        language: (courseForm.language as any) || 'Malayalam & English',
+        language: (courseForm.language as any) || 'All Indian Languages & English',
         price: Number(courseForm.price) || 0,
         originalPrice: Number(courseForm.originalPrice) || Number(courseForm.price) * 2,
         rating: 4.9,
@@ -590,13 +689,13 @@ export default function CatalogAdminModal({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-lg font-extrabold text-white">Nextclasses.in Catalog & Domain Manager</h3>
+                <h3 className="text-lg font-extrabold text-white">Nextclasses.in Admin & Payment Reconciliation Portal</h3>
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-orange-500/20 text-orange-400 border border-orange-500/30">
                   Admin Panel
                 </span>
               </div>
               <p className="text-xs text-neutral-400">
-                Add, edit, or delete digital products & courses visually. Changes persist automatically.
+                Reconcile Razorpay & UPI payments, verify student enrollments, issue credentials, and manage course catalog.
               </p>
             </div>
           </div>
@@ -641,13 +740,37 @@ export default function CatalogAdminModal({
 
         {/* Tab Navigation */}
         <div className="flex items-center gap-1 px-6 border-b border-neutral-800 bg-neutral-950/50 overflow-x-auto scrollbar-none">
+          {/* TAB 1: PAYMENT RECONCILIATION */}
+          <button
+            type="button"
+            onClick={() => setActiveTab('reconciliation')}
+            className={`flex items-center gap-2 px-4 py-3 text-xs sm:text-sm font-bold border-b-2 transition-colors whitespace-nowrap cursor-pointer ${
+              activeTab === 'reconciliation'
+                ? 'border-orange-500 text-orange-400'
+                : 'border-transparent text-neutral-400 hover:text-neutral-200'
+            }`}
+          >
+            <ShieldCheck className="w-4 h-4 text-orange-400" />
+            <span>Payment Reconciliation</span>
+            {claims.filter((c) => c.status === 'pending_verification').length > 0 ? (
+              <span className="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-orange-500 text-neutral-950 animate-pulse">
+                {claims.filter((c) => c.status === 'pending_verification').length} Pending
+              </span>
+            ) : (
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-neutral-800 text-neutral-400">
+                {claims.length}
+              </span>
+            )}
+          </button>
+
+          {/* TAB 2: DIGITAL PRODUCTS */}
           <button
             type="button"
             onClick={() => {
               setActiveTab('products');
               setIsEditingProduct(false);
             }}
-            className={`flex items-center gap-2 px-4 py-3 text-xs sm:text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${
+            className={`flex items-center gap-2 px-4 py-3 text-xs sm:text-sm font-bold border-b-2 transition-colors whitespace-nowrap cursor-pointer ${
               activeTab === 'products'
                 ? 'border-orange-500 text-orange-400'
                 : 'border-transparent text-neutral-400 hover:text-neutral-200'
@@ -656,13 +779,15 @@ export default function CatalogAdminModal({
             <Package className="w-4 h-4" />
             <span>Digital Products ({products.length})</span>
           </button>
+
+          {/* TAB 3: COURSES & PROGRAMS */}
           <button
             type="button"
             onClick={() => {
               setActiveTab('courses');
               setIsEditingCourse(false);
             }}
-            className={`flex items-center gap-2 px-4 py-3 text-xs sm:text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${
+            className={`flex items-center gap-2 px-4 py-3 text-xs sm:text-sm font-bold border-b-2 transition-colors whitespace-nowrap cursor-pointer ${
               activeTab === 'courses'
                 ? 'border-orange-500 text-orange-400'
                 : 'border-transparent text-neutral-400 hover:text-neutral-200'
@@ -671,6 +796,8 @@ export default function CatalogAdminModal({
             <BookOpen className="w-4 h-4" />
             <span>Courses & Programs ({courses.length})</span>
           </button>
+
+          {/* TAB 4: PORTAL VIDEOS */}
           <button
             type="button"
             onClick={() => {
@@ -686,6 +813,8 @@ export default function CatalogAdminModal({
             <Video className="w-4 h-4 text-red-400" />
             <span>Portal Videos ({portalVideos.length})</span>
           </button>
+
+          {/* TAB 5: PAYMENT GATEWAY (RAZORPAY) */}
           <button
             type="button"
             onClick={() => setActiveTab('payments')}
@@ -701,22 +830,12 @@ export default function CatalogAdminModal({
               <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
             )}
           </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('domain')}
-            className={`flex items-center gap-2 px-4 py-3 text-xs sm:text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${
-              activeTab === 'domain'
-                ? 'border-orange-500 text-orange-400'
-                : 'border-transparent text-neutral-400 hover:text-neutral-200'
-            }`}
-          >
-            <Globe className="w-4 h-4 text-cyan-400" />
-            <span>Custom Domain Setup</span>
-          </button>
+
+          {/* TAB 6: ADMIN SECURITY */}
           <button
             type="button"
             onClick={() => setActiveTab('security')}
-            className={`flex items-center gap-2 px-4 py-3 text-xs sm:text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${
+            className={`flex items-center gap-2 px-4 py-3 text-xs sm:text-sm font-bold border-b-2 transition-colors whitespace-nowrap cursor-pointer ${
               activeTab === 'security'
                 ? 'border-orange-500 text-orange-400'
                 : 'border-transparent text-neutral-400 hover:text-neutral-200'
@@ -1176,7 +1295,7 @@ export default function CatalogAdminModal({
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                       <div>
                         <label className="block text-neutral-300 font-semibold mb-1">Duration</label>
                         <input
@@ -1195,6 +1314,17 @@ export default function CatalogAdminModal({
                           value={courseForm.format || ''}
                           onChange={(e) => setCourseForm({ ...courseForm, format: e.target.value as any })}
                           placeholder="100% Self-Paced • Instant Access"
+                          className="w-full px-3 py-2 rounded-lg bg-neutral-900 border border-neutral-700 text-white focus:outline-none focus:border-orange-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-neutral-300 font-semibold mb-1">Delivery Medium</label>
+                        <input
+                          type="text"
+                          value={courseForm.language || ''}
+                          onChange={(e) => setCourseForm({ ...courseForm, language: e.target.value as any })}
+                          placeholder="All Indian Languages & English"
                           className="w-full px-3 py-2 rounded-lg bg-neutral-900 border border-neutral-700 text-white focus:outline-none focus:border-orange-500"
                         />
                       </div>
@@ -1290,206 +1420,627 @@ export default function CatalogAdminModal({
             </div>
           )}
 
-          {/* TAB 3: CUSTOM DOMAIN MANAGEMENT (www.fetecart.in) */}
-          {activeTab === 'domain' && (
-            <div className="max-w-3xl mx-auto space-y-6">
-              {/* PRIMARY DOMAIN CARD */}
-              <div className="p-6 rounded-2xl bg-gradient-to-br from-neutral-900 to-neutral-950 border border-cyan-500/30 shadow-xl space-y-5">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
-                      <Globe className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h4 className="text-lg font-bold text-white tracking-tight">{customDomain}</h4>
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                          Configured Domain
-                        </span>
-                      </div>
-                      <p className="text-xs text-neutral-400 mt-0.5">
-                        Active custom domain mapped to your Nextclasses.in instance.
-                      </p>
-                    </div>
-                  </div>
-
+          {/* TAB 1: PAYMENT RECONCILIATION & CLAIMS VERIFICATION */}
+          {activeTab === 'reconciliation' && (
+            <div className="space-y-6">
+              {/* Notification Banner */}
+              {claimStatusNotice && (
+                <div className="p-4 rounded-xl bg-emerald-950/70 border border-emerald-500/50 text-emerald-200 text-xs sm:text-sm font-semibold flex items-center justify-between shadow-lg animate-in fade-in">
                   <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={handleTestDns}
-                      disabled={isCheckingDns}
-                      className="px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-semibold flex items-center gap-1.5 border border-neutral-700 transition-colors disabled:opacity-50 cursor-pointer"
-                    >
-                      <RefreshCw className={`w-3.5 h-3.5 ${isCheckingDns ? 'animate-spin text-cyan-400' : ''}`} />
-                      <span>{isCheckingDns ? 'Checking DNS...' : 'Verify DNS Status'}</span>
-                    </button>
-                    <a
-                      href={`https://${customDomain}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold flex items-center gap-1.5 transition-colors shadow"
-                    >
-                      <span>Visit Domain</span>
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
+                    <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                    <span>{claimStatusNotice}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setClaimStatusNotice(null)}
+                    className="p-1 text-neutral-400 hover:text-white"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* Status Counters */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="p-4 rounded-xl bg-neutral-950 border border-amber-500/30">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-neutral-400 font-medium">Pending Claims</span>
+                    <Clock className="w-4 h-4 text-amber-400" />
+                  </div>
+                  <div className="text-2xl font-black text-amber-400 mt-1">
+                    {claims.filter((c) => c.status === 'pending_verification').length}
+                  </div>
+                  <span className="text-[10px] text-neutral-500">Awaiting bank/gateway check</span>
+                </div>
+
+                <div className="p-4 rounded-xl bg-neutral-950 border border-emerald-500/30">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-neutral-400 font-medium">Verified & Approved</span>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  </div>
+                  <div className="text-2xl font-black text-emerald-400 mt-1">
+                    {claims.filter((c) => c.status === 'approved').length}
+                  </div>
+                  <span className="text-[10px] text-neutral-500">Credentials active</span>
+                </div>
+
+                <div className="p-4 rounded-xl bg-neutral-950 border border-rose-500/30">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-neutral-400 font-medium">Rejected Fake Claims</span>
+                    <AlertTriangle className="w-4 h-4 text-rose-400" />
+                  </div>
+                  <div className="text-2xl font-black text-rose-400 mt-1">
+                    {claims.filter((c) => c.status === 'rejected').length}
+                  </div>
+                  <span className="text-[10px] text-neutral-500">Fraudulent attempts blocked</span>
+                </div>
+
+                <div className="p-4 rounded-xl bg-neutral-950 border border-neutral-800">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-neutral-400 font-medium">Registered Accounts</span>
+                    <UserCheck className="w-4 h-4 text-orange-400" />
+                  </div>
+                  <div className="text-2xl font-black text-white mt-1">
+                    {registeredStudents.length}
+                  </div>
+                  <span className="text-[10px] text-neutral-500">Active student accounts</span>
+                </div>
+              </div>
+
+              {/* Bank & Razorpay Reconciliation Guidance Banner */}
+              <div className="p-4 rounded-2xl bg-neutral-950 border border-orange-500/30 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0 text-emerald-400">
+                    <CreditCard className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-bold text-white uppercase tracking-wider">1. Razorpay Verification</h5>
+                    <p className="text-xs text-neutral-400 mt-0.5 leading-relaxed">
+                      Check <span className="text-emerald-400 font-mono">dashboard.razorpay.com</span> &gt; Transactions. Match the <strong className="text-neutral-200">Payment ID</strong> (<code className="text-emerald-400 font-mono">pay_...</code>). If status is <strong>Captured</strong>, click <strong className="text-emerald-400">Verify & Approve</strong>.
+                    </p>
                   </div>
                 </div>
 
-                {/* DNS Check Feedback */}
-                {dnsCheckResult && (
-                  <div className={`p-3.5 rounded-xl text-xs flex items-start gap-2.5 ${
-                    dnsCheckResult.status === 'success' 
-                      ? 'bg-emerald-950/40 border border-emerald-500/40 text-emerald-300' 
-                      : 'bg-cyan-950/40 border border-cyan-500/40 text-cyan-300'
-                  }`}>
-                    <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5 text-emerald-400" />
-                    <div className="flex-1 leading-relaxed">{dnsCheckResult.message}</div>
+                <div className="flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-orange-500/20 border border-orange-500/30 flex items-center justify-center shrink-0 text-orange-400">
+                    <Smartphone className="w-5 h-5" />
                   </div>
-                )}
+                  <div>
+                    <h5 className="text-xs font-bold text-white uppercase tracking-wider">2. Direct UPI / HDFC Reconciliation</h5>
+                    <p className="text-xs text-neutral-400 mt-0.5 leading-relaxed">
+                      Check HDFC NetBanking / App for <span className="text-orange-400 font-mono">8281644058@hdfc</span>. Verify the 12-digit <strong className="text-neutral-200">UTR number</strong> in transaction details before unlocking credentials.
+                    </p>
+                  </div>
+                </div>
+              </div>
 
-                {/* Domain Input Field */}
-                <div className="pt-2 border-t border-neutral-800/80 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                  <span className="text-xs text-neutral-400 whitespace-nowrap">Primary Domain:</span>
-                  <div className="flex-1 flex items-center gap-2">
+              {/* Filters, Search & View Switcher */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
+                <div className="flex items-center gap-2 overflow-x-auto">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowStudentsList(false);
+                      setClaimsFilter('all');
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-colors whitespace-nowrap ${
+                      !showStudentsList && claimsFilter === 'all'
+                        ? 'bg-orange-500 text-neutral-950'
+                        : 'bg-neutral-800 text-neutral-300 hover:text-white'
+                    }`}
+                  >
+                    All Claims ({claims.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowStudentsList(false);
+                      setClaimsFilter('pending');
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-colors whitespace-nowrap ${
+                      !showStudentsList && claimsFilter === 'pending'
+                        ? 'bg-amber-500 text-neutral-950'
+                        : 'bg-neutral-800 text-amber-400 hover:bg-neutral-700'
+                    }`}
+                  >
+                    Pending ({claims.filter((c) => c.status === 'pending_verification').length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowStudentsList(false);
+                      setClaimsFilter('approved');
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-colors whitespace-nowrap ${
+                      !showStudentsList && claimsFilter === 'approved'
+                        ? 'bg-emerald-500 text-neutral-950'
+                        : 'bg-neutral-800 text-emerald-400 hover:bg-neutral-700'
+                    }`}
+                  >
+                    Approved ({claims.filter((c) => c.status === 'approved').length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowStudentsList(false);
+                      setClaimsFilter('rejected');
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-colors whitespace-nowrap ${
+                      !showStudentsList && claimsFilter === 'rejected'
+                        ? 'bg-rose-500 text-neutral-950'
+                        : 'bg-neutral-800 text-rose-400 hover:bg-neutral-700'
+                    }`}
+                  >
+                    Rejected ({claims.filter((c) => c.status === 'rejected').length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowStudentsList(!showStudentsList)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-colors whitespace-nowrap ${
+                      showStudentsList
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-neutral-800 text-blue-400 hover:bg-neutral-700'
+                    }`}
+                  >
+                    <UserCheck className="w-3.5 h-3.5 inline mr-1" />
+                    Student Roster ({registeredStudents.length})
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1 sm:w-64">
+                    <Search className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                       type="text"
-                      value={customDomain}
-                      onChange={(e) => handleSaveDomain(e.target.value.trim().toLowerCase())}
-                      placeholder="e.g. www.fetecart.in"
-                      className="flex-1 px-3 py-1.5 rounded-lg bg-neutral-950 border border-neutral-800 text-white font-mono text-xs focus:border-cyan-500 outline-none"
+                      value={claimsSearchQuery}
+                      onChange={(e) => setClaimsSearchQuery(e.target.value)}
+                      placeholder="Search name, UTR, phone, email..."
+                      className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-neutral-950 border border-neutral-800 text-white text-xs placeholder:text-neutral-500 focus:border-orange-500 outline-none"
                     />
-                    <button
-                      type="button"
-                      onClick={() => handleCopy(customDomain, 'domain')}
-                      className="px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
-                    >
-                      {copiedField === 'domain' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                      <span>{copiedField === 'domain' ? 'Copied' : 'Copy'}</span>
-                    </button>
                   </div>
+                  <button
+                    type="button"
+                    onClick={loadClaimsData}
+                    className="p-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white transition-colors"
+                    title="Refresh Data"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
 
-              {/* REQUIRED DNS RECORDS TABLE */}
-              <div className="p-6 rounded-2xl bg-neutral-950 border border-neutral-800 space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h5 className="text-sm font-bold text-white">DNS Records for {customDomain}</h5>
-                    <p className="text-xs text-neutral-400">Add these records to your domain provider (GoDaddy, Cloudflare, Hostinger, BigRock, Namecheap):</p>
+              {/* VIEW A: REGISTERED STUDENTS LIST */}
+              {showStudentsList ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between pb-2 border-b border-neutral-800">
+                    <h4 className="text-sm font-bold text-white">Active Student Accounts ({registeredStudents.length})</h4>
+                    <span className="text-xs text-neutral-400">Credentials generated & portal unlocked</span>
                   </div>
-                  <span className="text-[11px] text-cyan-400 font-mono">Managed by Google Cloud Run</span>
+
+                  {registeredStudents.length === 0 ? (
+                    <div className="p-8 rounded-xl bg-neutral-950 border border-neutral-800 text-center text-neutral-400 text-xs">
+                      No active student accounts found yet. Approve a pending payment claim to generate credentials.
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {registeredStudents.map((account) => (
+                        <div
+                          key={account.id}
+                          className="p-4 rounded-xl bg-neutral-950 border border-neutral-800 hover:border-neutral-700 space-y-3 transition-colors"
+                        >
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <div className="text-sm font-bold text-white">{account.name}</div>
+                              <div className="text-xs text-neutral-400">{account.email} • {account.phone}</div>
+                            </div>
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                              Active
+                            </span>
+                          </div>
+
+                          <div className="p-2.5 rounded-lg bg-neutral-900/80 border border-neutral-800 flex items-center justify-between text-xs font-mono">
+                            <div>
+                              <span className="text-neutral-400">User: </span>
+                              <strong className="text-orange-400">{account.username}</strong>
+                            </div>
+                            <div>
+                              <span className="text-neutral-400">Pass: </span>
+                              <strong className="text-emerald-400">{account.password}</strong>
+                            </div>
+                          </div>
+
+                          <div className="text-xs text-neutral-300 font-medium">
+                            📚 {account.courseTitle}
+                          </div>
+
+                          <div className="flex items-center gap-2 pt-2 border-t border-neutral-800/60">
+                            <button
+                              type="button"
+                              onClick={() => handleDownloadStudyPack(account.courseId, account.name)}
+                              className="flex-1 py-1.5 px-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
+                            >
+                              <Download className="w-3.5 h-3.5 text-amber-400" />
+                              <span>Study Pack</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const claim = claims.find((c) => c.studentName === account.name);
+                                if (claim) handleSendClaimWhatsApp(claim);
+                              }}
+                              className="flex-1 py-1.5 px-2 rounded-lg bg-emerald-950 hover:bg-emerald-900 text-emerald-300 text-xs font-semibold flex items-center justify-center gap-1 border border-emerald-800/60 transition-colors"
+                            >
+                              <MessageCircle className="w-3.5 h-3.5" />
+                              <span>WhatsApp</span>
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
+              ) : (
+                /* VIEW B: CLAIMS LIST */
+                <div className="space-y-4">
+                  {claims
+                    .filter((claim) => {
+                      if (claimsFilter !== 'all' && claim.status !== claimsFilter) return false;
+                      if (claimsSearchQuery.trim()) {
+                        const q = claimsSearchQuery.toLowerCase().trim();
+                        return (
+                          claim.studentName.toLowerCase().includes(q) ||
+                          claim.phone.includes(q) ||
+                          claim.email.toLowerCase().includes(q) ||
+                          claim.utrNumber.toLowerCase().includes(q) ||
+                          claim.courseTitle.toLowerCase().includes(q) ||
+                          claim.claimCode.toLowerCase().includes(q)
+                        );
+                      }
+                      return true;
+                    })
+                    .map((claim) => {
+                      const isPending = claim.status === 'pending_verification';
+                      const isApproved = claim.status === 'approved';
+                      const isRejected = claim.status === 'rejected';
 
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs border border-neutral-800 rounded-xl overflow-hidden">
-                    <thead className="bg-neutral-900 text-neutral-400 font-semibold border-b border-neutral-800">
-                      <tr>
-                        <th className="py-2.5 px-3">Type</th>
-                        <th className="py-2.5 px-3">Name / Host</th>
-                        <th className="py-2.5 px-3">Points To / Value</th>
-                        <th className="py-2.5 px-3">TTL</th>
-                        <th className="py-2.5 px-3 text-right">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-neutral-900 text-neutral-300 font-mono">
-                      {/* Record 1: CNAME */}
-                      <tr className="hover:bg-neutral-900/50 transition-colors">
-                        <td className="py-3 px-3 font-bold text-amber-400">CNAME</td>
-                        <td className="py-3 px-3 text-white">www</td>
-                        <td className="py-3 px-3 text-emerald-400 font-bold">ghs.googlehosted.com.</td>
-                        <td className="py-3 px-3 text-neutral-500">Auto / 3600</td>
-                        <td className="py-3 px-3 text-right font-sans">
-                          <button
-                            type="button"
-                            onClick={() => handleCopy('ghs.googlehosted.com.', 'cname')}
-                            className="px-2.5 py-1 rounded-md bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-[11px] font-semibold inline-flex items-center gap-1 transition-colors cursor-pointer"
-                          >
-                            {copiedField === 'cname' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                            <span>{copiedField === 'cname' ? 'Copied' : 'Copy'}</span>
-                          </button>
-                        </td>
-                      </tr>
+                      return (
+                        <div
+                          key={claim.id}
+                          className={`p-5 rounded-2xl bg-neutral-950 border transition-all ${
+                            isPending
+                              ? 'border-amber-500/50 shadow-lg shadow-amber-500/5'
+                              : isApproved
+                              ? 'border-emerald-500/40'
+                              : 'border-rose-500/30 opacity-75'
+                          }`}
+                        >
+                          {/* Claim Top Line */}
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-neutral-800/80">
+                            <div className="flex items-center gap-3">
+                              <span className="font-mono text-xs font-bold text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/20">
+                                {claim.claimCode}
+                              </span>
+                              <span className="text-xs text-neutral-400">
+                                Submitted {new Date(claim.submittedAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
+                              </span>
+                            </div>
 
-                      {/* Record 2: Apex A */}
-                      <tr className="hover:bg-neutral-900/50 transition-colors">
-                        <td className="py-3 px-3 font-bold text-cyan-400">A</td>
-                        <td className="py-3 px-3 text-white">@ (fetecart.in)</td>
-                        <td className="py-3 px-3 text-neutral-300 text-[11px]">
-                          216.239.32.21, 216.239.34.21, 216.239.36.21, 216.239.38.21
-                        </td>
-                        <td className="py-3 px-3 text-neutral-500">Auto / 3600</td>
-                        <td className="py-3 px-3 text-right font-sans">
-                          <button
-                            type="button"
-                            onClick={() => handleCopy('216.239.32.21', 'apex_a')}
-                            className="px-2.5 py-1 rounded-md bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-[11px] font-semibold inline-flex items-center gap-1 transition-colors cursor-pointer"
-                          >
-                            {copiedField === 'apex_a' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                            <span>{copiedField === 'apex_a' ? 'Copied' : 'Copy A'}</span>
-                          </button>
-                        </td>
-                      </tr>
+                            <div className="flex items-center gap-2">
+                              {isPending && (
+                                <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center gap-1.5">
+                                  <Clock className="w-3.5 h-3.5 animate-spin" />
+                                  <span>Pending Verification</span>
+                                </span>
+                              )}
+                              {isApproved && (
+                                <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center gap-1.5">
+                                  <CheckCircle2 className="w-3.5 h-3.5" />
+                                  <span>Approved & Enrolled</span>
+                                </span>
+                              )}
+                              {isRejected && (
+                                <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-500/20 text-rose-400 border border-rose-500/40 flex items-center gap-1.5">
+                                  <AlertTriangle className="w-3.5 h-3.5" />
+                                  <span>Rejected</span>
+                                </span>
+                              )}
+                              <span className="text-base font-extrabold text-white">
+                                ₹{claim.amount.toLocaleString('en-IN')}
+                              </span>
+                            </div>
+                          </div>
 
-                      {/* Record 3: Apex Redirect */}
-                      <tr className="hover:bg-neutral-900/50 transition-colors">
-                        <td className="py-3 px-3 font-bold text-purple-400">Forward</td>
-                        <td className="py-3 px-3 text-white">fetecart.in</td>
-                        <td className="py-3 px-3 text-neutral-300 font-sans text-xs">
-                          Forward 301 Permanent to <strong className="text-cyan-400 font-mono">https://www.fetecart.in</strong>
-                        </td>
-                        <td className="py-3 px-3 text-neutral-500 font-sans">N/A</td>
-                        <td className="py-3 px-3 text-right font-sans">
-                          <button
-                            type="button"
-                            onClick={() => handleCopy('https://www.fetecart.in', 'forward')}
-                            className="px-2.5 py-1 rounded-md bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-[11px] font-semibold inline-flex items-center gap-1 transition-colors cursor-pointer"
-                          >
-                            {copiedField === 'forward' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                            <span>{copiedField === 'forward' ? 'Copied' : 'Copy URL'}</span>
-                          </button>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+                          {/* Claim Details Grid */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+                            {/* Left: Student & Course */}
+                            <div className="space-y-2">
+                              <div>
+                                <span className="text-[11px] text-neutral-500 uppercase tracking-wider font-semibold">Student Information</span>
+                                <div className="text-sm font-bold text-white mt-0.5">{claim.studentName}</div>
+                                <div className="text-xs text-neutral-300">{claim.email} • {claim.phone}</div>
+                              </div>
+
+                              <div className="pt-1">
+                                <span className="text-[11px] text-neutral-500 uppercase tracking-wider font-semibold">Enrolled Course / Pack</span>
+                                <div className="text-xs font-semibold text-orange-300 mt-0.5">
+                                  {claim.courseTitle}
+                                </div>
+                              </div>
+
+                              {claim.notes && (
+                                <div className="pt-1">
+                                  <span className="text-[11px] text-neutral-500 uppercase tracking-wider font-semibold">Student Notes</span>
+                                  <p className="text-xs text-neutral-400 italic bg-neutral-900 p-2 rounded-lg border border-neutral-800 mt-0.5">
+                                    "{claim.notes}"
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Right: Payment Method & Reference Proof */}
+                            <div className="space-y-3 bg-neutral-900/60 p-3.5 rounded-xl border border-neutral-800">
+                              <div>
+                                <span className="text-[11px] text-neutral-500 uppercase tracking-wider font-semibold">Payment Channel</span>
+                                <div className="text-xs font-bold text-neutral-200 mt-0.5 flex items-center gap-2">
+                                  <span>{claim.paymentMethod}</span>
+                                  {claim.paymentApp && (
+                                    <span className="px-1.5 py-0.5 rounded bg-neutral-800 text-[10px] text-neutral-300">
+                                      {claim.paymentApp}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div>
+                                <span className="text-[11px] text-neutral-500 uppercase tracking-wider font-semibold">
+                                  Transaction Ref / 12-Digit UTR
+                                </span>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <code className="text-sm font-black font-mono text-emerald-400 bg-neutral-950 px-3 py-1.5 rounded-lg border border-neutral-800 tracking-wider">
+                                    {claim.utrNumber}
+                                  </code>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleCopyUtr(claim.utrNumber, claim.id)}
+                                    className="px-2.5 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold text-neutral-300 hover:text-white flex items-center gap-1 transition-colors cursor-pointer"
+                                    title="Copy reference number"
+                                  >
+                                    {copiedUtrId === claim.id ? (
+                                      <>
+                                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                        <span className="text-emerald-400">Copied</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Copy className="w-3.5 h-3.5" />
+                                        <span>Copy</span>
+                                      </>
+                                    )}
+                                  </button>
+                                </div>
+                              </div>
+
+                              {isApproved && claim.credentialsGenerated && (
+                                <div className="pt-2 border-t border-neutral-800">
+                                  <span className="text-[11px] text-neutral-500 uppercase tracking-wider font-semibold">Active Credentials</span>
+                                  <div className="flex items-center justify-between text-xs font-mono bg-neutral-950 p-2 rounded-lg border border-neutral-800 mt-1">
+                                    <span className="text-neutral-400">User: <strong className="text-orange-400">{claim.credentialsGenerated.username}</strong></span>
+                                    <span className="text-neutral-400">Pass: <strong className="text-emerald-400">{claim.credentialsGenerated.password}</strong></span>
+                                  </div>
+                                </div>
+                              )}
+
+                              {isRejected && claim.rejectionReason && (
+                                <div className="p-2 rounded-lg bg-rose-950/40 border border-rose-800/50 text-xs text-rose-300">
+                                  <strong>Reason for rejection:</strong> {claim.rejectionReason}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Action Buttons Row */}
+                          <div className="pt-3 border-t border-neutral-800/80 flex flex-wrap items-center justify-end gap-2">
+                            {isPending && (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => handleInitiateReject(claim)}
+                                  disabled={processingClaimId === claim.id}
+                                  className="px-3.5 py-2 rounded-xl bg-neutral-900 hover:bg-rose-950/60 text-rose-300 text-xs font-bold border border-rose-500/40 hover:border-rose-500 transition-colors cursor-pointer"
+                                >
+                                  Reject Fake Claim
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleApproveClaim(claim)}
+                                  disabled={processingClaimId === claim.id}
+                                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-extrabold flex items-center gap-1.5 shadow-lg shadow-emerald-600/20 transition-all cursor-pointer disabled:opacity-50"
+                                >
+                                  {processingClaimId === claim.id ? (
+                                    <>
+                                      <Loader2 className="w-4 h-4 animate-spin" />
+                                      <span>Verifying & Generating...</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <ShieldCheck className="w-4 h-4" />
+                                      <span>Verify & Approve (Generate Login)</span>
+                                    </>
+                                  )}
+                                </button>
+                              </>
+                            )}
+
+                            {isApproved && (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDownloadStudyPack(claim.courseId, claim.studentName)}
+                                  className="px-3.5 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                                  title="Download watermarked study material PDF"
+                                >
+                                  <Download className="w-3.5 h-3.5 text-amber-400" />
+                                  <span>Download Study Pack</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleSendClaimEmail(claim)}
+                                  className="px-3.5 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                                  title="Send official enrollment credentials email"
+                                >
+                                  <Mail className="w-3.5 h-3.5 text-blue-400" />
+                                  <span>Email Credentials</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleSendClaimWhatsApp(claim)}
+                                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold flex items-center gap-1.5 transition-colors shadow cursor-pointer"
+                                  title="Send login credentials directly to student WhatsApp"
+                                >
+                                  <MessageCircle className="w-4 h-4" />
+                                  <span>Send on WhatsApp</span>
+                                </button>
+                              </>
+                            )}
+
+                            {isRejected && (
+                              <button
+                                type="button"
+                                onClick={() => handleApproveClaim(claim)}
+                                disabled={processingClaimId === claim.id}
+                                className="px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs font-semibold cursor-pointer"
+                              >
+                                Re-evaluate Claim
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                  {claims.length === 0 && (
+                    <div className="p-12 text-center rounded-2xl bg-neutral-950 border border-neutral-800 text-neutral-400 text-sm">
+                      No customer payment claims submitted yet.
+                    </div>
+                  )}
                 </div>
-              </div>
+              )}
 
-              {/* 3-STEP ACTIVATION GUIDE */}
-              <div className="p-6 rounded-2xl bg-neutral-950 border border-neutral-800 space-y-4">
-                <h5 className="text-sm font-bold text-white">Quick 3-Step Setup for www.fetecart.in</h5>
-                <div className="space-y-3 text-xs text-neutral-300">
-                  <div className="p-3.5 rounded-xl bg-neutral-900 border border-neutral-800/80 flex items-start gap-3">
-                    <span className="w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-400 font-bold flex items-center justify-center shrink-0 text-xs">1</span>
-                    <div>
-                      <strong className="text-white">Deploy to Google Cloud Run:</strong>
-                      <p className="text-neutral-400 mt-0.5">
-                        In Google AI Studio, click the <strong>Deploy</strong> button to deploy this web application container to Cloud Run.
-                      </p>
+              {/* IN-APP REJECTION CONFIRMATION DIALOG (Works 100% in all browsers & iframes) */}
+              {rejectingClaim && (
+                <div className="fixed inset-0 z-[160] bg-neutral-950/85 backdrop-blur-sm flex items-center justify-center p-4">
+                  <div className="bg-neutral-900 border border-rose-500/50 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 shrink-0">
+                          <AlertTriangle className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h4 className="text-base font-bold text-white">Reject Fake / Invalid Claim</h4>
+                          <p className="text-xs text-neutral-400">The student will be denied login access & study materials.</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setRejectingClaim(null)}
+                        className="p-1 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    {/* Claim Summary Box */}
+                    <div className="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800 space-y-2 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-neutral-400">Student Name:</span>
+                        <strong className="text-white">{rejectingClaim.studentName}</strong>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-neutral-400">Phone & Email:</span>
+                        <span className="text-neutral-300">{rejectingClaim.phone} • {rejectingClaim.email}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-neutral-400">Course / Amount:</span>
+                        <span className="text-orange-300 font-semibold">{rejectingClaim.courseTitle} (₹{rejectingClaim.amount.toLocaleString('en-IN')})</span>
+                      </div>
+                      <div className="flex justify-between items-center pt-1 border-t border-neutral-800/80">
+                        <span className="text-neutral-400">Claimed UTR / Ref:</span>
+                        <code className="px-2 py-0.5 rounded bg-neutral-900 text-rose-400 font-mono font-bold">
+                          {rejectingClaim.utrNumber}
+                        </code>
+                      </div>
+                    </div>
+
+                    {/* Preset Reasons */}
+                    <div className="space-y-2">
+                      <label className="block text-xs font-semibold text-neutral-300">
+                        Select Reason for Rejection:
+                      </label>
+                      <div className="flex flex-wrap gap-1.5">
+                        {[
+                          'Payment not found in bank statement',
+                          'Invalid / fake 12-digit UTR',
+                          'Transaction failed or reversed in bank',
+                          'Amount mismatch',
+                          'Duplicate transaction reference'
+                        ].map((preset) => (
+                          <button
+                            key={preset}
+                            type="button"
+                            onClick={() => setRejectReason(preset)}
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors cursor-pointer ${
+                              rejectReason === preset
+                                ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                                : 'bg-neutral-800 text-neutral-400 hover:text-neutral-200 border border-neutral-700'
+                            }`}
+                          >
+                            {preset}
+                          </button>
+                        ))}
+                      </div>
+
+                      <textarea
+                        rows={2}
+                        value={rejectReason}
+                        onChange={(e) => setRejectReason(e.target.value)}
+                        placeholder="Detailed reason..."
+                        className="w-full px-3 py-2 rounded-xl bg-neutral-950 border border-neutral-700 text-white text-xs placeholder:text-neutral-500 focus:border-rose-500 outline-none resize-none mt-2"
+                      />
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="pt-2 flex items-center justify-end gap-2.5">
+                      <button
+                        type="button"
+                        onClick={() => setRejectingClaim(null)}
+                        className="px-4 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs font-semibold transition-colors cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleConfirmReject}
+                        disabled={processingClaimId === rejectingClaim.id}
+                        className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition-colors flex items-center gap-1.5 shadow cursor-pointer disabled:opacity-50"
+                      >
+                        {processingClaimId === rejectingClaim.id ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <span>Rejecting...</span>
+                          </>
+                        ) : (
+                          <>
+                            <AlertTriangle className="w-3.5 h-3.5" />
+                            <span>Confirm Rejection (Mark as Fake)</span>
+                          </>
+                        )}
+                      </button>
                     </div>
                   </div>
-
-                  <div className="p-3.5 rounded-xl bg-neutral-900 border border-neutral-800/80 flex items-start gap-3">
-                    <span className="w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-400 font-bold flex items-center justify-center shrink-0 text-xs">2</span>
-                    <div>
-                      <strong className="text-white">Map Domain in Google Cloud Console:</strong>
-                      <p className="text-neutral-400 mt-0.5">
-                        Open <span className="text-cyan-400 font-mono">console.cloud.google.com/run</span> &gt; <strong>Manage Custom Domains</strong> &gt; <strong>Add Mapping</strong>. Select your Cloud Run service and enter <span className="text-white font-mono font-bold">www.fetecart.in</span>.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="p-3.5 rounded-xl bg-neutral-900 border border-neutral-800/80 flex items-start gap-3">
-                    <span className="w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-400 font-bold flex items-center justify-center shrink-0 text-xs">3</span>
-                    <div>
-                      <strong className="text-white">Add CNAME at Your Domain Registrar:</strong>
-                      <p className="text-neutral-400 mt-0.5">
-                        In your DNS panel (GoDaddy, Hostinger, Cloudflare, etc.), add the CNAME record <span className="text-emerald-400 font-mono font-bold">www</span> pointing to <span className="text-emerald-400 font-mono font-bold">ghs.googlehosted.com.</span>. Google automatically provisions free SSL (HTTPS) within 15–30 minutes!
-                      </p>
-                    </div>
-                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
 
@@ -1846,15 +2397,20 @@ export default function CatalogAdminModal({
                     </div>
                     <div>
                       <h4 className="text-lg font-bold text-white flex items-center gap-2">
-                        <span>Razorpay Live Payment Gateway</span>
-                        {razorpayKeyId && razorpayKeyId.startsWith('rzp_') ? (
+                        <span>Razorpay Payment Gateway</span>
+                        {razorpayKeyId && razorpayKeyId.startsWith('rzp_live_') ? (
                           <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800 flex items-center gap-1">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                            Live Active
+                            Live Production Active
+                          </span>
+                        ) : razorpayKeyId && razorpayKeyId.startsWith('rzp_test_') ? (
+                          <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-950 text-amber-400 border border-amber-800 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                            Test Sandbox Mode
                           </span>
                         ) : (
-                          <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-950 text-amber-400 border border-amber-800">
-                            Instant Sandbox Mode
+                          <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-neutral-900 text-neutral-400 border border-neutral-800">
+                            Simulator Mode
                           </span>
                         )}
                       </h4>
@@ -1915,6 +2471,46 @@ export default function CatalogAdminModal({
                       <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
                       <span>Only the public Key ID is required on the client side. Your Key Secret is never exposed.</span>
                     </p>
+
+                    <div className="flex flex-wrap items-center gap-2 mt-2 pt-2 border-t border-neutral-800/60">
+                      <span className="text-[11px] text-neutral-400 font-medium">Quick Presets:</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setInputRazorpayKey('rzp_test_TefOJtQvLEYw4p');
+                          if (onSaveRazorpayKey) {
+                            onSaveRazorpayKey('rzp_test_TefOJtQvLEYw4p');
+                            setKeySavedNotice('Activated Razorpay Test Sandbox Key!');
+                            setTimeout(() => setKeySavedNotice(null), 4000);
+                          }
+                        }}
+                        className={`text-[11px] px-2.5 py-1 rounded-lg border font-mono transition-colors cursor-pointer ${
+                          inputRazorpayKey === 'rzp_test_TefOJtQvLEYw4p'
+                            ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 font-semibold'
+                            : 'bg-neutral-900 text-neutral-300 border-neutral-800 hover:border-neutral-700'
+                        }`}
+                      >
+                        ⚡ Test Sandbox (rzp_test_TefOJtQvLEYw4p)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setInputRazorpayKey('rzp_live_TefblkmIMTFIRH');
+                          if (onSaveRazorpayKey) {
+                            onSaveRazorpayKey('rzp_live_TefblkmIMTFIRH');
+                            setKeySavedNotice('Activated Razorpay Live Production Key!');
+                            setTimeout(() => setKeySavedNotice(null), 4000);
+                          }
+                        }}
+                        className={`text-[11px] px-2.5 py-1 rounded-lg border font-mono transition-colors cursor-pointer ${
+                          inputRazorpayKey === 'rzp_live_TefblkmIMTFIRH'
+                            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50 font-semibold'
+                            : 'bg-neutral-900 text-neutral-300 border-neutral-800 hover:border-neutral-700'
+                        }`}
+                      >
+                        🟢 Live Production (rzp_live_TefblkmIMTFIRH)
+                      </button>
+                    </div>
                   </div>
 
                   {/* Actions */}

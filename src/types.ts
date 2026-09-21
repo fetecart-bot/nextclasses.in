@@ -48,7 +48,7 @@ export interface Course {
   subtitle: string;
   category: CourseCategory;
   level: 'Beginner' | 'Intermediate' | 'All Levels' | string;
-  language: 'All Indian Languages & English' | 'Malayalam & English' | 'English' | 'Malayalam' | 'French & English' | 'German & English' | string;
+  language: 'All Indian Languages & English' | 'English' | 'French & English' | 'German & English' | string;
   price: number;
   originalPrice: number;
   rating: number;

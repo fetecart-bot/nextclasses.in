@@ -197,7 +197,7 @@ export default function PolicyModal({
                   <h5 className="font-bold text-white text-sm mb-1.5">What We Deliver</h5>
                   <ul className="list-disc pl-5 text-neutral-400 space-y-1.5">
                     <li><strong>On-Demand Video Masterclasses:</strong> High-definition video modules, practical hands-on exercises, and prompt libraries accessible 24/7.</li>
-                    <li><strong>Bilingual Instruction:</strong> Content delivered in clear, conversational English, Malayalam, Tamil, and Hindi.</li>
+                    <li><strong>Multilingual Instruction:</strong> Content delivered in clear, conversational English and All Indian Languages.</li>
                     <li><strong>Self-Paced Toolkits:</strong> Downloadable prompt vaults, Notion productivity systems, and lesson planning templates.</li>
                     <li><strong>Verified Certificates:</strong> Digital verifiable completion credentials with QR verification for CV and LinkedIn.</li>
                   </ul>

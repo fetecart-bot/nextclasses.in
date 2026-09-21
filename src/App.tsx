@@ -21,6 +21,9 @@ import AdminDispatchModal from './components/AdminDispatchModal';
 import PolicyModal, { PolicyTab } from './components/PolicyModal';
 import { AIChatBot } from './components/AIChatBot';
 import { DirectUPIModal } from './components/DirectUPIModal';
+import { PaymentVerificationModal } from './components/PaymentVerificationModal';
+import { VoiceReceptionistModal } from './components/VoiceReceptionistModal';
+import { VoiceReceptionistFloatingButton } from './components/VoiceReceptionistFloatingButton';
 import { COURSES_DATA, AI_PRODUCTS_DATA, DEFAULT_PORTAL_VIDEOS } from './data';
 import { Course, CartItem, AIProduct, PortalVideoLesson } from './types';
 
@@ -85,6 +88,11 @@ export default function App() {
               if (defaultMatch.category === 'languages' && c.category !== 'languages') {
                 updated.category = 'languages' as const;
               }
+              if (c.id === 'course-google-ai-studio') {
+                updated.language = 'All Indian Languages & English';
+              } else if (defaultMatch.language && defaultMatch.language !== c.language) {
+                updated.language = defaultMatch.language;
+              }
               // Sync updated high-definition thumbnails
               if (defaultMatch.thumbnail && (
                 !c.thumbnail ||
@@ -134,13 +142,19 @@ export default function App() {
   const [razorpayKeyId, setRazorpayKeyId] = useState<string>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_RAZORPAY_KEY);
-      if (saved) {
+      if (saved && saved.startsWith('rzp_live_')) {
         return saved;
       }
     } catch {
       // fallback
     }
-    return (((import.meta as any).env?.VITE_RAZORPAY_KEY_ID as string) || '').trim();
+    const liveKey = (((import.meta as any).env?.VITE_RAZORPAY_KEY_ID as string) || 'rzp_live_TefblkmIMTFIRH').trim();
+    try {
+      localStorage.setItem(STORAGE_RAZORPAY_KEY, liveKey);
+    } catch {
+      // ignore
+    }
+    return liveKey;
   });
 
   // State for shopping cart
@@ -159,6 +173,47 @@ export default function App() {
   const [isPolicyModalOpen, setIsPolicyModalOpen] = useState<boolean>(false);
   const [activePolicyTab, setActivePolicyTab] = useState<PolicyTab>('terms');
   const [isUpiModalOpen, setIsUpiModalOpen] = useState<boolean>(false);
+  const [isVerificationModalOpen, setIsVerificationModalOpen] = useState<boolean>(false);
+  const [isVoiceReceptionistOpen, setIsVoiceReceptionistOpen] = useState<boolean>(false);
+  const [verificationModalData, setVerificationModalData] = useState<{
+    courseId: string;
+    courseTitle: string;
+    amount: number;
+    utr?: string;
+    paymentMethod?: string;
+    paymentApp?: string;
+    studentName?: string;
+    email?: string;
+    phone?: string;
+  }>({
+    courseId: 'course-aissee-sainik',
+    courseTitle: 'AISSEE (All India Sainik School Entrance) 2027: Class 6 & 9 Kit',
+    amount: 1799,
+    utr: '',
+    paymentMethod: 'Direct HDFC UPI (8281644058@hdfc)',
+    paymentApp: 'Google Pay',
+    studentName: '',
+    email: '',
+    phone: '',
+  });
+
+  const handleOpenVerificationModal = (data: {
+    courseId: string;
+    courseTitle: string;
+    amount: number;
+    utr?: string;
+    paymentMethod?: string;
+    paymentApp?: string;
+    studentName?: string;
+    email?: string;
+    phone?: string;
+  }) => {
+    setVerificationModalData((prev) => ({
+      ...prev,
+      ...data,
+    }));
+    setIsVerificationModalOpen(true);
+  };
 
   // Sync products to local storage
   useEffect(() => {
@@ -209,6 +264,10 @@ export default function App() {
       if (!rawHash) return;
 
       // Handle direct policy URLs for Razorpay reviewer checks
+      if (rawHash === 'voice' || rawHash === 'receptionist' || rawHash === 'call') {
+        setIsVoiceReceptionistOpen(true);
+        return;
+      }
       if (rawHash === 'portal' || rawHash === 'student-portal') {
         setIsPortalModalOpen(true);
         return;
@@ -346,7 +405,7 @@ export default function App() {
     setProducts(AI_PRODUCTS_DATA);
     setCourses(COURSES_DATA);
     setPortalVideos(DEFAULT_PORTAL_VIDEOS);
-    setRazorpayKeyId((((import.meta as any).env?.VITE_RAZORPAY_KEY_ID as string) || '').trim());
+    setRazorpayKeyId((((import.meta as any).env?.VITE_RAZORPAY_KEY_ID as string) || 'rzp_live_TefblkmIMTFIRH').trim());
   };
 
   // Cart operations
@@ -400,8 +459,10 @@ export default function App() {
         onOpenAuthModal={() => setIsAuthModalOpen(true)}
         onOpenMockTest={() => handleLaunchMockTest()}
         onOpenLanguageSelector={() => setIsLanguageModalOpen(true)}
+        onOpenAdmin={() => setIsAdminModalOpen(true)}
         onOpenUpiModal={() => setIsUpiModalOpen(true)}
         onOpenAdminDispatch={() => setIsAdminDispatchModalOpen(true)}
+        onOpenVoiceReceptionist={() => setIsVoiceReceptionistOpen(true)}
       />
 
       {/* Main Content Sections */}
@@ -414,6 +475,7 @@ export default function App() {
           onSelectCourse={(course) => setSelectedCourseForModal(course)}
           onOpenStudentPortal={() => setIsPortalModalOpen(true)}
           onAddToCart={handleAddToCart}
+          onOpenVoiceReceptionist={() => setIsVoiceReceptionistOpen(true)}
         />
 
         {/* AI Courses Catalog */}
@@ -562,6 +624,7 @@ export default function App() {
           setActivePolicyTab(tab);
           setIsPolicyModalOpen(true);
         }}
+        onOpenVerificationModal={handleOpenVerificationModal}
       />
 
       {/* Direct UPI Scan & Pay Modal */}
@@ -576,12 +639,31 @@ export default function App() {
             : 1799
         }
         onOpenPortal={() => setIsPortalModalOpen(true)}
+        onOpenVerificationModal={handleOpenVerificationModal}
         onPaymentConfirmed={(utr) => {
-          console.log('UPI payment confirmed with UTR:', utr);
+          console.log('UPI payment recorded with UTR:', utr);
         }}
       />
 
-      {/* Admin Study Material Dispatch Modal */}
+      {/* Separate Payment Verification Submission Popup */}
+      <PaymentVerificationModal
+        isOpen={isVerificationModalOpen}
+        onClose={() => setIsVerificationModalOpen(false)}
+        initialCourseId={verificationModalData.courseId}
+        initialCourseTitle={verificationModalData.courseTitle}
+        initialAmount={verificationModalData.amount}
+        initialUtr={verificationModalData.utr}
+        initialPaymentMethod={verificationModalData.paymentMethod}
+        initialPaymentApp={verificationModalData.paymentApp}
+        initialStudentName={verificationModalData.studentName}
+        initialEmail={verificationModalData.email}
+        initialPhone={verificationModalData.phone}
+        onClaimSubmitted={() => {
+          // Open notification or keep tracking
+        }}
+      />
+
+      {/* Admin Study Material Dispatch & Reconciliation Modal */}
       {isAdminDispatchModalOpen && (
         <AdminDispatchModal
           isOpen={isAdminDispatchModalOpen}
@@ -596,6 +678,22 @@ export default function App() {
         onNavigateTo={handleNavigateTo}
         onOpenMockTest={() => handleLaunchMockTest()}
         onOpenCart={() => setIsCartOpen(true)}
+        onOpenVoiceReceptionist={() => setIsVoiceReceptionistOpen(true)}
+      />
+
+      {/* Floating AI Voice Receptionist Button (Priya • Indian Accent) */}
+      <VoiceReceptionistFloatingButton
+        onOpenVoiceModal={() => setIsVoiceReceptionistOpen(true)}
+        isOpen={isVoiceReceptionistOpen}
+      />
+
+      {/* AI Voice Receptionist Interactive Live Modal */}
+      <VoiceReceptionistModal
+        isOpen={isVoiceReceptionistOpen}
+        onClose={() => setIsVoiceReceptionistOpen(false)}
+        onNavigateTo={handleNavigateTo}
+        onOpenUpiModal={() => setIsUpiModalOpen(true)}
+        onOpenCourseCatalog={() => handleNavigateTo('courses')}
       />
     </div>
   );

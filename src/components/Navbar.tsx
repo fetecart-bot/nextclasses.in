@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ShoppingBag, BookOpen, Menu, X, Sparkles, UserCheck, MessageSquare, MessageCircle, LogIn, User, LogOut, Target, Languages, Settings, QrCode, Send } from 'lucide-react';
+import { ShoppingBag, BookOpen, Menu, X, Sparkles, UserCheck, MessageSquare, MessageCircle, LogIn, User, LogOut, Target, Languages, Settings, QrCode, Send, Phone } from 'lucide-react';
 import { CartItem } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -15,6 +15,7 @@ interface NavbarProps {
   onOpenAdmin?: () => void;
   onOpenUpiModal?: () => void;
   onOpenAdminDispatch?: () => void;
+  onOpenVoiceReceptionist?: () => void;
 }
 
 export default function Navbar({
@@ -28,6 +29,7 @@ export default function Navbar({
   onOpenAdmin,
   onOpenUpiModal,
   onOpenAdminDispatch,
+  onOpenVoiceReceptionist,
 }: NavbarProps) {
   const { user, logout } = useAuth();
   const { currentLanguage, t } = useLanguage();
@@ -38,7 +40,6 @@ export default function Navbar({
   const cartTotalAmount = cartItems.reduce((acc, item) => acc + (Number(item.price) || 0), 0);
 
   const navLinks = [
-    { label: 'About Us', href: 'about-us' },
     { label: 'AI Courses', href: 'courses' },
     { label: 'AI Digital Products', href: 'products' },
     { label: 'Why Nextclasses.in', href: 'why-us' },
@@ -133,6 +134,21 @@ export default function Navbar({
               <span>Portal</span>
             </button>
 
+            {/* Voice Receptionist Button (Priya - Indian Accent) */}
+            {onOpenVoiceReceptionist && (
+              <button
+                id="navbar-voice-receptionist-btn"
+                type="button"
+                onClick={onOpenVoiceReceptionist}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-950/80 hover:bg-emerald-900/90 border border-emerald-500/40 text-emerald-300 hover:text-white text-xs font-bold transition-all shadow-sm cursor-pointer active:scale-95"
+                title="Talk to Priya • AI Voice Receptionist (Indian Accent)"
+              >
+                <Phone className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+                <span>Talk to Priya</span>
+                <span className="hidden xl:inline text-[9px] bg-emerald-500/20 text-emerald-300 px-1 py-0.2 rounded font-medium">Voice</span>
+              </button>
+            )}
+
             {/* Admin Dispatch Study Materials Button */}
             {onOpenAdminDispatch && (
               <button
@@ -144,20 +160,6 @@ export default function Navbar({
               >
                 <Send className="w-3.5 h-3.5 text-orange-400" />
                 <span>Send Materials</span>
-              </button>
-            )}
-
-            {/* Direct UPI Scan & Pay */}
-            {onOpenUpiModal && (
-              <button
-                id="navbar-upi-qr-btn"
-                type="button"
-                onClick={onOpenUpiModal}
-                className="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#141d2d] border border-[#26354d] text-neutral-200 hover:text-white hover:border-orange-500/50 text-xs font-semibold transition-colors cursor-pointer"
-                title="Direct UPI QR Scanner (8281644058@hdfc)"
-              >
-                <QrCode className="w-3.5 h-3.5 text-orange-400" />
-                <span>Scan & Pay</span>
               </button>
             )}
 
@@ -335,6 +337,20 @@ export default function Navbar({
               <span>Interactive Mock Tests (CBT)</span>
             </button>
 
+            {onOpenVoiceReceptionist && (
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenVoiceReceptionist();
+                }}
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-950/90 border border-emerald-500/50 text-emerald-300 text-xs font-bold hover:bg-emerald-900 transition-colors"
+              >
+                <Phone className="w-4 h-4 text-emerald-400 animate-pulse" />
+                <span>Talk to Priya • AI Voice Receptionist</span>
+              </button>
+            )}
+
             <button
               type="button"
               onClick={() => {
@@ -372,20 +388,6 @@ export default function Navbar({
               >
                 <LogIn className="w-4 h-4 text-neutral-400" />
                 <span>Student Login / Register</span>
-              </button>
-            )}
-
-            {onOpenUpiModal && (
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  onOpenUpiModal();
-                }}
-                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-[#141d2d] border border-[#26354d] text-neutral-200 text-xs font-semibold hover:border-orange-500/50 hover:text-white transition-colors cursor-pointer"
-              >
-                <QrCode className="w-4 h-4 text-orange-400" />
-                <span>Direct UPI QR Scan</span>
               </button>
             )}
 

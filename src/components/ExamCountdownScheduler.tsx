@@ -159,7 +159,7 @@ export default function ExamCountdownScheduler({
                   Target: {currentExam.targetClasses}
                 </span>
                 <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-950/60 text-emerald-400 border border-emerald-800/40">
-                  Bilingual: Malayalam & English
+                  All Indian Languages & English
                 </span>
               </div>
 
