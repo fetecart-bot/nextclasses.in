@@ -149,6 +149,7 @@ export interface StudentUser {
   name: string;
   email: string;
   phone: string;
+  gender?: 'male' | 'female';
   username?: string;
   password?: string;
   standard?: 'class-6' | 'class-9' | string;
@@ -156,6 +157,8 @@ export interface StudentUser {
   targetExamCode?: string;
   targetExamDate?: string;
   learningGoal?: string;
+  currentDoubtsSummary?: string;
+  familyMembersCount?: number;
   registeredAt: string;
   credentialsDeliveredViaEmail?: boolean;
   credentialsEmailSentAt?: string;

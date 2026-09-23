@@ -32,6 +32,7 @@ const INITIAL_SEED_ACCOUNTS: RegisteredStudentAccount[] = [
     name: 'Biju P. B.',
     email: 'bijubpb78@gmail.com',
     phone: '+91 87921 34951',
+    gender: 'male',
     username: 'bijubpb78',
     password: 'Sainik@2027',
     courseId: 'course-aissee-sainik',
@@ -52,6 +53,7 @@ const INITIAL_SEED_ACCOUNTS: RegisteredStudentAccount[] = [
     name: 'Arjun K. (Sainik Cadet)',
     email: 'arjun.sainik@nextclass.in',
     phone: '+91 82816 44058',
+    gender: 'male',
     username: 'sainik_demo',
     password: 'Sainik@2027',
     courseId: 'course-aissee-sainik',
@@ -72,6 +74,7 @@ const INITIAL_SEED_ACCOUNTS: RegisteredStudentAccount[] = [
     name: 'Anjali Nair',
     email: 'anjali.nair@gmail.com',
     phone: '+91 82816 44058',
+    gender: 'female',
     username: 'neet_demo',
     password: 'Neet@2027',
     courseId: 'course-neet-ug',
@@ -91,6 +94,7 @@ const INITIAL_SEED_ACCOUNTS: RegisteredStudentAccount[] = [
     name: 'Sneha Pillai',
     email: 'sneha.jnvst@nextclass.in',
     phone: '+91 82816 44058',
+    gender: 'female',
     username: 'jnvst_demo',
     password: 'Jnvst@2027',
     courseId: 'course-navodaya-jnvst',
@@ -110,6 +114,7 @@ const INITIAL_SEED_ACCOUNTS: RegisteredStudentAccount[] = [
     name: 'Dev Menon',
     email: 'dev.ai@nextclass.in',
     phone: '+91 82816 44058',
+    gender: 'male',
     username: 'claude_demo',
     password: 'Claude@2027',
     courseId: 'course-claude-ai',
@@ -125,6 +130,27 @@ const INITIAL_SEED_ACCOUNTS: RegisteredStudentAccount[] = [
     emailSent: true,
   },
 ];
+
+/**
+ * Accurately determines student gender for appropriate voice tutor selection:
+ * Rule: For girls and women, a male voice speaks. For males and boys, a female voice speaks.
+ */
+export function detectStudentGender(name: string = '', explicitGender?: string): 'male' | 'female' {
+  if (explicitGender === 'male' || explicitGender === 'female') {
+    return explicitGender;
+  }
+  const clean = name.toLowerCase().trim();
+  const femalePatterns = [
+    /\b(mrs|ms|miss|lady|girl|woman|she|her|kumari|smt)\b/,
+    /\b(anjali|sneha|priya|lakshmi|laxmi|pooja|puja|divya|mary|maria|sara|sarah|ayesha|deepa|swathi|meera|mira|neha|ritu|ananya|shreya|parvathi|fatima|sandra|riya|shruti|revathi|malavika|keerthi|kirthi|bhavya|radhika|preeti|priti|sunita|geetha|geeta|anita|sridevi|suma|sowmya|vidya|ashwini|deepika|kavita|kavitha|aishwarya|reshma|haritha|archana|arpitha|swetha|shwetha|chaitra|soundarya|pallavi|madhuri|nandini|renuka|sudha)\b/,
+  ];
+  for (const pattern of femalePatterns) {
+    if (pattern.test(clean)) {
+      return 'female';
+    }
+  }
+  return 'male';
+}
 
 export function getRegisteredStudents(): RegisteredStudentAccount[] {
   try {

@@ -20,8 +20,10 @@ import AdminPage from './pages/AdminPage';
 import PolicyModal, { PolicyTab } from './components/PolicyModal';
 import { AIChatBot } from './components/AIChatBot';
 import { PaymentVerificationModal } from './components/PaymentVerificationModal';
+import { StudentFriendWelcomeBot } from './components/StudentFriendWelcomeBot';
+import { useAuth } from './context/AuthContext';
 import { COURSES_DATA, AI_PRODUCTS_DATA, DEFAULT_PORTAL_VIDEOS } from './data';
-import { Course, CartItem, AIProduct, PortalVideoLesson } from './types';
+import { Course, CartItem, AIProduct, PortalVideoLesson, StudentUser } from './types';
 
 const STORAGE_PRODUCTS_KEY = 'nextclass_custom_products';
 const STORAGE_COURSES_KEY = 'nextclass_custom_courses';
@@ -218,6 +220,16 @@ export default function App() {
   const [isPolicyModalOpen, setIsPolicyModalOpen] = useState<boolean>(false);
   const [activePolicyTab, setActivePolicyTab] = useState<PolicyTab>('terms');
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState<boolean>(false);
+  const { justLoggedInUser, clearJustLoggedIn } = useAuth();
+  const [welcomeBotStudent, setWelcomeBotStudent] = useState<StudentUser | null>(null);
+
+  useEffect(() => {
+    if (justLoggedInUser) {
+      setWelcomeBotStudent(justLoggedInUser);
+      clearJustLoggedIn();
+    }
+  }, [justLoggedInUser, clearJustLoggedIn]);
+
   const [verificationModalData, setVerificationModalData] = useState<{
     courseId: string;
     courseTitle: string;
@@ -639,6 +651,24 @@ export default function App() {
         <StudentAuthModal
           onClose={() => setIsAuthModalOpen(false)}
           onSuccess={() => setIsAuthModalOpen(false)}
+        />
+      )}
+
+      {/* Student Friend Welcome Bot (Opens immediately upon login to welcome student with name, course, aim, doubts, and family) */}
+      {welcomeBotStudent && (
+        <StudentFriendWelcomeBot
+          isOpen={!!welcomeBotStudent}
+          onClose={() => setWelcomeBotStudent(null)}
+          student={welcomeBotStudent}
+          courseTitle={
+            courses.find((c) => welcomeBotStudent.enrolledCourseIds?.includes(c.id))?.title ||
+            "All India Entrance & Academic Comprehensive Program"
+          }
+          courseId={welcomeBotStudent.enrolledCourseIds?.[0]}
+          onContinueToDashboard={() => {
+            setWelcomeBotStudent(null);
+            setIsPortalModalOpen(true);
+          }}
         />
       )}
 

@@ -1,17 +1,20 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { StudentUser, MockTestResult } from '../types';
-import { verifyStudentCredentials, getRegisteredStudents, RegisteredStudentAccount, isRegisteredStudent } from '../utils/studentRegistry';
+import { verifyStudentCredentials, getRegisteredStudents, RegisteredStudentAccount, isRegisteredStudent, detectStudentGender } from '../utils/studentRegistry';
 
 interface AuthContextType {
   user: StudentUser | null;
   isAuthenticated: boolean;
   isAuthModalOpen: boolean;
+  justLoggedInUser: StudentUser | null;
   openAuthModal: () => void;
   closeAuthModal: () => void;
+  clearJustLoggedIn: () => void;
   login: (data: { name: string; email: string; phone: string; targetExamCode?: string; targetExamDate?: string; courseId?: string }) => void;
   loginWithCredentials: (usernameOrEmail: string, passwordInput: string, courseIdOrStandard?: string) => { success: boolean; message?: string; user?: StudentUser };
   loginWithAccount: (account: StudentUser) => void;
   setStudentStandard: (standard: 'class-6' | 'class-9') => void;
+  updateStudentProfile: (updates: Partial<StudentUser>) => void;
   logout: () => void;
   enrollCourse: (courseId: string) => void;
   updateExamGoal: (examCode: string, examDate: string) => void;
@@ -30,6 +33,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const parsed = JSON.parse(saved);
         // Only restore student sessions that are verified registered accounts with a password/username
         if (parsed && parsed.email && (parsed.username || isRegisteredStudent(parsed))) {
+          if (!parsed.gender) {
+            parsed.gender = detectStudentGender(parsed.name);
+          }
           return parsed;
         }
       }
@@ -40,8 +46,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return null;
   });
 
-
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [justLoggedInUser, setJustLoggedInUser] = useState<StudentUser | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -54,6 +60,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem(LOCAL_STORAGE_KEY);
     }
   }, [user]);
+
+  const clearJustLoggedIn = () => {
+    setJustLoggedInUser(null);
+  };
+
+  const updateStudentProfile = (updates: Partial<StudentUser>) => {
+    setUser((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        ...updates,
+      };
+    });
+  };
 
   const loginWithCredentials = (
     usernameOrEmail: string, 
@@ -88,11 +108,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       updatedEnrolled.unshift(specificSainikCourseId);
     }
 
+    const detectedGender = verified.gender || detectStudentGender(verified.name);
+
     const authenticatedUser: StudentUser = {
       id: verified.id,
       name: verified.name,
       email: verified.email,
       phone: verified.phone,
+      gender: detectedGender,
       username: verified.username,
       password: verified.password,
       standard: effectiveStandard,
@@ -109,6 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     setUser(authenticatedUser);
+    setJustLoggedInUser(authenticatedUser);
     setIsAuthModalOpen(false);
     return { success: true, user: authenticatedUser };
   };
@@ -200,12 +224,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         isAuthenticated: !!user,
         isAuthModalOpen,
+        justLoggedInUser,
         openAuthModal: () => setIsAuthModalOpen(true),
         closeAuthModal: () => setIsAuthModalOpen(false),
+        clearJustLoggedIn,
         login,
         loginWithCredentials,
         loginWithAccount,
         setStudentStandard,
+        updateStudentProfile,
         logout,
         enrollCourse,
         updateExamGoal,

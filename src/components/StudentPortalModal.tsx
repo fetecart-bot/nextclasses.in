@@ -3,7 +3,7 @@ import {
   X, Play, CheckCircle2, Clock, Calendar, Download, Send, 
   Copy, Check, Award, Tv, ExternalLink, Target, 
   BarChart3, ArrowRight, Loader2, MessageCircle, Settings, BookOpen, Sparkles,
-  Lock, KeyRound, LogOut, Mail, Eye, EyeOff, UserCheck, ShieldCheck, Medal
+  Lock, KeyRound, LogOut, Mail, Eye, EyeOff, UserCheck, ShieldCheck, Medal, Mic, Radio
 } from 'lucide-react';
 import StudentBadges from './StudentBadges';
 import { useAuth } from '../context/AuthContext';
@@ -13,6 +13,8 @@ import { COURSES_DATA } from '../data';
 import { PortalVideoLesson } from '../types';
 import { generateMailtoUrl } from '../utils/studentRegistry';
 import { COURSE_VIDEO_PLAYLISTS } from '../utils/courseVideos';
+import { CourseVoiceDoubtBot } from './CourseVoiceDoubtBot';
+import { StudentFriendWelcomeBot } from './StudentFriendWelcomeBot';
 
 function calculateDaysToExam(targetDateStr: string): number {
   try {
@@ -2214,6 +2216,8 @@ export default function StudentPortalModal({
   const [copiedPromptIndex, setCopiedPromptIndex] = useState<number | null>(null);
   const [downloadNotice, setDownloadNotice] = useState<string | null>(null);
   const [isSendingWhatsApp, setIsSendingWhatsApp] = useState(false);
+  const [isVoiceDoubtOpen, setIsVoiceDoubtOpen] = useState(false);
+  const [isFriendWelcomeOpen, setIsFriendWelcomeOpen] = useState(false);
 
   // Active curriculum based on selected course
   const currentCurriculum = COURSE_CURRICULUMS[selectedCourseId] || COURSE_CURRICULUMS['course-aissee-sainik'];
@@ -2284,7 +2288,9 @@ export default function StudentPortalModal({
     setIsLoggingIn(true);
     const res = loginWithCredentials(loginIdentifier.trim(), loginPassword.trim(), loginCourseId);
     setIsLoggingIn(false);
-    if (!res.success) {
+    if (res.success) {
+      setIsFriendWelcomeOpen(true);
+    } else {
       setLoginError(res.message || 'Invalid credentials. Please verify or register via enrollment.');
     }
   };
@@ -2494,6 +2500,31 @@ export default function StudentPortalModal({
 
           {/* Quick Header Action Buttons */}
           <div className="flex items-center gap-2">
+            {/* Live Voice Doubt Tutor Button */}
+            <button
+              type="button"
+              onClick={() => setIsVoiceDoubtOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:opacity-90 text-neutral-950 text-xs font-black transition-all shadow-md shadow-orange-500/20 cursor-pointer"
+              title="Ask doubts in real time with Voice AI (gemini-3.8-live)"
+            >
+              <Mic className="w-3.5 h-3.5 text-neutral-950 animate-pulse" />
+              <span className="hidden sm:inline">Voice Doubt AI</span>
+              <span className="sm:hidden">Doubts</span>
+            </button>
+
+            {/* Friend Welcome & Companion Bot Button */}
+            {user && (
+              <button
+                type="button"
+                onClick={() => setIsFriendWelcomeOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/40 text-orange-300 text-xs font-bold transition-all shadow-md shadow-orange-500/10 cursor-pointer"
+                title="Friend Bot: Aim, Doubts & Family Chat"
+              >
+                <span>🤝</span>
+                <span className="hidden sm:inline">Friend Bot</span>
+              </button>
+            )}
+
             {/* Direct Study Material Download Button */}
             <button
               type="button"
@@ -2811,6 +2842,32 @@ export default function StudentPortalModal({
                     <p className="text-xs text-neutral-300 leading-relaxed border-t border-[#1f293d] pt-2.5">
                       {currentLesson.description}
                     </p>
+
+                    {/* Voice Doubt AI Quick Prompt Banner */}
+                    <div className="p-3 rounded-xl bg-gradient-to-r from-orange-950/50 to-amber-950/40 border border-orange-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-3">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-orange-500 text-neutral-950 flex items-center justify-center font-bold shrink-0">
+                          <Mic className="w-4 h-4 text-neutral-950 animate-pulse" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-white">Have a doubt in this lesson? Ask Voice Tutor</span>
+                            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-500/40">gemini-3.8-live</span>
+                          </div>
+                          <p className="text-[11px] text-neutral-300">
+                            Speak in Malayalam, Tamil, Telugu, Hindi, or English. Get real-time spoken and written clarification.
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsVoiceDoubtOpen(true)}
+                        className="w-full sm:w-auto px-3 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-400 text-neutral-950 font-bold text-xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer shadow-md"
+                      >
+                        <Mic className="w-3 h-3 text-neutral-950" />
+                        <span>Ask Doubts</span>
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -3145,7 +3202,41 @@ export default function StudentPortalModal({
           </button>
         </div>
 
+        {/* Floating Voice Doubt Tutor Pill */}
+        <button
+          type="button"
+          onClick={() => setIsVoiceDoubtOpen(true)}
+          className="fixed sm:absolute bottom-5 right-5 z-30 px-3.5 py-2.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 hover:opacity-95 text-neutral-950 font-black text-xs shadow-2xl shadow-orange-500/30 border border-amber-300/40 flex items-center gap-2 cursor-pointer transition-transform active:scale-95"
+          title="Ask course doubts live with voice AI (Gemini 3.8 Live)"
+        >
+          <Mic className="w-4 h-4 text-neutral-950 animate-pulse" />
+          <span>🎙️ Voice Doubt AI</span>
+        </button>
+
       </div>
+
+      {/* Real-time Voice Doubt Resolution Bot for Active Student Portal Course */}
+      <CourseVoiceDoubtBot
+        isOpen={isVoiceDoubtOpen}
+        onClose={() => setIsVoiceDoubtOpen(false)}
+        course={{
+          id: selectedCourseId,
+          title: currentCurriculum.courseTitle,
+          category: currentCurriculum.examCode,
+        }}
+      />
+
+      {/* Student Friend Welcome & Companion Bot */}
+      {isFriendWelcomeOpen && user && (
+        <StudentFriendWelcomeBot
+          isOpen={isFriendWelcomeOpen}
+          onClose={() => setIsFriendWelcomeOpen(false)}
+          student={user}
+          courseTitle={currentCurriculum.courseTitle}
+          courseId={selectedCourseId}
+          onContinueToDashboard={() => setIsFriendWelcomeOpen(false)}
+        />
+      )}
     </div>
   );
 }

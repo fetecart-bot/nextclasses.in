@@ -1,9 +1,11 @@
 import dotenv from "dotenv";
 dotenv.config({ override: true });
 import express from "express";
+import http from "http";
 import path from "path";
+import { WebSocketServer, WebSocket } from "ws";
 import { createServer as createViteServer } from "vite";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, LiveServerMessage, Modality } from "@google/genai";
 
 import { getComprehensiveCounselorAnswer, SupportedLanguage } from "./src/data/counselorKnowledge";
 
@@ -14,9 +16,83 @@ function getAI(): GoogleGenAI {
     if (!key) {
       throw new Error("GEMINI_API_KEY environment variable is required");
     }
-    aiClient = new GoogleGenAI({ apiKey: key });
+    aiClient = new GoogleGenAI({
+      apiKey: key,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build',
+        },
+      },
+    });
   }
   return aiClient;
+}
+
+// Resilient multi-model cascade helper that survives 503 high demand spikes and rate limits
+async function callGeminiWithCascade({
+  contents,
+  systemInstruction,
+  responseMimeType,
+  temperature = 0.7,
+}: {
+  contents: any;
+  systemInstruction?: string;
+  responseMimeType?: string;
+  temperature?: number;
+}): Promise<string> {
+  const ai = getAI();
+  // Model priority: gemini-3.6-flash is currently fast and active, then gemini-3.1-flash-lite, then gemini-flash-latest, then gemini-3.8-flash
+  const models = [
+    "gemini-3.6-flash",
+    "gemini-3.1-flash-lite",
+    "gemini-flash-latest",
+    "gemini-3.8-flash",
+  ];
+
+  let lastError: any = null;
+
+  for (const model of models) {
+    try {
+      const config: any = { temperature };
+      if (systemInstruction) config.systemInstruction = systemInstruction;
+      if (responseMimeType) config.responseMimeType = responseMimeType;
+
+      const response = await ai.models.generateContent({
+        model,
+        contents,
+        ...(Object.keys(config).length > 0 ? { config } : {}),
+      });
+
+      const text = response.text?.trim();
+      if (text) {
+        return text;
+      }
+    } catch (err: any) {
+      lastError = err;
+      console.warn(`Model ${model} in cascade error:`, err?.status || err?.message?.slice(0, 80));
+    }
+  }
+
+  throw lastError || new Error("All Gemini models in cascade failed");
+}
+
+function parseJsonSafely(raw: string, defaultObj: any = {}): any {
+  if (!raw || typeof raw !== "string") return defaultObj;
+  try {
+    return JSON.parse(raw);
+  } catch {}
+  try {
+    const cleaned = raw.replace(/```json/gi, "").replace(/```/g, "").trim();
+    return JSON.parse(cleaned);
+  } catch {}
+  try {
+    const firstBrace = raw.indexOf("{");
+    const lastBrace = raw.lastIndexOf("}");
+    if (firstBrace !== -1 && lastBrace > firstBrace) {
+      return JSON.parse(raw.substring(firstBrace, lastBrace + 1));
+    }
+  } catch {}
+  return defaultObj;
 }
 
 // Dynamically resolve the real live URL (e.g. Cloud Run active container URL or current request origin)
@@ -150,7 +226,7 @@ Student just asked: "${message}"
 
 Give a comprehensive, thorough, and articulate counseling answer as Priya in pure spoken ${currentLang.name}:`;
 
-      // Race Gemini against timeout so voice callers never get stuck waiting
+      // Race Gemini against generous 15s timeout so voice callers don't hang indefinitely
       const geminiPromise = ai.models.generateContent({
         model: "gemini-3.8-flash",
         contents: prompt,
@@ -161,7 +237,7 @@ Give a comprehensive, thorough, and articulate counseling answer as Priya in pur
       });
 
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Gemini timeout")), 3200)
+        setTimeout(() => reject(new Error("Gemini timeout")), 15000)
       );
 
       const response: any = await Promise.race([geminiPromise, timeoutPromise]);
@@ -269,6 +345,391 @@ Give a comprehensive, thorough, and articulate counseling answer as Priya in pur
     } catch (err: any) {
       console.error("Real-time TTS error:", err);
       return res.status(500).json({ error: "Failed to generate TTS audio", details: err?.message });
+    }
+  });
+
+  // Student Friend Welcome Bot Conversational API
+  // Rule: When student logs in, welcomes student with their name & course.
+  // Welcomes him/her to the course and asks what their aim and doubts are, and how many members are in their house.
+  // Just like a friend, it asks everything.
+  // For girls and women, a male voice asks. For males and boys, a female voice asks.
+  // Supports Kannada (kn), Malayalam (ml), Tamil (ta), Telugu (te), Hindi (hi), and English (en).
+  app.post("/api/student-welcome/chat", async (req, res) => {
+    try {
+      const {
+        studentName = "Friend",
+        courseTitle = "Course",
+        gender = "male",
+        voiceGender = "female",
+        language = "kn",
+        userMessage = "",
+        currentAim = "",
+        currentDoubts = "",
+        familyMembers = "",
+      } = req.body;
+
+      const ai = getAI();
+      const lang = (language || "kn").toLowerCase();
+
+      const langMap: Record<string, { name: string; scriptInstruction: string; ttsLang: string }> = {
+        kn: {
+          name: "Kannada",
+          scriptInstruction: "Kannada (ಕನ್ನಡ). Respond in natural, warm, conversational Kannada script (ಕನ್ನಡದಲ್ಲಿ). Speak like a caring Karnataka friend and mentor.",
+          ttsLang: "kn",
+        },
+        ml: {
+          name: "Malayalam",
+          scriptInstruction: "Malayalam (മലയാളം). Respond in warm, natural Malayalam script (മലയാളത്തിൽ). Speak like a close Kerala friend or brother/sister.",
+          ttsLang: "ml",
+        },
+        ta: {
+          name: "Tamil",
+          scriptInstruction: "Tamil (தமிழ்). Respond in warm, friendly Tamil script (தமிழில்). Speak like a caring friend from Tamil Nadu.",
+          ttsLang: "ta",
+        },
+        te: {
+          name: "Telugu",
+          scriptInstruction: "Telugu (తెలుగు). Respond in warm, encouraging Telugu script (తెలుగులో). Speak like a close friend.",
+          ttsLang: "te",
+        },
+        hi: {
+          name: "Hindi",
+          scriptInstruction: "Hindi (हिंदी). Respond in warm, enthusiastic Hindi script (हिंदी में). Speak like a supportive dost/companion.",
+          ttsLang: "hi",
+        },
+        en: {
+          name: "English",
+          scriptInstruction: "English. Speak with authentic warmth, enthusiasm, camaraderie, like an older sibling or best friend.",
+          ttsLang: "en",
+        },
+      };
+
+      const selectedLangConfig = langMap[lang] || langMap.kn;
+
+      // If student is female -> Bot is older brother / male friend.
+      // If student is male -> Bot is older sister / female friend.
+      const persona = gender === "female"
+        ? "You are a warm, protective, encouraging older brother / male friend (Bhayya/Anna/Chettan). You speak with an encouraging, proud, friendly tone."
+        : "You are a caring, encouraging older sister / female friend (Didi/Akka/Chechi). You speak with bright, affectionate, cheerful energy.";
+
+      const prompt = `You are a real-time study companion, mentor, and genuine close friend for student "${studentName}" enrolled in "${courseTitle}" at NextClasses.in.
+${persona}
+
+DEEP ACADEMIC & COURSE KNOWLEDGE:
+- NEET (UG) 2027 Medical: Covers 100% NCERT Biology (Botany & Zoology: Genetics, Cell, Ecology, Human Physiology), Physics (Mechanics, Electrodynamics, Modern Physics), and Chemistry (Physical, Organic Reaction Mechanisms, Inorganic). Explain that weekly physical printed practice sets and mock papers arrive right at their home via India Post, alongside daily video classes!
+- IIT JEE Main & Advanced 2027: Intensive PCM problem solving, Calculus, Mechanics, and speed tricks.
+- KEAM Kerala CEE: Paper 1 (Physics & Chemistry 120 Qs) and Paper 2 (Mathematics 120 Qs) speed hacks.
+- AISSEE Sainik School (Class 6 & 9): Mathematics (150 marks, highest weightage!), Intelligence/Reasoning, English, GK, General Science, and OMR exam tactics.
+- Languages & Public Speaking: Spoken English fluency, Stage confidence, French A1, German A1 Goethe.
+- AI & Tech Masterclasses: Google AI Studio SDK, Claude 3.7 Sonnet prompt engineering, DeepSeek R1 local finance AI, Voice AI.
+
+KEY GOAL:
+Just like a friend, you are chatting with the student right after they logged in.
+You care deeply about:
+1. What their biggest aim and dream with this course/exam is (e.g., target score 680+ in NEET, AIR top 500, Sainik School admission, fluent English).
+2. What academic doubts, tricky topics, or worries they have right now (e.g., Organic Chemistry conversions, Physics numericals, Math geometry). Explain concepts clearly if they ask!
+3. How many members are in their house/family cheering them on.
+
+Current knowledge about student:
+- Name: ${studentName}
+- Course: ${courseTitle}
+- Aim: ${currentAim || "Not yet stated"}
+- Doubts: ${currentDoubts || "Not yet stated"}
+- Family Members: ${familyMembers || "Not yet stated"}
+
+Student's latest message to you:
+"${userMessage || "Hello friend!"}"
+
+Language instruction:
+${selectedLangConfig.scriptInstruction}
+
+CRITICAL RULES:
+- Talk like a genuine friend and brilliant study buddy, NOT a dry corporate chatbot.
+- If they ask any question or express doubt, give a real, knowledgeable, insightful academic answer!
+- If they told you their aim, celebrate it excitedly with immense faith in them!
+- If they shared their family size (e.g. 4 members), praise their family support!
+- If any of Aim, Doubts, or Family count hasn't been shared yet, ask about it naturally like a friend!
+
+Respond ONLY in valid JSON matching this schema:
+{
+  "replyText": "Warm written response in ${selectedLangConfig.name} script (with markdown bolding where helpful)",
+  "spokenScript": "Short, clear spoken version for audio voice output (avoid asterisks, emojis, or markdown)",
+  "detectedAim": "Summary of aim if user mentioned one, otherwise empty string",
+  "detectedDoubts": "Summary of doubts if user mentioned any, otherwise empty string",
+  "detectedFamilyMembers": "Number or description of family members if mentioned, otherwise empty string"
+}`;
+
+      let responseText = "";
+      try {
+        responseText = await callGeminiWithCascade({
+          contents: prompt,
+          responseMimeType: "application/json",
+          temperature: 0.7,
+        });
+      } catch (err: any) {
+        console.warn("Gemini call for student welcome failed:", err?.message);
+      }
+
+      let parsed = parseJsonSafely(responseText, null);
+      if (!parsed || !parsed.replyText) {
+        const greetings: Record<string, string> = {
+          kn: `ನಮಸ್ತೆ ${studentName}! ${courseTitle} ತರಬೇತಿಗೆ ನಿಮಗೆ ಹೃತ್ಪೂರ್ವಕ ಸ್ವಾಗತ! ನಿಮ್ಮ ಶ್ರಮಕ್ಕೆ ನಮ್ಮ ಸಂಪೂರ್ಣ ಮಾರ್ಗದರ್ಶನವಿದೆ. ನಿಮ್ಮ ಮುಖ್ಯ ಗುರಿ ಮತ್ತು ಸಂಶಯಗಳನ್ನು ನನ್ನೊಂದಿಗೆ ಹಂಚಿಕೊಳ್ಳಿ!`,
+          ml: `ഹലോ ${studentName}! ${courseTitle} ലേക്ക് സ്വാഗതം! നിങ്ങളുടെ ലക്ഷ്യത്തിലേക്ക് ഞങ്ങൾ കൂടെയുണ്ട്. നിങ്ങളുടെ സ്വപ്നവും സംശയങ്ങളും എന്നോട് പങ്കുവെക്കൂ!`,
+          ta: `வணக்கம் ${studentName}! ${courseTitle} வகுப்பிற்கு உங்களை வரவேற்கிறோம்! உங்கள் இலக்கு மற்றும் சந்தேகங்களை என்னிடம் பகிர்ந்து கொள்ளுங்கள்!`,
+          te: `హలో ${studentName}! ${courseTitle} కు స్వాగతం! మీ లక్ష్యం మరియు సందేహాలను నాతో పంచుకోండి!`,
+          hi: `नमस्ते ${studentName}! ${courseTitle} में आपका स्वागत है! आपका सबसे बड़ा लक्ष्य क्या है, मुझे बताएं!`,
+          en: `Hello ${studentName}! A warm welcome to ${courseTitle}! What is your biggest aim and what doubts do you have?`,
+        };
+        const defaultText = greetings[lang] || greetings.en;
+        parsed = {
+          replyText: defaultText,
+          spokenScript: defaultText,
+          detectedAim: "",
+          detectedDoubts: "",
+          detectedFamilyMembers: "",
+        };
+      }
+
+      return res.json({
+        success: true,
+        replyText: parsed.replyText || "Welcome! Let's study together!",
+        spokenScript: parsed.spokenScript || parsed.replyText,
+        detectedAim: parsed.detectedAim || "",
+        detectedDoubts: parsed.detectedDoubts || "",
+        detectedFamilyMembers: parsed.detectedFamilyMembers || "",
+        voiceGender: gender === "female" ? "male" : "female",
+      });
+    } catch (err: any) {
+      console.error("Student welcome chat error:", err);
+      return res.json({
+        success: true,
+        replyText: "Welcome to NextClasses! I am your AI study buddy. Tell me about your aim and any doubts you have!",
+        spokenScript: "Welcome! I am your AI study buddy. Tell me about your aim and any doubts!",
+        detectedAim: "",
+        detectedDoubts: "",
+        detectedFamilyMembers: "",
+        voiceGender: "female",
+      });
+    }
+  });
+
+  // Audio Recording Transcription Endpoint (Kannada, Malayalam, Tamil, Telugu, Hindi, English)
+  // Provides 100% reliable fallback when browser SpeechRecognition is silent, blocked, or unavailable
+  app.post("/api/voice-transcribe", async (req, res) => {
+    try {
+      const { audioBase64, mimeType = "audio/webm", language = "kn" } = req.body;
+      if (!audioBase64) {
+        return res.status(400).json({ error: "audioBase64 is required" });
+      }
+
+      const langNames: Record<string, string> = {
+        kn: "Kannada (ಕನ್ನಡ)",
+        ml: "Malayalam (മലയാളം)",
+        ta: "Tamil (தமிழ்)",
+        te: "Telugu (తెలుగు)",
+        hi: "Hindi (हिंदी)",
+        en: "English",
+      };
+      const targetLang = langNames[language] || "Kannada or English";
+
+      const parts = [
+        {
+          inlineData: {
+            mimeType,
+            data: audioBase64,
+          },
+        },
+        {
+          text: `You are an expert real-time multilingual speech-to-text transcriber for student audio questions.
+The speaker is speaking in ${targetLang}.
+Listen to the audio recording with extreme precision and return ONLY the exact spoken transcription.
+Do not output notes, quotes, or markdown wrappers. Output only the student's exact spoken words.`,
+        },
+      ];
+
+      const transcript = await callGeminiWithCascade({
+        contents: [{ role: "user", parts }],
+        temperature: 0.1,
+      });
+
+      return res.json({ success: true, transcript: (transcript || "").trim() });
+    } catch (err: any) {
+      console.error("Voice transcription error:", err);
+      return res.status(500).json({ error: "Transcription failed", details: err?.message });
+    }
+  });
+
+  // Real-Time Counselor & Academic Advisor Q&A Endpoint for AIChatBot (No static fed lines)
+  app.post("/api/counselor/ask", async (req, res) => {
+    try {
+      const { query, language = "en" } = req.body;
+      if (!query || typeof query !== "string") {
+        return res.status(400).json({ error: "Query is required" });
+      }
+
+      const supportedLang = ['en', 'ml', 'ta', 'te', 'kn', 'hi'].includes(language)
+        ? (language as SupportedLanguage)
+        : 'en';
+
+      const systemInstruction = `You are "Aura", the Senior AI Academic Counselor at NextClasses.in (https://www.nextclasses.in).
+You have real-time, comprehensive, deeply detailed knowledge of all programs:
+1. NEET (UG) 2027 Medical Entrance: NCERT Biology (Botany/Zoology), Physics (Mechanics, Electromagnetism), Chemistry (Physical, Organic, Inorganic). Weekly physical print material dispatches sent to students' homes via India Post, plus daily mock tests and video lessons.
+2. IIT JEE Main & Advanced 2027: PCM full syllabus, calculus speed tactics, physics problem solving.
+3. KEAM Kerala CEE Engineering: Kerala syllabus alignment, Paper 1 & 2 speed hacks (120 questions / 150 mins).
+4. AISSEE All India Sainik School Entrance: Classes 6 & 9. Mathematics, Intelligence, English, GK/Science, Social Studies.
+5. Languages & Stage Mastery: Spoken English, Stage Confidence, French A1, German A1 Goethe.
+6. AI Masterclasses: Google AI Studio, DeepSeek R1 Local Reasoning & Finance, Claude 3.7 Sonnet, Real-time Voice AI & Telephony.
+7. Admission & Fees: Transparent affordable pricing (₹999 to ₹1,799). Study materials are dispatched weekly for 12 months, and portal video access is lifetime! WhatsApp helpline: +91 82816 44058.
+
+Answer the student's inquiry intelligently, warmly, and thoroughly in ${language === 'kn' ? 'Kannada (ಕನ್ನಡ)' : language === 'ml' ? 'Malayalam (മലയാളം)' : language === 'ta' ? 'Tamil (தமிழ்)' : language === 'te' ? 'Telugu (తెలుగు)' : language === 'hi' ? 'Hindi (हिंदी)' : 'English'}. Never give canned or generic feeded responses. Give real, thoughtful guidance with clear markdown formatting.`;
+
+      let reply = "";
+      try {
+        reply = await callGeminiWithCascade({
+          contents: query,
+          systemInstruction,
+          temperature: 0.7,
+        });
+      } catch (aiErr: any) {
+        console.warn("AI counselor call failed, using comprehensive counselor knowledge base:", aiErr?.message);
+        reply = getComprehensiveCounselorAnswer(query, supportedLang);
+      }
+
+      if (!reply || reply.length < 10) {
+        reply = getComprehensiveCounselorAnswer(query, supportedLang);
+      }
+
+      return res.json({ success: true, reply });
+    } catch (err: any) {
+      console.error("Counselor ask error:", err);
+      const supportedLang = ['en', 'ml', 'ta', 'te', 'kn', 'hi'].includes(req.body?.language)
+        ? (req.body.language as SupportedLanguage)
+        : 'en';
+      const fallbackReply = getComprehensiveCounselorAnswer(req.body?.query || '', supportedLang);
+      return res.json({ success: true, reply: fallbackReply });
+    }
+  });
+
+  // Real-Time Course Doubt Resolution & Voice Tutor API
+  app.post("/api/course-doubt/ask", async (req, res) => {
+    try {
+      const { courseId, courseTitle, question, language } = req.body;
+      if (!question || typeof question !== "string") {
+        return res.status(400).json({ error: "Question is required" });
+      }
+
+      const langCode = (language || "en").toLowerCase();
+
+      const langMap: Record<string, { name: string; scriptInstruction: string; ttsLang: string }> = {
+        ml: {
+          name: "Malayalam",
+          scriptInstruction: "Malayalam (മലയാളം). Write the explanation in natural, fluent Malayalam script (മലയാളത്തിൽ). For key technical/scientific terms, write the English term in parentheses after the Malayalam word.",
+          ttsLang: "ml",
+        },
+        ta: {
+          name: "Tamil",
+          scriptInstruction: "Tamil (தமிழ்). Write the explanation in clear, authentic Tamil script (தமிழில்). For key technical terms, include English in parentheses.",
+          ttsLang: "ta",
+        },
+        te: {
+          name: "Telugu",
+          scriptInstruction: "Telugu (తెలుగు). Write the explanation in clear Telugu script (తెలుగులో). For key technical terms, include English in parentheses.",
+          ttsLang: "te",
+        },
+        kn: {
+          name: "Kannada",
+          scriptInstruction: "Kannada (ಕನ್ನಡ). Write the explanation in clear Kannada script (ಕನ್ನಡದಲ್ಲಿ).",
+          ttsLang: "kn",
+        },
+        hi: {
+          name: "Hindi",
+          scriptInstruction: "Hindi (हिंदी). Write the explanation in clear Devanagari Hindi script (हिंदी में).",
+          ttsLang: "hi",
+        },
+        fr: {
+          name: "French",
+          scriptInstruction: "French (Français). Write the explanation with French vocabulary, conjugation rules, and English translation/guidance.",
+          ttsLang: "en",
+        },
+        de: {
+          name: "German",
+          scriptInstruction: "German (Deutsch). Write the explanation with German vocabulary, grammar rules (cases, declensions), and English translation.",
+          ttsLang: "en",
+        },
+        en: {
+          name: "English",
+          scriptInstruction: "English. Write an articulate, structured explanation with clear headings and bullet points.",
+          ttsLang: "en",
+        },
+      };
+
+      const currentLang = langMap[langCode] || langMap.en;
+
+      const systemInstruction = `You are the Expert Course Tutor & Academic Doubt Mentor for the course "${courseTitle || "Academic Course"}" at NextClasses.in.
+A student enrolled in this course has asked you a doubt.
+
+PRIMARY OBJECTIVES:
+1. Hear and understand their doubt with 100% pedagogical precision.
+2. Provide a CRYSTAL CLEAR, step-by-step, engaging explanation.
+3. SUBJECT SPECIFIC GUIDELINES:
+   - For Medical / Engineering (NEET, JEE, KEAM): Explain the underlying science/math principle, provide the high-yield NCERT/exam shortcut or formula, and solve a typical numerical/diagram doubt.
+   - For Language Speaking (English, French, German): Explain tongue/mouth placement, grammar rule/conjugation, everyday conversational usage, and a practical example sentence.
+   - For AI / Tech (Google AI Studio, DeepSeek, Claude, Cursor, Voice AI): Provide clean code/prompt syntax, architecture breakdown, and why it works.
+   - For Sainik School (AISSEE Class 6/9): Keep it easy to understand for young students, with intuitive logic and visual examples.
+4. SCRIPT DIRECTIVE:
+   The written answer MUST be in ${currentLang.scriptInstruction}.
+5. SPOKEN SCRIPT DIRECTIVE:
+   Provide a concise, conversational spoken summary (35 to 55 words) in ${currentLang.name} without asterisks, markdown, emojis, or numbers, written specifically for speech synthesis.`;
+
+      const prompt = `Course: ${courseTitle} (ID: ${courseId})
+Student's Doubt: "${question}"
+
+Respond with a JSON object with these exact keys:
+{
+  "writtenAnswer": "Comprehensive formatted explanation in ${currentLang.name} using clean markdown with bold points and bullet lists.",
+  "spokenScript": "Conversational spoken summary (under 50 words) in ${currentLang.name} without markdown, asterisks, or symbols.",
+  "keyTakeaway": "One short golden rule or formula to remember.",
+  "suggestedNextQuestions": ["Related doubt question 1", "Related doubt question 2"]
+}`;
+
+      let responseText = "";
+      try {
+        responseText = await callGeminiWithCascade({
+          contents: prompt,
+          systemInstruction,
+          responseMimeType: "application/json",
+          temperature: 0.6,
+        });
+      } catch (err: any) {
+        console.warn("Course doubt cascade failed, generating contextual academic fallback:", err?.message);
+      }
+
+      let parsed = parseJsonSafely(responseText, null);
+      if (!parsed || !parsed.writtenAnswer) {
+        parsed = {
+          writtenAnswer: `### Explanation for ${courseTitle}\n\n**Academic Breakdown on "${question}":**\n- In this chapter, master the fundamental concept and standard formula first.\n- Apply the standard derivation steps and practice the chapterwise problem set.\n- You can also reach our faculty helpline on WhatsApp at **+91 82816 44058** for 1-on-1 personalized clarification.`,
+          spokenScript: `Here is the explanation for your question on ${courseTitle}. Master the fundamental concept in your video lesson and verify each step with the practice problems.`,
+          keyTakeaway: "Master fundamental rules first, then practice chapterwise problems.",
+          suggestedNextQuestions: ["How can I practice this topic with mock tests?", "What are common exam traps in this topic?"],
+        };
+      }
+
+      const spokenScript = (parsed.spokenScript || parsed.writtenAnswer?.slice(0, 160) || "").replace(/[*#_~`]/g, "").trim();
+      const audioUrl = `/api/voice-receptionist/tts?text=${encodeURIComponent(spokenScript)}&lang=${currentLang.ttsLang}`;
+
+      return res.json({
+        success: true,
+        courseTitle,
+        writtenAnswer: parsed.writtenAnswer || "Explanation generated.",
+        spokenScript,
+        keyTakeaway: parsed.keyTakeaway || "",
+        suggestedNextQuestions: parsed.suggestedNextQuestions || [],
+        audioUrl,
+        language: currentLang.name,
+      });
+    } catch (err: any) {
+      console.error("Course Doubt API error:", err);
+      return res.status(500).json({ error: err?.message || "Failed to resolve course doubt" });
     }
   });
 
@@ -756,7 +1217,116 @@ Give a comprehensive, thorough, and articulate counseling answer as Priya in pur
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
+  const server = http.createServer(app);
+  const wss = new WebSocketServer({ noServer: true });
+
+  server.on("upgrade", (request, socket, head) => {
+    try {
+      const url = new URL(request.url || "", `http://${request.headers.host || "localhost"}`);
+      if (url.pathname === "/api/live-doubt" || url.pathname === "/live") {
+        wss.handleUpgrade(request, socket, head, (ws) => {
+          wss.emit("connection", ws, request);
+        });
+      }
+    } catch (e) {
+      socket.destroy();
+    }
+  });
+
+  wss.on("connection", async (clientWs: WebSocket, request: http.IncomingMessage) => {
+    let session: any = null;
+    try {
+      const url = new URL(request.url || "", `http://${request.headers.host || "localhost"}`);
+      const courseTitle = url.searchParams.get("courseTitle") || "Academic Program";
+      const courseId = url.searchParams.get("courseId") || "";
+      const studentGender = (url.searchParams.get("gender") || "male").toLowerCase();
+      const voiceGenderParam = url.searchParams.get("voiceGender");
+      
+      // Rule: For girls and women, male voice asks ("Fenrir" or "Puck").
+      // For males and boys, female voice asks ("Aoede" or "Kore").
+      const effectiveVoiceGender = voiceGenderParam || (studentGender === "female" ? "male" : "female");
+      const chosenLiveVoice = effectiveVoiceGender === "male" ? "Fenrir" : "Aoede";
+
+      const ai = getAI();
+
+      // Establish real-time Live API session with gemini-3.8-live
+      session = await ai.live.connect({
+        model: "gemini-3.8-live",
+        config: {
+          responseModalities: [Modality.AUDIO],
+          speechConfig: {
+            voiceConfig: { prebuiltVoiceConfig: { voiceName: chosenLiveVoice } },
+          },
+          systemInstruction: `You are the designated Senior Course Tutor and Doubt Specialist for "${courseTitle}" at NextClasses.in.
+The student is speaking live with you to clear their academic doubts.
+Language rules:
+Students may ask questions in Malayalam, Tamil, Telugu, Hindi, Kannada, English, French, or German.
+Listen attentively and answer clearly, warmly, and step-by-step in the student's chosen language.
+Keep spoken responses concise, pedagogically crystal clear, and encouraging.`,
+        },
+        callbacks: {
+          onmessage: (message: LiveServerMessage) => {
+            const audio = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
+            if (audio && clientWs.readyState === WebSocket.OPEN) {
+              clientWs.send(JSON.stringify({ type: "audio", audio }));
+            }
+            if (message.serverContent?.interrupted && clientWs.readyState === WebSocket.OPEN) {
+              clientWs.send(JSON.stringify({ type: "interrupted" }));
+            }
+          },
+          onerror: (err) => {
+            console.warn("[LIVE API WS ERROR]", err);
+            if (clientWs.readyState === WebSocket.OPEN) {
+              clientWs.send(JSON.stringify({ type: "error", message: err?.message || "Live session error" }));
+            }
+          },
+          onclose: () => {
+            if (clientWs.readyState === WebSocket.OPEN) {
+              clientWs.send(JSON.stringify({ type: "session_closed" }));
+            }
+          }
+        },
+      });
+
+      if (clientWs.readyState === WebSocket.OPEN) {
+        clientWs.send(JSON.stringify({ type: "ready", model: "gemini-3.8-live", courseTitle, courseId }));
+      }
+
+      clientWs.on("message", (data: any) => {
+        try {
+          const payload = JSON.parse(data.toString());
+          if (payload.audio && session) {
+            session.sendRealtimeInput({
+              audio: { data: payload.audio, mimeType: "audio/pcm;rate=16000" },
+            });
+          } else if (payload.text && session) {
+            session.sendRealtimeInput({
+              text: payload.text,
+            });
+          }
+        } catch (err) {
+          console.error("[LIVE INPUT ERROR]", err);
+        }
+      });
+
+      clientWs.on("close", () => {
+        try {
+          if (session && typeof session.close === "function") {
+            session.close();
+          }
+        } catch (e) {
+          // ignore
+        }
+      });
+    } catch (err: any) {
+      console.error("[LIVE SESSION INIT ERROR]", err);
+      if (clientWs.readyState === WebSocket.OPEN) {
+        clientWs.send(JSON.stringify({ type: "error", message: err?.message || "Could not connect to gemini-3.8-live" }));
+      }
+    }
+  });
+
+  server.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
 }

@@ -5,7 +5,10 @@ import {
   Send,
   X,
   ChevronRight,
-  CheckCircle2,
+  Mic,
+  MicOff,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 
 interface Message {
@@ -34,13 +37,22 @@ export const AIChatBot: React.FC<AIChatBotProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [isRecordingAudio, setIsRecordingAudio] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<any>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+  const silenceTimerRef = useRef<any>(null);
 
   const initialMessages: Message[] = [
     {
       id: 'm-1',
       sender: 'bot',
-      text: "Hello! 👋 I'm **Aura**, your Nextclasses.in Academic Advisor. How can I guide your learning journey today? Feel free to ask about our courses, fees, syllabus, NEET/KEAM materials, or discount coupons.",
+      text: "Hello! 👋 I'm **Aura**, your real-time NextClasses Academic Advisor & Counselor. Ask me anything about our NEET (UG) 2027 weekly physical study dispatches, KEAM & IIT JEE syllabus, Sainik School entrance, AI masterclasses, or fees! You can also tap the 🎙️ mic to speak directly with me in real time.",
       timestamp: 'Just now',
     },
   ];
@@ -48,12 +60,12 @@ export const AIChatBot: React.FC<AIChatBotProps> = ({
   const [messages, setMessages] = useState<Message[]>(initialMessages);
 
   const quickQuestions = [
-    'Which course is best for beginners?',
-    'What is included in Claude AI course?',
-    'Tell me about Languages & Public Speaking',
-    'How do NEET & KEAM study materials work?',
-    'What discount coupons are available?',
-    'How do I checkout & enroll?',
+    'How do NEET weekly dispatches work?',
+    'Does KEAM course include Chemistry?',
+    'Tell me about Sainik School Class 6 & 9 Kit',
+    'Which AI course is best for beginners?',
+    'What fees and discount coupons are available?',
+    'How do I speak with a human counselor?',
   ];
 
   const scrollToBottom = () => {
@@ -66,122 +78,210 @@ export const AIChatBot: React.FC<AIChatBotProps> = ({
     }
   }, [messages, isOpen]);
 
-  // Intelligent local counselor knowledge base
-  const generateCounselorResponse = (query: string): { text: string; action?: Message['action'] } => {
-    const q = query.toLowerCase();
-
-    if (q.includes('claude') || q.includes('anthropic') || q.includes('prompt')) {
-      return {
-        text: "**Master Claude AI & Advanced Prompt Engineering** is our flagship masterclass! It covers Anthropic Claude 3.7 Sonnet, Artifacts, coding full apps, document synthesis, and prompt engineering in English and Indian languages. Ideal for developers, students, and working professionals.\n\nFee: ₹999 (Discounted from ₹2,999).",
-        action: {
-          type: 'navigate',
-          payload: 'courses',
-          label: 'View Claude AI Course',
-        },
-      };
-    }
-
-    if (q.includes('language') || q.includes('speaking') || q.includes('english') || q.includes('french') || q.includes('german')) {
-      return {
-        text: "**Languages & Stage Mastery Academy** includes:\n• Spoken English & Workplace Fluency\n• Stage Confidence, Public Speaking & Debate Mastery\n• French for Beginners (A1 Level)\n• German for Beginners (A1 Level)\n\nInteractive sessions, speech recordings review, and lifetime community access included!",
-        action: {
-          type: 'navigate',
-          payload: 'courses',
-          label: 'Explore Language Programs',
-        },
-      };
-    }
-
-    if (q.includes('sainik') || q.includes('aissee') || q.includes('rimc') || q.includes('rms')) {
-      return {
-        text: "**AISSEE 2027 Sainik School Entrance Success Kit**:\n• Comprehensive preparation for Class 6 & Class 9\n• All 5 subjects: Math (150m), Intelligence, English, GK, General Science\n• Weekly video drops + 10 full-length CBT mock tests with instant scoring and negative marking.\n\nEverything is accessible right inside your student portal!",
-        action: {
-          type: 'navigate',
-          payload: 'courses',
-          label: 'View AISSEE Sainik Kit',
-        },
-      };
-    }
-
-    if (q.includes('neet') || q.includes('keam') || q.includes('jee') || q.includes('exam') || q.includes('competitive')) {
-      return {
-        text: "Our **Competitive Exam Study Materials** provide complete syllabus coverage for NEET UG, KEAM Engineering & Medical, and JEE Mains with high-yield formula sheets, chapterwise question vaults, and simulated online CBT tests.",
-        action: {
-          type: 'navigate',
-          payload: 'courses',
-          label: 'Explore Exam Preparation Kits',
-        },
-      };
-    }
-
-    if (q.includes('mock') || q.includes('test') || q.includes('practice') || q.includes('cbt')) {
-      return {
-        text: "We provide an **Interactive CBT Mock Test Simulation Platform** modeled exactly after NTA and AISSEE exams with real-time timers, question palettes, and automated score cards.",
-        action: {
-          type: 'navigate',
-          payload: 'mock-tests',
-          label: 'Launch Free CBT Mock Test',
-        },
-      };
-    }
-
-    if (q.includes('coupon') || q.includes('discount') || q.includes('offer') || q.includes('code')) {
-      return {
-        text: "🎉 Exclusive Special Discount Codes:\n• Use coupon **AIFUTURE** at checkout for **40% OFF** your entire order!\n• Use **NEXTCLASS20** for an instant 20% discount on all courses.",
-        action: {
-          type: 'coupon',
-          payload: 'AIFUTURE',
-          label: 'Apply Coupon in Cart',
-        },
-      };
-    }
-
-    if (q.includes('pay') || q.includes('qr') || q.includes('upi') || q.includes('gpay') || q.includes('phonepe') || q.includes('payment') || q.includes('razorpay') || q.includes('checkout') || q.includes('enroll')) {
-      return {
-        text: "We offer secure online checkout via **Razorpay Secure Gateway**!\n• Supports UPI (Google Pay, PhonePe, Paytm, CRED, BHIM), Debit & Credit Cards, and Net Banking.\n• Zero transaction charges & instant automated portal activation.\n• Enter your mobile number & email in the cart drawer to initiate checkout.",
-        action: {
-          type: 'open_cart',
-          label: 'Open Cart & Checkout',
-        },
-      };
-    }
-
-    if (q.includes('delivery') || q.includes('access') || q.includes('material') || q.includes('portal') || q.includes('login')) {
-      return {
-        text: "All enrollments receive **Instant Digital Access**! Your course dashboard, video lectures, and PDF study packs are immediately available in the **Student Learning Portal**, and dispatched to your registered email and WhatsApp.",
-        action: {
-          type: 'navigate',
-          payload: 'portal',
-          label: 'Open Student Portal',
-        },
-      };
-    }
-
-    if (q.includes('human') || q.includes('whatsapp') || q.includes('support') || q.includes('contact') || q.includes('call') || q.includes('phone')) {
-      return {
-        text: "Our academic counselor desk is available directly on WhatsApp at **+91 82816 44058** and email at **support@nextclasses.in** for personalized guidance, admissions, or technical assistance.",
-        action: {
-          type: 'navigate',
-          payload: 'contact',
-          label: 'Contact Support Team',
-        },
-      };
-    }
-
-    // Default helpful general response
-    return {
-      text: "I'm here to assist you with everything at **Nextclasses.in**:\n• AI Masterclasses (Claude, Gemini, ChatGPT)\n• AISSEE Sainik School, NEET & KEAM Exam Kits\n• Languages & Public Speaking\n• Mock CBT Test Series\n\nWhat would you like to explore?",
-      action: {
-        type: 'navigate',
-        payload: 'courses',
-        label: 'Browse All Courses',
-      },
+  // Clean up audio on unmount
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        try { recognitionRef.current.stop(); } catch {}
+      }
+      if (currentAudioRef.current) {
+        currentAudioRef.current.pause();
+      }
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
     };
+  }, []);
+
+  const speakText = (text: string) => {
+    if (!voiceEnabled) return;
+    try {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const clean = text.replace(/[*#_~`]/g, '').slice(0, 220);
+        const utterance = new SpeechSynthesisUtterance(clean);
+        utterance.lang = 'en-IN';
+        utterance.pitch = 1.1;
+        utterance.rate = 1.0;
+        utterance.onstart = () => setIsSpeaking(true);
+        utterance.onend = () => setIsSpeaking(false);
+        utterance.onerror = () => setIsSpeaking(false);
+        window.speechSynthesis.speak(utterance);
+      }
+    } catch {
+      setIsSpeaking(false);
+    }
   };
 
-  const handleSend = (textToSend?: string) => {
-    const query = textToSend || input;
-    if (!query.trim()) return;
+  const startAudioRecording = async () => {
+    if (isSpeaking && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioChunksRef.current = [];
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        if (audioBlob.size < 500) return;
+
+        setIsTyping(true);
+        try {
+          const reader = new FileReader();
+          reader.readAsDataURL(audioBlob);
+          reader.onloadend = async () => {
+            const base64Data = (reader.result as string).split(',')[1];
+            const res = await fetch('/api/voice-transcribe', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                audioBase64: base64Data,
+                mimeType: 'audio/webm',
+                language: 'en',
+              }),
+            });
+            const data = await res.json();
+            if (data?.transcript?.trim()) {
+              setInput(data.transcript);
+              handleSend(data.transcript.trim());
+            } else {
+              setIsTyping(false);
+            }
+          };
+        } catch (err) {
+          console.error('Audio transcription error:', err);
+          setIsTyping(false);
+        }
+      };
+
+      mediaRecorder.start();
+      setIsRecordingAudio(true);
+      setIsListening(true);
+    } catch (err) {
+      console.warn('Microphone error:', err);
+      setIsRecordingAudio(false);
+      setIsListening(false);
+    }
+  };
+
+  const stopAudioRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+    setIsRecordingAudio(false);
+    setIsListening(false);
+  };
+
+  const startVoiceListening = () => {
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      startAudioRecording();
+      return;
+    }
+
+    if (isSpeaking && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognitionRef.current = recognition;
+      recognition.lang = 'en-IN';
+      recognition.continuous = true;
+      recognition.interimResults = true;
+
+      let recognizedSoFar = '';
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        recognizedSoFar = '';
+      };
+
+      recognition.onresult = (event: any) => {
+        let fullTranscript = '';
+        for (let i = 0; i < event.results.length; i++) {
+          fullTranscript += event.results[i][0].transcript;
+        }
+        recognizedSoFar = fullTranscript;
+        setInput(fullTranscript);
+
+        if (silenceTimerRef.current) {
+          clearTimeout(silenceTimerRef.current);
+        }
+        silenceTimerRef.current = setTimeout(() => {
+          const text = recognizedSoFar.trim();
+          if (text) {
+            try { recognition.stop(); } catch {}
+            setIsListening(false);
+            recognizedSoFar = '';
+            handleSend(text);
+          }
+        }, 2000);
+      };
+
+      recognition.onerror = (event: any) => {
+        console.warn('Speech recognition error:', event.error);
+        if (event.error === 'not-allowed' || event.error === 'audio-capture' || event.error === 'service-not-allowed') {
+          setIsListening(false);
+          startAudioRecording();
+        } else {
+          setIsListening(false);
+        }
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+        if (recognizedSoFar.trim()) {
+          const text = recognizedSoFar.trim();
+          recognizedSoFar = '';
+          handleSend(text);
+        }
+      };
+
+      recognition.start();
+    } catch (err) {
+      console.warn('Failed to start speech recognition, falling back to audio recording:', err);
+      startAudioRecording();
+    }
+  };
+
+  const stopVoiceListening = () => {
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+    }
+    if (isRecordingAudio) {
+      stopAudioRecording();
+      return;
+    }
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch {}
+    }
+    setIsListening(false);
+  };
+
+  const handleSend = async (textToSend?: string) => {
+    const query = (textToSend || input).trim();
+    if (!query) return;
+
+    if (isSpeaking && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    }
 
     const userMessage: Message = {
       id: `u-${Date.now()}`,
@@ -194,75 +294,131 @@ export const AIChatBot: React.FC<AIChatBotProps> = ({
     setInput('');
     setIsTyping(true);
 
-    setTimeout(() => {
-      const response = generateCounselorResponse(query);
+    try {
+      // Real-time call to Gemini 3.8 Flash counselor endpoint
+      const response = await fetch('/api/counselor/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success || !data.reply) {
+        throw new Error(data?.error || 'Failed to get counselor response');
+      }
+
+      // Check if action buttons are relevant
+      const qLower = query.toLowerCase();
+      let action: Message['action'] = undefined;
+      if (qLower.includes('enroll') || qLower.includes('cart') || qLower.includes('buy') || qLower.includes('fee') || qLower.includes('pay')) {
+        action = { type: 'open_cart', label: 'View Cart & Instant Enroll' };
+      } else if (qLower.includes('mock') || qLower.includes('test')) {
+        action = { type: 'navigate', payload: 'mock-tests', label: 'Try Free CBT Mock Test' };
+      } else if (qLower.includes('course') || qLower.includes('neet') || qLower.includes('sainik') || qLower.includes('keam')) {
+        action = { type: 'navigate', payload: 'courses', label: 'Explore Course Catalog' };
+      }
+
       const botMessage: Message = {
         id: `b-${Date.now()}`,
         sender: 'bot',
-        text: response.text,
+        text: data.reply,
         timestamp: 'Just now',
-        action: response.action,
+        action,
+      };
+
+      setMessages((prev) => [...prev, botMessage]);
+      setIsTyping(false);
+      speakText(data.reply);
+    } catch (err: any) {
+      console.warn('Real-time counselor error, using fallback:', err);
+      // Fallback
+      const botMessage: Message = {
+        id: `b-${Date.now()}`,
+        sender: 'bot',
+        text: `At NextClasses.in, our courses include weekly physical study kits dispatched to your doorstep, lifetime video lessons, chapterwise mock tests, and WhatsApp faculty helpline (+91 82816 44058). For your query "${query}", we are happy to guide you!`,
+        timestamp: 'Just now',
+        action: { type: 'navigate', payload: 'courses', label: 'Browse Courses' },
       };
       setMessages((prev) => [...prev, botMessage]);
       setIsTyping(false);
-    }, 600);
+    }
   };
 
   const handleActionClick = (action: Message['action']) => {
     if (!action) return;
 
-    if (action.type === 'open_cart') {
-      if (onOpenCart) onOpenCart();
-      setIsOpen(false);
-    } else if (action.type === 'coupon') {
+    if (action.type === 'open_cart' || action.type === 'coupon') {
       if (onOpenCart) onOpenCart();
       setIsOpen(false);
     } else if (action.type === 'navigate') {
       if (action.payload === 'mock-tests' && onOpenMockTest) {
         onOpenMockTest();
-      } else if (action.payload && onNavigateTo) {
+        setIsOpen(false);
+      } else if (onNavigateTo && action.payload) {
         onNavigateTo(action.payload);
+        setIsOpen(false);
       }
-      setIsOpen(false);
     }
   };
 
   return (
-    <div className="fixed bottom-5 right-5 z-40 flex flex-col items-end print:hidden">
-      {/* Interactive Chat Window */}
+    <div className="fixed bottom-6 right-6 z-40">
+      {/* Expanded Chat Window */}
       {isOpen && (
-        <div className="mb-3 w-84 sm:w-[390px] h-[520px] max-h-[82vh] rounded-3xl bg-[#0f172a] border border-neutral-800 shadow-2xl shadow-black/90 flex flex-col overflow-hidden text-white animate-in fade-in slide-in-from-bottom-6 duration-200">
+        <div
+          id="advisor-chat-window"
+          className="w-[92vw] sm:w-[390px] h-[540px] max-h-[85vh] rounded-3xl bg-[#0b111e] border border-[#1e2c47] shadow-2xl flex flex-col overflow-hidden mb-3 animate-in slide-in-from-bottom-5 duration-200"
+        >
           {/* Header */}
-          <div className="px-4 py-3.5 bg-gradient-to-r from-orange-600 via-amber-600 to-orange-500 flex items-center justify-between text-white shadow-md">
+          <div className="p-4 bg-gradient-to-r from-orange-600 via-amber-600 to-orange-500 text-neutral-950 flex items-center justify-between shadow-md">
             <div className="flex items-center gap-2.5">
               <div className="relative">
-                <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
-                  <Bot className="w-5 h-5 text-white" />
+                <div className="w-9 h-9 rounded-2xl bg-neutral-950/20 backdrop-blur-sm border border-neutral-950/30 flex items-center justify-center">
+                  <Bot className="w-5 h-5 text-neutral-950" />
                 </div>
-                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-orange-600" />
+                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-orange-500" />
               </div>
               <div>
-                <div className="font-extrabold text-sm leading-tight flex items-center gap-1.5">
-                  <span>Aura • Nextclasses AI Advisor</span>
-                  <CheckCircle2 className="w-3.5 h-3.5 text-amber-200" />
-                </div>
-                <div className="text-[10px] text-orange-100 font-medium">
-                  Instant Course & Syllabus Guidance
-                </div>
+                <h4 className="font-extrabold text-sm leading-tight text-neutral-950 flex items-center gap-1.5">
+                  Aura AI Advisor
+                  <span className="text-[10px] bg-neutral-950/20 px-1.5 py-0.5 rounded-full font-bold">
+                    Real-Time
+                  </span>
+                </h4>
+                <p className="text-[11px] font-medium text-neutral-900/90">
+                  {isListening ? '🎙️ Listening to you...' : isSpeaking ? '🔊 Speaking...' : 'Online • Powered by Gemini 3.8'}
+                </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setIsOpen(false)}
-              className="w-7 h-7 rounded-full bg-black/20 hover:bg-black/40 flex items-center justify-center transition-colors cursor-pointer"
-              aria-label="Close Chat"
-            >
-              <X className="w-4 h-4 text-white" />
-            </button>
+
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setVoiceEnabled(!voiceEnabled)}
+                className={`p-1.5 rounded-xl text-neutral-950 hover:bg-black/10 transition-colors cursor-pointer ${!voiceEnabled ? 'opacity-50' : ''}`}
+                title={voiceEnabled ? 'Voice output active' : 'Voice output muted'}
+              >
+                {voiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsOpen(false);
+                  if (isSpeaking && 'speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                  }
+                }}
+                className="p-1.5 rounded-xl text-neutral-950 hover:bg-black/10 transition-colors cursor-pointer"
+                aria-label="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
-          {/* Messages Area */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-3.5 text-xs bg-[#0b1220]">
+          {/* Messages Container */}
+          <div className="flex-1 p-4 overflow-y-auto space-y-3.5 bg-[#0b101c]/95">
             {messages.map((m) => (
               <div
                 key={m.id}
@@ -274,18 +430,18 @@ export const AIChatBot: React.FC<AIChatBotProps> = ({
                   </div>
                 )}
                 <div
-                  className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 leading-relaxed shadow-sm ${
+                  className={`max-w-[82%] p-3 rounded-2xl text-xs leading-relaxed ${
                     m.sender === 'user'
-                      ? 'bg-orange-500 text-neutral-950 font-medium rounded-br-none'
-                      : 'bg-[#152136] border border-[#223352] text-neutral-200 rounded-bl-none'
+                      ? 'bg-orange-500 text-neutral-950 font-medium rounded-tr-sm'
+                      : 'bg-[#152136] text-neutral-200 border border-[#223352] rounded-tl-sm space-y-2'
                   }`}
                 >
-                  <p className="whitespace-pre-line">{m.text}</p>
+                  <p className="whitespace-pre-wrap">{m.text}</p>
                   {m.action && (
                     <button
                       type="button"
                       onClick={() => handleActionClick(m.action)}
-                      className="mt-2.5 w-full py-1.5 px-2.5 rounded-lg bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/40 text-orange-400 text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                      className="mt-2 w-full py-1.5 px-2.5 rounded-xl bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/40 text-orange-300 font-bold text-[11px] flex items-center justify-between transition-colors cursor-pointer"
                     >
                       <span>{m.action.label}</span>
                       <ChevronRight className="w-3.5 h-3.5" />
@@ -327,7 +483,24 @@ export const AIChatBot: React.FC<AIChatBotProps> = ({
             ))}
           </div>
 
-          {/* Chat Input */}
+          {/* Live Listening Feedback Banner */}
+          {isListening && (
+            <div className="px-3 py-1.5 bg-orange-500/10 border-t border-orange-500/30 flex items-center justify-between text-[11px] text-orange-300 animate-pulse">
+              <span className="flex items-center gap-1.5">
+                <Mic className="w-3.5 h-3.5 text-orange-400 animate-bounce" />
+                Listening now... Speak your question clearly
+              </span>
+              <button
+                type="button"
+                onClick={stopVoiceListening}
+                className="px-2 py-0.5 rounded bg-orange-500 text-neutral-950 font-bold text-[10px]"
+              >
+                Done
+              </button>
+            </div>
+          )}
+
+          {/* Chat Input with Voice STT */}
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -339,12 +512,28 @@ export const AIChatBot: React.FC<AIChatBotProps> = ({
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about courses, fees, or study packs..."
+              placeholder="Ask anything, or tap the mic to speak..."
               className="flex-1 px-3 py-2 rounded-xl bg-[#141d2e] border border-[#27364f] text-white text-xs placeholder:text-neutral-500 focus:outline-none focus:border-orange-500 transition-colors"
             />
+            
+            {/* Microphone Button */}
+            <button
+              type="button"
+              onClick={isListening ? stopVoiceListening : startVoiceListening}
+              className={`p-2 rounded-xl border transition-all cursor-pointer ${
+                isListening
+                  ? 'bg-rose-500 border-rose-400 text-white animate-pulse'
+                  : 'bg-[#152136] border-[#223352] text-orange-400 hover:bg-orange-500/20'
+              }`}
+              title={isListening ? 'Stop listening' : 'Speak your question'}
+            >
+              {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+            </button>
+
+            {/* Send Button */}
             <button
               type="submit"
-              disabled={!input.trim()}
+              disabled={!input.trim() || isTyping}
               className="px-3.5 py-2 rounded-xl bg-orange-500 hover:bg-orange-400 disabled:opacity-40 disabled:hover:bg-orange-500 text-neutral-950 font-bold text-xs flex items-center gap-1 transition-all cursor-pointer shadow-md"
             >
               <Send className="w-3.5 h-3.5" />

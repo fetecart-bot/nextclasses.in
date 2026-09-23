@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { X, CheckCircle2, Clock, Globe, Calendar, Award, ChevronDown, ChevronUp, Sparkles, Shield, User, Play, ExternalLink, MessageCircle, Share2, Copy, Check, Tv } from 'lucide-react';
+import { X, CheckCircle2, Clock, Globe, Calendar, Award, ChevronDown, ChevronUp, Sparkles, Shield, User, Play, ExternalLink, MessageCircle, Share2, Copy, Check, Tv, Mic, Radio } from 'lucide-react';
 import { Course, CartItem } from '../types';
 import { getCourseVideos } from '../utils/courseVideos';
 import ShareCourseModal from './ShareCourseModal';
+import { CourseVoiceDoubtBot } from './CourseVoiceDoubtBot';
 
 interface CourseModalProps {
   course: Course | null;
@@ -13,6 +14,7 @@ interface CourseModalProps {
 export default function CourseModal({ course, onClose, onAddToCart }: CourseModalProps) {
   const [activeVideoIndex, setActiveVideoIndex] = useState<number>(0);
   const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
+  const [isVoiceDoubtOpen, setIsVoiceDoubtOpen] = useState<boolean>(false);
   const [copiedQuickLink, setCopiedQuickLink] = useState<boolean>(false);
   const [expandedModules, setExpandedModules] = useState<Record<number, boolean>>({
     1: true,
@@ -287,6 +289,37 @@ export default function CourseModal({ course, onClose, onAddToCart }: CourseModa
                 </div>
               </div>
 
+              {/* Ask Doubts Live with Voice AI Banner */}
+              <div className="p-3.5 sm:p-4 rounded-xl bg-gradient-to-r from-orange-950/60 via-neutral-900 to-amber-950/40 border border-orange-500/30 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-neutral-950 shrink-0 shadow-md">
+                    <Mic className="w-5 h-5 text-neutral-950 animate-pulse" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-xs sm:text-sm font-bold text-white">
+                        Have Doubts in this Lesson? Ask Live with Voice AI
+                      </h4>
+                      <span className="px-1.5 py-0.5 rounded bg-emerald-950 border border-emerald-500/40 text-[10px] font-mono text-emerald-300 hidden sm:inline">
+                        gemini-3.8-live
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-neutral-300">
+                      Speak your doubt in Malayalam, Tamil, Telugu, Hindi, or English. The bot will hear and explain clearly in voice and written language!
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsVoiceDoubtOpen(true)}
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:opacity-90 text-neutral-950 font-bold text-xs flex items-center justify-center gap-1.5 shrink-0 shadow-md cursor-pointer transition-transform active:scale-95"
+                >
+                  <Mic className="w-3.5 h-3.5" />
+                  <span>Start Voice Doubts</span>
+                </button>
+              </div>
+
               {/* Video Lessons Playlist Selection */}
               <div className="space-y-2.5 pt-1">
                 <div className="flex items-center justify-between px-1">
@@ -498,6 +531,15 @@ export default function CourseModal({ course, onClose, onAddToCart }: CourseModa
               <Share2 className="w-4 h-4 text-orange-400" />
               <span className="hidden sm:inline">Share</span>
             </button>
+            <button
+              type="button"
+              onClick={() => setIsVoiceDoubtOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-3 rounded-xl bg-gradient-to-r from-orange-950/80 to-amber-950/80 hover:bg-orange-900/60 border border-orange-500/40 text-orange-300 hover:text-white text-xs font-semibold transition-all cursor-pointer shadow-sm"
+              title="Ask Doubts in Real Time with Voice AI"
+            >
+              <Mic className="w-3.5 h-3.5 text-orange-400 animate-pulse" />
+              <span className="hidden sm:inline">Voice Doubts</span>
+            </button>
             <a
               href={`https://wa.me/918281644058?text=${encodeURIComponent(`Hi Nextclasses.in, I have questions about the "${course.title}" course.`)}`}
               target="_blank"
@@ -526,6 +568,13 @@ export default function CourseModal({ course, onClose, onAddToCart }: CourseModa
         course={course}
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
+      />
+
+      {/* Real-time Voice Doubt Resolution Bot for this course */}
+      <CourseVoiceDoubtBot
+        course={course}
+        isOpen={isVoiceDoubtOpen}
+        onClose={() => setIsVoiceDoubtOpen(false)}
       />
     </div>
   );
