@@ -9,6 +9,8 @@ import {
   MicOff,
   Volume2,
   VolumeX,
+  Play,
+  Square,
 } from 'lucide-react';
 
 interface Message {
@@ -41,6 +43,7 @@ export const AIChatBot: React.FC<AIChatBotProps> = ({
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [isRecordingAudio, setIsRecordingAudio] = useState(false);
+  const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -93,31 +96,118 @@ export const AIChatBot: React.FC<AIChatBotProps> = ({
     };
   }, []);
 
-  const speakText = (text: string) => {
-    if (!voiceEnabled) return;
-    try {
-      if ('speechSynthesis' in window) {
+  const stopAudioPlayback = () => {
+    if ('speechSynthesis' in window) {
+      try {
         window.speechSynthesis.cancel();
-        const clean = text.replace(/[*#_~`]/g, '').slice(0, 220);
-        const utterance = new SpeechSynthesisUtterance(clean);
-        utterance.lang = 'en-IN';
-        utterance.pitch = 1.1;
-        utterance.rate = 1.0;
-        utterance.onstart = () => setIsSpeaking(true);
-        utterance.onend = () => setIsSpeaking(false);
-        utterance.onerror = () => setIsSpeaking(false);
-        window.speechSynthesis.speak(utterance);
-      }
-    } catch {
+      } catch {}
+    }
+    if (currentAudioRef.current) {
+      try {
+        currentAudioRef.current.pause();
+        currentAudioRef.current.currentTime = 0;
+      } catch {}
+      currentAudioRef.current = null;
+    }
+    setIsSpeaking(false);
+    setCurrentlyPlayingId(null);
+  };
+
+  const fallbackServerTTS = (cleanText: string, messageId?: string) => {
+    try {
+      const audioUrl = `/api/voice-receptionist/tts?text=${encodeURIComponent(cleanText.slice(0, 350))}&lang=en`;
+      const audio = new Audio(audioUrl);
+      currentAudioRef.current = audio;
+      setIsSpeaking(true);
+      if (messageId) setCurrentlyPlayingId(messageId);
+
+      audio.onended = () => {
+        setIsSpeaking(false);
+        setCurrentlyPlayingId(null);
+        currentAudioRef.current = null;
+      };
+      audio.onerror = (e) => {
+        console.warn('Server TTS playback error:', e);
+        setIsSpeaking(false);
+        setCurrentlyPlayingId(null);
+        currentAudioRef.current = null;
+      };
+      audio.play().catch((err) => {
+        console.warn('Audio auto-play policy prevented playback:', err);
+        setIsSpeaking(false);
+        setCurrentlyPlayingId(null);
+      });
+    } catch (e) {
+      console.warn('Fallback server TTS error:', e);
       setIsSpeaking(false);
+      setCurrentlyPlayingId(null);
     }
   };
 
-  const startAudioRecording = async () => {
-    if (isSpeaking && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      setIsSpeaking(false);
+  const speakText = (text: string, messageId?: string) => {
+    if (!voiceEnabled || !text) return;
+    stopAudioPlayback();
+
+    // Clean markdown, links, asterisks, bullet points
+    const clean = text
+      .replace(/[*#_~`]/g, '')
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+      .replace(/https?:\/\/\S+/g, '')
+      .trim()
+      .slice(0, 300);
+
+    if (!clean) return;
+
+    // Strategy 1: Browser Web Speech API with SpeechSynthesis
+    if ('speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(clean);
+        utterance.lang = 'en-IN';
+        utterance.pitch = 1.05;
+        utterance.rate = 1.0;
+
+        // Try to pick a clear Indian English or natural voice if available
+        const voices = window.speechSynthesis.getVoices();
+        if (voices.length > 0) {
+          const match = voices.find(
+            (v) =>
+              v.lang.includes('IN') ||
+              v.name.toLowerCase().includes('india') ||
+              v.name.toLowerCase().includes('female') ||
+              v.name.toLowerCase().includes('natural') ||
+              v.name.toLowerCase().includes('google')
+          );
+          if (match) utterance.voice = match;
+        }
+
+        utterance.onstart = () => {
+          setIsSpeaking(true);
+          if (messageId) setCurrentlyPlayingId(messageId);
+        };
+        utterance.onend = () => {
+          setIsSpeaking(false);
+          setCurrentlyPlayingId(null);
+        };
+        utterance.onerror = (e) => {
+          console.warn('SpeechSynthesis error, falling back to server TTS:', e);
+          setIsSpeaking(false);
+          fallbackServerTTS(clean, messageId);
+        };
+
+        window.speechSynthesis.speak(utterance);
+        return;
+      } catch (err) {
+        console.warn('Web Speech API error, falling back to server TTS:', err);
+      }
     }
+
+    // Strategy 2: Dedicated high-fidelity Server TTS endpoint fallback
+    fallbackServerTTS(clean, messageId);
+  };
+
+  const startAudioRecording = async () => {
+    stopAudioPlayback();
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       audioChunksRef.current = [];
@@ -191,10 +281,7 @@ export const AIChatBot: React.FC<AIChatBotProps> = ({
       return;
     }
 
-    if (isSpeaking && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      setIsSpeaking(false);
-    }
+    stopAudioPlayback();
 
     try {
       const recognition = new SpeechRecognition();
@@ -278,10 +365,7 @@ export const AIChatBot: React.FC<AIChatBotProps> = ({
     const query = (textToSend || input).trim();
     if (!query) return;
 
-    if (isSpeaking && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      setIsSpeaking(false);
-    }
+    stopAudioPlayback();
 
     const userMessage: Message = {
       id: `u-${Date.now()}`,
@@ -329,7 +413,7 @@ export const AIChatBot: React.FC<AIChatBotProps> = ({
 
       setMessages((prev) => [...prev, botMessage]);
       setIsTyping(false);
-      speakText(data.reply);
+      speakText(data.reply, botMessage.id);
     } catch (err: any) {
       console.warn('Real-time counselor error, using fallback:', err);
       // Fallback
@@ -342,6 +426,7 @@ export const AIChatBot: React.FC<AIChatBotProps> = ({
       };
       setMessages((prev) => [...prev, botMessage]);
       setIsTyping(false);
+      speakText(botMessage.text, botMessage.id);
     }
   };
 
@@ -405,9 +490,7 @@ export const AIChatBot: React.FC<AIChatBotProps> = ({
                 type="button"
                 onClick={() => {
                   setIsOpen(false);
-                  if (isSpeaking && 'speechSynthesis' in window) {
-                    window.speechSynthesis.cancel();
-                  }
+                  stopAudioPlayback();
                 }}
                 className="p-1.5 rounded-xl text-neutral-950 hover:bg-black/10 transition-colors cursor-pointer"
                 aria-label="Close"
@@ -447,9 +530,43 @@ export const AIChatBot: React.FC<AIChatBotProps> = ({
                       <ChevronRight className="w-3.5 h-3.5" />
                     </button>
                   )}
-                  <span className="text-[9px] opacity-60 block text-right mt-1">
-                    {m.timestamp}
-                  </span>
+                  <div className="flex items-center justify-between gap-2 mt-1.5 pt-1 border-t border-white/5">
+                    {m.sender === 'bot' ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (currentlyPlayingId === m.id) {
+                            stopAudioPlayback();
+                          } else {
+                            speakText(m.text, m.id);
+                          }
+                        }}
+                        className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-md transition-colors cursor-pointer ${
+                          currentlyPlayingId === m.id
+                            ? 'bg-orange-500/30 text-orange-300 border border-orange-500/50'
+                            : 'bg-white/5 hover:bg-white/10 text-neutral-300 border border-white/10'
+                        }`}
+                        title="Listen to vocal answer"
+                      >
+                        {currentlyPlayingId === m.id ? (
+                          <>
+                            <Square className="w-2.5 h-2.5 fill-current text-orange-400" />
+                            <span>Stop voice</span>
+                          </>
+                        ) : (
+                          <>
+                            <Volume2 className="w-2.5 h-2.5 text-orange-400" />
+                            <span>Listen voice</span>
+                          </>
+                        )}
+                      </button>
+                    ) : (
+                      <span />
+                    )}
+                    <span className="text-[9px] opacity-60">
+                      {m.timestamp}
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}

@@ -21,6 +21,7 @@ import PolicyModal, { PolicyTab } from './components/PolicyModal';
 import { AIChatBot } from './components/AIChatBot';
 import { PaymentVerificationModal } from './components/PaymentVerificationModal';
 import { StudentFriendWelcomeBot } from './components/StudentFriendWelcomeBot';
+import SEOHead from './components/SEOHead';
 import { useAuth } from './context/AuthContext';
 import { COURSES_DATA, AI_PRODUCTS_DATA, DEFAULT_PORTAL_VIDEOS } from './data';
 import { Course, CartItem, AIProduct, PortalVideoLesson, StudentUser } from './types';
@@ -177,7 +178,7 @@ export default function App() {
     if (isAdminUrl(window.location.pathname, window.location.hash, window.location.search)) {
       return '/admin';
     }
-    return '/';
+    return window.location.pathname;
   });
 
   useEffect(() => {
@@ -185,7 +186,7 @@ export default function App() {
       if (isAdminUrl(window.location.pathname, window.location.hash, window.location.search)) {
         setCurrentPath('/admin');
       } else {
-        setCurrentPath('/');
+        setCurrentPath(window.location.pathname);
       }
     };
 
@@ -377,6 +378,15 @@ export default function App() {
     return () => window.removeEventListener('hashchange', handleHash);
   }, []);
 
+  const directCourseSlug = currentPath.match(/^\/courses\/([^/]+)\/?$/i)?.[1];
+  const directCourse = directCourseSlug
+    ? courses.find((course) => course.id.replace(/^course-/, '') === directCourseSlug)
+    : null;
+
+  useEffect(() => {
+    if (directCourse) setSelectedCourseForModal(directCourse);
+  }, [directCourse]);
+
   // --- PRODUCT MANAGEMENT HANDLERS ---
   const handleAddProduct = (newProduct: AIProduct) => {
     setProducts((prev) => [newProduct, ...prev]);
@@ -461,6 +471,7 @@ export default function App() {
 
   // Cart operations
   const handleAddToCart = (item: CartItem) => {
+    window.dispatchEvent(new CustomEvent('nextclasses:conversion', { detail: { event: 'add_to_cart', itemId: item.id, value: item.price } }));
     const exists = cartItems.some((ci) => ci.id === item.id);
     if (!exists) {
       setCartItems((prev) => [...prev, item]);
@@ -523,6 +534,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 selection:bg-orange-500 selection:text-neutral-950 font-sans antialiased">
+      <SEOHead course={directCourse} />
       {/* Top Promos & Announcement Bar */}
       <AnnouncementBanner onPromoApply={() => setIsCartOpen(true)} />
 
@@ -616,7 +628,10 @@ export default function App() {
       {selectedCourseForModal && (
         <CourseModal
           course={selectedCourseForModal}
-          onClose={() => setSelectedCourseForModal(null)}
+          onClose={() => {
+            setSelectedCourseForModal(null);
+            if (directCourse) navigateTo('/');
+          }}
           onAddToCart={handleAddToCart}
         />
       )}

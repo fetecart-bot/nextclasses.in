@@ -497,6 +497,8 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setHistory((prev) => [...prev, fallbackExchange]);
+      const fallbackAudioUrl = `/api/voice-receptionist/tts?text=${encodeURIComponent(fallbackExchange.spokenScript)}&lang=${selectedLanguage}`;
+      playAudio(fallbackAudioUrl);
     }
   };
 

@@ -85,6 +85,42 @@ export function savePaymentClaims(claims: PaymentClaim[]): void {
   }
 }
 
+export async function syncRazorpayPayments(adminKey: string): Promise<{ imported: number; total: number }> {
+  const response = await fetch('/api/razorpay-payments', {
+    headers: { 'x-admin-key': adminKey },
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload.error || 'Unable to read Razorpay payments');
+
+  const claims = getPaymentClaims();
+  const knownRefs = new Set(claims.map((claim) => claim.utrNumber));
+  let imported = 0;
+  for (const payment of payload.payments || []) {
+    if (!payment.id || knownRefs.has(payment.id)) continue;
+    const course = COURSES_DATA.find((item) => item.id === payment.courseId);
+    claims.unshift({
+      id: `claim-rzp-${payment.id}`,
+      claimCode: `RZP-${payment.id.slice(-8).toUpperCase()}`,
+      studentName: payment.studentName || 'Razorpay customer',
+      email: payment.email || '',
+      phone: String(payment.phone || '').replace(/[^0-9]/g, ''),
+      courseId: course?.id || payment.courseId || 'course-unassigned',
+      courseTitle: course?.title || payment.courseTitle || 'Course confirmation required',
+      amount: Number(payment.amount || 0),
+      utrNumber: payment.id,
+      paymentMethod: `Razorpay ${payment.method || 'payment'}`,
+      paymentApp: 'Razorpay',
+      status: 'pending_verification',
+      submittedAt: payment.createdAt || new Date().toISOString(),
+      notes: 'Imported directly from a captured Razorpay payment.',
+    });
+    knownRefs.add(payment.id);
+    imported += 1;
+  }
+  savePaymentClaims(claims);
+  return { imported, total: payload.payments?.length || 0 };
+}
+
 export function getPendingClaimsCount(): number {
   const claims = getPaymentClaims();
   return claims.filter((c) => c.status === 'pending_verification').length;

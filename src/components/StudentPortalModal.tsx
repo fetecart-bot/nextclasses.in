@@ -2278,7 +2278,7 @@ export default function StudentPortalModal({
     }
   };
 
-  const handlePortalLogin = (e?: FormEvent) => {
+  const handlePortalLogin = async (e?: FormEvent) => {
     if (e) e.preventDefault();
     setLoginError(null);
     if (!loginIdentifier.trim() || !loginPassword.trim()) {
@@ -2286,7 +2286,7 @@ export default function StudentPortalModal({
       return;
     }
     setIsLoggingIn(true);
-    const res = loginWithCredentials(loginIdentifier.trim(), loginPassword.trim(), loginCourseId);
+    const res = await loginWithCredentials(loginIdentifier.trim(), loginPassword.trim(), loginCourseId);
     setIsLoggingIn(false);
     if (res.success) {
       setIsFriendWelcomeOpen(true);

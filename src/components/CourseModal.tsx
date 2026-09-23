@@ -39,8 +39,8 @@ export default function CourseModal({ course, onClose, onAddToCart }: CourseModa
       : 0;
 
   const handleCopyLink = async () => {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://nextclasses.in';
-    const shareUrl = `${origin}/#course-${course.id}`;
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.nextclasses.in';
+    const shareUrl = `${origin}/courses/${course.id.replace(/^course-/, '')}/`;
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         await navigator.clipboard.writeText(shareUrl);

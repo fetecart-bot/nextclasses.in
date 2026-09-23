@@ -15,8 +15,8 @@ export default function ShareCourseModal({ course, isOpen, onClose }: ShareCours
   if (!isOpen || !course) return null;
 
   // Construct canonical share URL with deep link
-  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://nextclasses.in';
-  const shareUrl = `${origin}/#course-${course.id}`;
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.nextclasses.in';
+  const shareUrl = `${origin}/courses/${course.id.replace(/^course-/, '')}/`;
   const encodedUrl = encodeURIComponent(shareUrl);
 
   const shareTitle = `Explore "${course.title}" on Nextclasses.in`;

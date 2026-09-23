@@ -11,7 +11,7 @@ interface AuthContextType {
   closeAuthModal: () => void;
   clearJustLoggedIn: () => void;
   login: (data: { name: string; email: string; phone: string; targetExamCode?: string; targetExamDate?: string; courseId?: string }) => void;
-  loginWithCredentials: (usernameOrEmail: string, passwordInput: string, courseIdOrStandard?: string) => { success: boolean; message?: string; user?: StudentUser };
+  loginWithCredentials: (usernameOrEmail: string, passwordInput: string, courseIdOrStandard?: string) => Promise<{ success: boolean; message?: string; user?: StudentUser }>;
   loginWithAccount: (account: StudentUser) => void;
   setStudentStandard: (standard: 'class-6' | 'class-9') => void;
   updateStudentProfile: (updates: Partial<StudentUser>) => void;
@@ -75,12 +75,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const loginWithCredentials = (
+  const loginWithCredentials = async (
     usernameOrEmail: string, 
     passwordInput: string,
     courseIdOrStandard?: string
   ) => {
-    const verified = verifyStudentCredentials(usernameOrEmail, passwordInput);
+    let verified = verifyStudentCredentials(usernameOrEmail, passwordInput);
+    if (!verified) {
+      try {
+        const response = await fetch('/api/student-login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ identifier: usernameOrEmail, password: passwordInput }) });
+        const data = await response.json();
+        if (response.ok && data.account) verified = data.account;
+      } catch { /* show the normal invalid credentials message */ }
+    }
     if (!verified) {
       return {
         success: false,

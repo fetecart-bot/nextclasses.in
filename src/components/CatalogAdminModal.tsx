@@ -11,6 +11,7 @@ import {
   getPaymentClaims, 
   approvePaymentClaim, 
   rejectPaymentClaim, 
+  syncRazorpayPayments,
   PaymentClaim 
 } from '../utils/paymentClaims';
 import { 
@@ -267,6 +268,7 @@ export default function CatalogAdminModal({
   const [claimsSearchQuery, setClaimsSearchQuery] = useState('');
   const [processingClaimId, setProcessingClaimId] = useState<string | null>(null);
   const [claimStatusNotice, setClaimStatusNotice] = useState<string | null>(null);
+  const [isSyncingRazorpay, setIsSyncingRazorpay] = useState(false);
   const [copiedUtrId, setCopiedUtrId] = useState<string | null>(null);
   const [registeredStudents, setRegisteredStudents] = useState<RegisteredStudentAccount[]>([]);
   const [showStudentsList, setShowStudentsList] = useState(false);
@@ -306,6 +308,24 @@ export default function CatalogAdminModal({
     } finally {
       setProcessingClaimId(null);
       setTimeout(() => setClaimStatusNotice(null), 6000);
+    }
+  };
+
+  const handleSyncRazorpay = async () => {
+    setIsSyncingRazorpay(true);
+    setClaimStatusNotice(null);
+    try {
+      const result = await syncRazorpayPayments(getStoredPassword());
+      loadClaimsData();
+      setClaimsFilter('pending');
+      setShowStudentsList(false);
+      setClaimStatusNotice(result.imported > 0
+        ? `✓ Imported ${result.imported} captured Razorpay payment${result.imported === 1 ? '' : 's'}.`
+        : `✓ Razorpay is up to date. ${result.total} recent captured payment${result.total === 1 ? '' : 's'} checked.`);
+    } catch (err: any) {
+      setClaimStatusNotice(`⚠️ Razorpay sync failed: ${err?.message || 'Check the server settings'}`);
+    } finally {
+      setIsSyncingRazorpay(false);
     }
   };
 
@@ -1700,6 +1720,18 @@ export default function CatalogAdminModal({
               )}
 
               {/* Status Counters */}
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleSyncRazorpay}
+                  disabled={isSyncingRazorpay}
+                  className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-60 text-neutral-950 text-xs font-extrabold flex items-center gap-2"
+                >
+                  <RefreshCw className={`w-4 h-4 ${isSyncingRazorpay ? 'animate-spin' : ''}`} />
+                  {isSyncingRazorpay ? 'Checking Razorpay…' : 'Sync Captured Razorpay Payments'}
+                </button>
+              </div>
+
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="p-4 rounded-xl bg-neutral-950 border border-amber-500/30">
                   <div className="flex items-center justify-between">

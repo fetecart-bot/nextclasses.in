@@ -29,6 +29,7 @@ import { CartItem, ExamScheduleCalculation } from '../types';
 import { calculateDaysToExam, calculateWeeksToExam, generateWeeklyDispatchRoadmap } from '../utils/examScheduler';
 import { useAuth } from '../context/AuthContext';
 import { registerPaidStudent } from '../utils/studentRegistry';
+import { submitPaymentClaim } from '../utils/paymentClaims';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -327,6 +328,8 @@ export default function CartDrawer({
               studentEmail: studentEmail.trim(),
               studentPhone: formattedContact,
               courseCount: items.length.toString(),
+              courseId: items[0]?.id || '',
+              courseTitle: items.map((it) => it.title).join(', ').substring(0, 240),
             },
             theme: {
               color: '#f97316',
@@ -336,9 +339,21 @@ export default function CartDrawer({
                 setIsProcessing(false);
               },
             },
-            handler: (response: any) => {
+            handler: async (response: any) => {
               setIsProcessing(false);
               const rzpPaymentId = response.razorpay_payment_id || `pay_${Date.now()}`;
+              await submitPaymentClaim({
+                studentName: studentName.trim() || user?.name || 'Student',
+                email: studentEmail.trim(),
+                phone: formattedContact,
+                courseId: items[0]?.id || 'course-unassigned',
+                courseTitle: items.map((it) => it.title).join(', '),
+                amount: finalTotal,
+                utrNumber: rzpPaymentId,
+                paymentMethod: 'Razorpay Gateway',
+                paymentApp: 'Razorpay',
+                notes: 'Recorded automatically after successful checkout.',
+              });
               onClearCart();
               // Pop up verification window immediately with Razorpay Payment ID prefilled!
               handleOpenVerification({

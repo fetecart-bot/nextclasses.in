@@ -26,7 +26,7 @@ export default function StudentAuthModal({ onClose, onSuccess }: StudentAuthModa
     }
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoginError(null);
 
@@ -39,7 +39,7 @@ export default function StudentAuthModal({ onClose, onSuccess }: StudentAuthModa
     }
 
     setIsSubmitting(true);
-    const res = loginWithCredentials(cleanId, cleanPass, selectedCourseId);
+    const res = await loginWithCredentials(cleanId, cleanPass, selectedCourseId);
     setIsSubmitting(false);
 
     if (res.success) {
@@ -242,4 +242,3 @@ export default function StudentAuthModal({ onClose, onSuccess }: StudentAuthModa
     </div>
   );
 }
-

@@ -1,0 +1,14 @@
+# NextClasses.in
+
+NextClasses.in is an Indian education platform operated by Fetecart Store in Thrissur, Kerala.
+
+## Main offerings
+- Practical generative AI and automation courses
+- Spoken English, French, German and public speaking programs
+- NEET, JEE, KEAM, AISSEE Sainik School and Navodaya exam preparation
+- CBT mock tests and weekly study materials
+- Digital prompt libraries and educator toolkits
+
+Official website: https://www.nextclasses.in/
+Course catalogue: https://www.nextclasses.in/#courses
+Support: support@nextclasses.in
