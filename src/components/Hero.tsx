@@ -1,4 +1,4 @@
-import { ArrowRight, Sparkles, CheckCircle2, Play, Users, Star, ShieldCheck, Zap, Phone } from 'lucide-react';
+import { ArrowRight, Sparkles, CheckCircle2, Play, Users, Star, ShieldCheck, Zap } from 'lucide-react';
 import { Course } from '../types';
 
 interface HeroProps {
@@ -8,7 +8,6 @@ interface HeroProps {
   onSelectCourse: (course: Course) => void;
   onOpenStudentPortal: () => void;
   onAddToCart: (item: any) => void;
-  onOpenVoiceReceptionist?: () => void;
 }
 
 export default function Hero({
@@ -18,7 +17,6 @@ export default function Hero({
   onSelectCourse,
   onOpenStudentPortal,
   onAddToCart,
-  onOpenVoiceReceptionist,
 }: HeroProps) {
   return (
     <section id="hero" className="relative bg-neutral-950 text-white overflow-hidden py-16 sm:py-24 border-b border-neutral-800">
@@ -88,19 +86,6 @@ export default function Hero({
                 <Play className="w-3.5 h-3.5 fill-amber-300" />
                 <span>Test Drive Student Portal</span>
               </button>
-
-              {onOpenVoiceReceptionist && (
-                <button
-                  id="hero-voice-receptionist-cta"
-                  type="button"
-                  onClick={onOpenVoiceReceptionist}
-                  className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 font-bold text-xs sm:text-sm hover:bg-emerald-900 transition-all cursor-pointer active:scale-95 shadow-md shadow-emerald-950/50"
-                  title="Talk to Priya • AI Voice Receptionist (Indian Accent)"
-                >
-                  <Phone className="w-4 h-4 text-emerald-400 animate-pulse" />
-                  <span>Call Priya (AI Voice)</span>
-                </button>
-              )}
             </div>
 
             {/* Trust and Credibility stats */}

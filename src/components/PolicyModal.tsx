@@ -66,7 +66,7 @@ export default function PolicyModal({
                 </span>
               </h3>
               <p className="text-xs text-neutral-400">
-                Nextclasses.in • Official Domain: <span className="text-cyan-400 font-mono">www.fetecart.in</span>
+                Nextclasses.in • Official Domain: <span className="text-cyan-400 font-mono">www.nextclasses.in</span>
               </p>
             </div>
           </div>
@@ -209,8 +209,8 @@ export default function PolicyModal({
                     <p><strong className="text-white">Business Entity:</strong> Fetecart Store (Nextclasses.in)</p>
                     <p><strong className="text-white">Official Office:</strong> Pattukulangara, Puduruthi, Thrissur, Kerala, India - 680623</p>
                     <p><strong className="text-white">Customer Support Phone:</strong> +91 82816 44058</p>
-                    <p><strong className="text-white">Official Email:</strong> fetecart@gmail.com</p>
-                    <p><strong className="text-white">Authorized Domain:</strong> www.fetecart.in</p>
+                    <p><strong className="text-white">Official Email:</strong> support@nextclasses.in / fetecart@gmail.com</p>
+                    <p><strong className="text-white">Authorized Domain:</strong> www.nextclasses.in</p>
                   </div>
                 </div>
               </div>
@@ -226,7 +226,7 @@ export default function PolicyModal({
                   <span>Pricing Policy & Fee Schedule</span>
                 </h4>
                 <p className="text-xs text-neutral-400 mt-1">
-                  Last updated: January 2025 • Nextclasses.in (operated at www.fetecart.in)
+                  Last updated: January 2025 • Nextclasses.in (operated at www.nextclasses.in)
                 </p>
               </div>
 
@@ -279,7 +279,7 @@ export default function PolicyModal({
                   <span>Shipping & Delivery Policy</span>
                 </h4>
                 <p className="text-xs text-neutral-400 mt-1">
-                  Last updated: January 2025 • Nextclasses.in (operated at www.fetecart.in)
+                  Last updated: January 2025 • Nextclasses.in (operated at www.nextclasses.in)
                 </p>
               </div>
 
@@ -332,7 +332,7 @@ export default function PolicyModal({
                   <span>Terms and Conditions</span>
                 </h4>
                 <p className="text-xs text-neutral-400 mt-1">
-                  Last updated: January 2025 • Nextclasses.in (operated at www.fetecart.in)
+                  Last updated: January 2025 • Nextclasses.in (operated at www.nextclasses.in)
                 </p>
               </div>
 
@@ -340,7 +340,7 @@ export default function PolicyModal({
                 <div>
                   <h5 className="font-bold text-white text-sm mb-1.5">1. Acceptance of Terms</h5>
                   <p className="text-neutral-400">
-                    By browsing, accessing, or purchasing any program or product from Nextclasses.in (operated through <span className="text-cyan-400">www.fetecart.in</span>), you agree to comply with and be bound by these Terms and Conditions. If you disagree with any part of these terms, please do not use our service.
+                    By browsing, accessing, or purchasing any program or product from Nextclasses.in (operated through <span className="text-cyan-400">www.nextclasses.in</span>), you agree to comply with and be bound by these Terms and Conditions. If you disagree with any part of these terms, please do not use our service.
                   </p>
                 </div>
 
@@ -384,7 +384,7 @@ export default function PolicyModal({
                   <span>Privacy Policy</span>
                 </h4>
                 <p className="text-xs text-neutral-400 mt-1">
-                  Last updated: January 2025 • Nextclasses.in (operated at www.fetecart.in)
+                  Last updated: January 2025 • Nextclasses.in (operated at www.nextclasses.in)
                 </p>
               </div>
 
@@ -432,7 +432,7 @@ export default function PolicyModal({
                   <span>Cancellation and Refund Policy</span>
                 </h4>
                 <p className="text-xs text-neutral-400 mt-1">
-                  Last updated: January 2025 • Nextclasses.in (operated at www.fetecart.in)
+                  Last updated: January 2025 • Nextclasses.in (operated at www.nextclasses.in)
                 </p>
               </div>
 
@@ -503,9 +503,9 @@ export default function PolicyModal({
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-orange-400 shrink-0" />
                 <div>
-                  <span className="text-[10px] text-neutral-500 block">Official Email:</span>
-                  <a href="mailto:fetecart@gmail.com" className="hover:text-white text-neutral-200 transition-colors">
-                    fetecart@gmail.com
+                  <span className="text-[10px] text-neutral-500 block">Official Support Email:</span>
+                  <a href="mailto:support@nextclasses.in" className="hover:text-white text-neutral-200 transition-colors">
+                    support@nextclasses.in
                   </a>
                 </div>
               </div>
@@ -516,7 +516,7 @@ export default function PolicyModal({
 
         {/* Modal Footer */}
         <div className="flex items-center justify-between px-6 py-3.5 border-t border-neutral-800 bg-neutral-950/90 text-xs text-neutral-400">
-          <span>Official Domain: <strong className="text-white">www.fetecart.in</strong></span>
+          <span>Official Domain: <strong className="text-white">www.nextclasses.in</strong></span>
           <button
             type="button"
             onClick={onClose}

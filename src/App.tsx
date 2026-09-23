@@ -16,14 +16,10 @@ import CartDrawer from './components/CartDrawer';
 import StudentAuthModal from './components/StudentAuthModal';
 import InteractiveMockTestModal from './components/InteractiveMockTestModal';
 import LanguageSelectorModal from './components/LanguageSelectorModal';
-import CatalogAdminModal from './components/CatalogAdminModal';
-import AdminDispatchModal from './components/AdminDispatchModal';
+import AdminPage from './pages/AdminPage';
 import PolicyModal, { PolicyTab } from './components/PolicyModal';
 import { AIChatBot } from './components/AIChatBot';
-import { DirectUPIModal } from './components/DirectUPIModal';
 import { PaymentVerificationModal } from './components/PaymentVerificationModal';
-import { VoiceReceptionistModal } from './components/VoiceReceptionistModal';
-import { VoiceReceptionistFloatingButton } from './components/VoiceReceptionistFloatingButton';
 import { COURSES_DATA, AI_PRODUCTS_DATA, DEFAULT_PORTAL_VIDEOS } from './data';
 import { Course, CartItem, AIProduct, PortalVideoLesson } from './types';
 
@@ -161,6 +157,57 @@ export default function App() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
 
+  // Current route state for /admin vs home
+  const isAdminUrl = (pathname: string, hashStr: string, searchStr: string): boolean => {
+    const p = pathname.toLowerCase();
+    const h = hashStr.toLowerCase();
+    const s = searchStr.toLowerCase();
+    return (
+      p === '/admin' ||
+      p.startsWith('/admin/') ||
+      p.startsWith('/admin') ||
+      h.includes('admin') ||
+      s.includes('admin')
+    );
+  };
+
+  const [currentPath, setCurrentPath] = useState<string>(() => {
+    if (isAdminUrl(window.location.pathname, window.location.hash, window.location.search)) {
+      return '/admin';
+    }
+    return '/';
+  });
+
+  useEffect(() => {
+    const handleLocationChange = () => {
+      if (isAdminUrl(window.location.pathname, window.location.hash, window.location.search)) {
+        setCurrentPath('/admin');
+      } else {
+        setCurrentPath('/');
+      }
+    };
+
+    window.addEventListener('popstate', handleLocationChange);
+    window.addEventListener('hashchange', handleLocationChange);
+    return () => {
+      window.removeEventListener('popstate', handleLocationChange);
+      window.removeEventListener('hashchange', handleLocationChange);
+    };
+  }, []);
+
+  const navigateTo = (path: string) => {
+    try {
+      window.history.pushState({}, '', path);
+    } catch {
+      window.location.hash = path;
+    }
+    if (path === '/admin' || path === '/admin/' || path.startsWith('/admin')) {
+      setCurrentPath('/admin');
+    } else {
+      setCurrentPath('/');
+    }
+  };
+
   // State for modals
   const [selectedCourseForModal, setSelectedCourseForModal] = useState<Course | null>(null);
   const [isPortalModalOpen, setIsPortalModalOpen] = useState<boolean>(false);
@@ -168,13 +215,9 @@ export default function App() {
   const [isMockTestModalOpen, setIsMockTestModalOpen] = useState<boolean>(false);
   const [activeMockTestId, setActiveMockTestId] = useState<string | undefined>(undefined);
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState<boolean>(false);
-  const [isAdminModalOpen, setIsAdminModalOpen] = useState<boolean>(false);
-  const [isAdminDispatchModalOpen, setIsAdminDispatchModalOpen] = useState<boolean>(false);
   const [isPolicyModalOpen, setIsPolicyModalOpen] = useState<boolean>(false);
   const [activePolicyTab, setActivePolicyTab] = useState<PolicyTab>('terms');
-  const [isUpiModalOpen, setIsUpiModalOpen] = useState<boolean>(false);
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState<boolean>(false);
-  const [isVoiceReceptionistOpen, setIsVoiceReceptionistOpen] = useState<boolean>(false);
   const [verificationModalData, setVerificationModalData] = useState<{
     courseId: string;
     courseTitle: string;
@@ -264,10 +307,6 @@ export default function App() {
       if (!rawHash) return;
 
       // Handle direct policy URLs for Razorpay reviewer checks
-      if (rawHash === 'voice' || rawHash === 'receptionist' || rawHash === 'call') {
-        setIsVoiceReceptionistOpen(true);
-        return;
-      }
       if (rawHash === 'portal' || rawHash === 'student-portal') {
         setIsPortalModalOpen(true);
         return;
@@ -445,6 +484,31 @@ export default function App() {
     courses[0] ||
     COURSES_DATA[0];
 
+  // If on /admin route, render dedicated standalone Admin console
+  if (currentPath === '/admin') {
+    return (
+      <AdminPage
+        products={products}
+        courses={courses}
+        portalVideos={portalVideos}
+        razorpayKeyId={razorpayKeyId}
+        onSaveRazorpayKey={handleSaveRazorpayKey}
+        onAddProduct={handleAddProduct}
+        onUpdateProduct={handleUpdateProduct}
+        onDeleteProduct={handleDeleteProduct}
+        onAddCourse={handleAddCourse}
+        onUpdateCourse={handleUpdateCourse}
+        onDeleteCourse={handleDeleteCourse}
+        onAddPortalVideo={handleAddPortalVideo}
+        onUpdatePortalVideo={handleUpdatePortalVideo}
+        onDeletePortalVideo={handleDeletePortalVideo}
+        onResetPortalVideos={handleResetPortalVideos}
+        onResetToDefault={handleResetToDefault}
+        onNavigateHome={() => navigateTo('/')}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 selection:bg-orange-500 selection:text-neutral-950 font-sans antialiased">
       {/* Top Promos & Announcement Bar */}
@@ -459,10 +523,6 @@ export default function App() {
         onOpenAuthModal={() => setIsAuthModalOpen(true)}
         onOpenMockTest={() => handleLaunchMockTest()}
         onOpenLanguageSelector={() => setIsLanguageModalOpen(true)}
-        onOpenAdmin={() => setIsAdminModalOpen(true)}
-        onOpenUpiModal={() => setIsUpiModalOpen(true)}
-        onOpenAdminDispatch={() => setIsAdminDispatchModalOpen(true)}
-        onOpenVoiceReceptionist={() => setIsVoiceReceptionistOpen(true)}
       />
 
       {/* Main Content Sections */}
@@ -475,7 +535,6 @@ export default function App() {
           onSelectCourse={(course) => setSelectedCourseForModal(course)}
           onOpenStudentPortal={() => setIsPortalModalOpen(true)}
           onAddToCart={handleAddToCart}
-          onOpenVoiceReceptionist={() => setIsVoiceReceptionistOpen(true)}
         />
 
         {/* AI Courses Catalog */}
@@ -526,7 +585,6 @@ export default function App() {
           setActivePolicyTab(tab);
           setIsPolicyModalOpen(true);
         }}
-        onOpenAdmin={() => setIsAdminModalOpen(true)}
       />
 
       {/* Mandatory Legal & Razorpay Policy Modal */}
@@ -540,28 +598,6 @@ export default function App() {
       <LanguageSelectorModal
         isOpen={isLanguageModalOpen}
         onClose={() => setIsLanguageModalOpen(false)}
-      />
-
-      {/* Admin Product & Course Catalog Modal */}
-      <CatalogAdminModal
-        isOpen={isAdminModalOpen}
-        onClose={() => setIsAdminModalOpen(false)}
-        products={products}
-        courses={courses}
-        portalVideos={portalVideos}
-        razorpayKeyId={razorpayKeyId}
-        onSaveRazorpayKey={handleSaveRazorpayKey}
-        onAddProduct={handleAddProduct}
-        onUpdateProduct={handleUpdateProduct}
-        onDeleteProduct={handleDeleteProduct}
-        onAddCourse={handleAddCourse}
-        onUpdateCourse={handleUpdateCourse}
-        onDeleteCourse={handleDeleteCourse}
-        onAddPortalVideo={handleAddPortalVideo}
-        onUpdatePortalVideo={handleUpdatePortalVideo}
-        onDeletePortalVideo={handleDeletePortalVideo}
-        onResetPortalVideos={handleResetPortalVideos}
-        onResetToDefault={handleResetToDefault}
       />
 
       {/* Course Detailed Syllabus & Curriculum Modal */}
@@ -579,7 +615,6 @@ export default function App() {
           onClose={() => setIsPortalModalOpen(false)}
           portalVideos={portalVideos}
           initialCourseId="course-aissee-sainik"
-          onOpenAdminDispatch={() => setIsAdminDispatchModalOpen(true)}
           onLaunchMockTest={(testId) => {
             setIsPortalModalOpen(false);
             handleLaunchMockTest(testId);
@@ -616,33 +651,11 @@ export default function App() {
         onClearCart={handleClearCart}
         onOpenPortalDemo={() => setIsPortalModalOpen(true)}
         customRazorpayKeyId={razorpayKeyId}
-        onOpenAdmin={() => {
-          setIsCartOpen(false);
-          setIsAdminModalOpen(true);
-        }}
         onOpenPolicyModal={(tab) => {
           setActivePolicyTab(tab);
           setIsPolicyModalOpen(true);
         }}
         onOpenVerificationModal={handleOpenVerificationModal}
-      />
-
-      {/* Direct UPI Scan & Pay Modal */}
-      <DirectUPIModal
-        isOpen={isUpiModalOpen}
-        onClose={() => setIsUpiModalOpen(false)}
-        courseId="course-aissee-sainik"
-        courseTitle="AISSEE (All India Sainik School Entrance) 2027: Class 6 & 9 Kit"
-        amount={
-          cartItems.length > 0
-            ? cartItems.reduce((acc, it) => acc + (Number(it.price) || 0), 0) || undefined
-            : 1799
-        }
-        onOpenPortal={() => setIsPortalModalOpen(true)}
-        onOpenVerificationModal={handleOpenVerificationModal}
-        onPaymentConfirmed={(utr) => {
-          console.log('UPI payment recorded with UTR:', utr);
-        }}
       />
 
       {/* Separate Payment Verification Submission Popup */}
@@ -663,37 +676,11 @@ export default function App() {
         }}
       />
 
-      {/* Admin Study Material Dispatch & Reconciliation Modal */}
-      {isAdminDispatchModalOpen && (
-        <AdminDispatchModal
-          isOpen={isAdminDispatchModalOpen}
-          onClose={() => setIsAdminDispatchModalOpen(false)}
-          initialCourseId="course-aissee-sainik"
-        />
-      )}
-
-      {/* Floating Interactive AI Counselor ChatBot & Direct QR Scan */}
+      {/* Floating Interactive AI Counselor ChatBot & Direct WhatsApp / Course Support */}
       <AIChatBot
-        onOpenUpiModal={() => setIsUpiModalOpen(true)}
         onNavigateTo={handleNavigateTo}
         onOpenMockTest={() => handleLaunchMockTest()}
         onOpenCart={() => setIsCartOpen(true)}
-        onOpenVoiceReceptionist={() => setIsVoiceReceptionistOpen(true)}
-      />
-
-      {/* Floating AI Voice Receptionist Button (Priya • Indian Accent) */}
-      <VoiceReceptionistFloatingButton
-        onOpenVoiceModal={() => setIsVoiceReceptionistOpen(true)}
-        isOpen={isVoiceReceptionistOpen}
-      />
-
-      {/* AI Voice Receptionist Interactive Live Modal */}
-      <VoiceReceptionistModal
-        isOpen={isVoiceReceptionistOpen}
-        onClose={() => setIsVoiceReceptionistOpen(false)}
-        onNavigateTo={handleNavigateTo}
-        onOpenUpiModal={() => setIsUpiModalOpen(true)}
-        onOpenCourseCatalog={() => handleNavigateTo('courses')}
       />
     </div>
   );

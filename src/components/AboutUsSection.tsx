@@ -46,7 +46,7 @@ export default function AboutUsSection({ onOpenPolicyModal, onExploreCourses }: 
           <div className="space-y-3 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs font-semibold">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>About Nextclasses.in & Fetecart Store</span>
+              <span>About Nextclasses.in</span>
             </div>
             <h2 id="about-us-title" className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white">
               Empowering India with Real, Practical AI Skills.
@@ -142,7 +142,7 @@ export default function AboutUsSection({ onOpenPolicyModal, onExploreCourses }: 
               <div className="flex items-start gap-2.5 text-neutral-300">
                 <MapPin className="w-4 h-4 text-orange-400 shrink-0 mt-0.5" />
                 <div>
-                  <strong className="text-white block font-semibold">Fetecart Store</strong>
+                  <strong className="text-white block font-semibold">Nextclasses.in (Fetecart Store)</strong>
                   <span>Pattukulangara, Puduruthi,<br />Thrissur, Kerala, India - 680623</span>
                 </div>
               </div>
@@ -156,7 +156,7 @@ export default function AboutUsSection({ onOpenPolicyModal, onExploreCourses }: 
                       +91 82816 44058
                     </a>
                     <a
-                      href="https://wa.me/918281644058?text=Hi%20Fetecart%20NextClass%20Support"
+                      href="https://wa.me/918281644058?text=Hi%20Nextclasses%20Support"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 text-[10px] font-semibold hover:bg-emerald-900 border border-emerald-800 transition-colors"
@@ -171,8 +171,8 @@ export default function AboutUsSection({ onOpenPolicyModal, onExploreCourses }: 
                 <Mail className="w-4 h-4 text-cyan-400 shrink-0" />
                 <div>
                   <span className="text-[10px] text-neutral-500 block">Official Support Email:</span>
-                  <a href="mailto:fetecart@gmail.com" className="text-white hover:text-cyan-400">
-                    fetecart@gmail.com
+                  <a href="mailto:support@nextclasses.in" className="text-white hover:text-cyan-400">
+                    support@nextclasses.in
                   </a>
                 </div>
               </div>

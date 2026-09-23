@@ -238,7 +238,7 @@ What's Included with Your Account:
 
 Need Help?
 Connect with your Nextclasses.in Mentor on WhatsApp: +91 82816 44058
-Email: support@fetecart.in
+Email: support@nextclasses.in
 
 Best wishes for your exam preparation!
 Academic Director, Nextclasses.in Academy`;

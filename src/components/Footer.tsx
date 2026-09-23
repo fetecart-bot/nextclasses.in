@@ -1,14 +1,13 @@
-import { Sparkles, MessageCircle, Mail, MapPin, Heart, ArrowUp, ShieldCheck, FileText, Truck, RefreshCw, DollarSign, Lock, Phone, KeyRound } from 'lucide-react';
+import { Sparkles, MessageCircle, Mail, MapPin, Heart, ArrowUp, ShieldCheck, FileText, Truck, RefreshCw, DollarSign, Lock, Phone } from 'lucide-react';
 import { PolicyTab } from './PolicyModal';
 
 interface FooterProps {
   onNavigateTo: (id: string) => void;
   onOpenStudentPortal: () => void;
   onOpenPolicyModal?: (tab: PolicyTab) => void;
-  onOpenAdmin?: () => void;
 }
 
-export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicyModal, onOpenAdmin }: FooterProps) {
+export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicyModal }: FooterProps) {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -54,11 +53,11 @@ export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicy
               </a>
               <span className="text-neutral-700">•</span>
               <a
-                href="mailto:fetecart@gmail.com"
+                href="mailto:support@nextclasses.in"
                 className="inline-flex items-center gap-1.5 text-neutral-300 hover:text-white transition-colors"
               >
                 <Mail className="w-4 h-4 text-orange-400" />
-                <span>fetecart@gmail.com</span>
+                <span>support@nextclasses.in</span>
               </a>
               <span className="text-neutral-700">•</span>
               <a
@@ -352,18 +351,6 @@ export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicy
               <span>Back to top</span>
               <ArrowUp className="w-3.5 h-3.5" />
             </button>
-            {onOpenAdmin && (
-              <button
-                type="button"
-                id="footer-admin-tiny-link"
-                onClick={onOpenAdmin}
-                className="opacity-25 hover:opacity-100 transition-opacity text-[10px] text-neutral-500 hover:text-neutral-300 inline-flex items-center gap-1 cursor-pointer ml-1"
-                title="Staff Portal (Password Protected)"
-              >
-                <KeyRound className="w-2.5 h-2.5" />
-                <span>Admin</span>
-              </button>
-            )}
           </div>
         </div>
       </div>

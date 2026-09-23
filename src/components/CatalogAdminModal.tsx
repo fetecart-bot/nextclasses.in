@@ -4,7 +4,7 @@ import {
   Package, BookOpen, AlertTriangle, ShieldCheck, DollarSign, 
   Layers, Sparkles, ExternalLink, Copy, Link2, Video, Play, Tv, Eye, EyeOff,
   CreditCard, Key, Smartphone, HelpCircle, CheckCircle2, Lock, Unlock, LogOut,
-  Search, Clock, MessageCircle, Send, UserCheck, Loader2, Mail
+  Search, Clock, MessageCircle, Send, UserCheck, Loader2, Mail, ArrowLeft
 } from 'lucide-react';
 import { AIProduct, Course, ProductCategory, CourseCategory, PortalVideoLesson } from '../types';
 import { 
@@ -38,13 +38,15 @@ export function extractYouTubeId(urlOrId: string): string {
 }
 
 interface CatalogAdminModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen?: boolean;
+  standalone?: boolean;
+  onBackToHome?: () => void;
+  onClose?: () => void;
   products: AIProduct[];
   courses: Course[];
   portalVideos?: PortalVideoLesson[];
   razorpayKeyId?: string;
-  initialTab?: 'reconciliation' | 'products' | 'courses' | 'videos' | 'payments' | 'security';
+  initialTab?: 'reconciliation' | 'dispatch' | 'students' | 'products' | 'courses' | 'videos' | 'payments' | 'security';
   onSaveRazorpayKey?: (key: string) => void;
   onAddProduct: (product: AIProduct) => void;
   onUpdateProduct: (product: AIProduct) => void;
@@ -60,7 +62,9 @@ interface CatalogAdminModalProps {
 }
 
 export default function CatalogAdminModal({
-  isOpen,
+  isOpen = true,
+  standalone = false,
+  onBackToHome,
   onClose,
   products,
   courses,
@@ -80,9 +84,28 @@ export default function CatalogAdminModal({
   onResetPortalVideos,
   onResetToDefault,
 }: CatalogAdminModalProps) {
-  const [activeTab, setActiveTab] = useState<'reconciliation' | 'products' | 'courses' | 'videos' | 'payments' | 'security'>(initialTab || 'reconciliation');
+  const [activeTab, setActiveTab] = useState<'reconciliation' | 'dispatch' | 'students' | 'products' | 'courses' | 'videos' | 'payments' | 'security'>(initialTab || 'reconciliation');
   const [inputRazorpayKey, setInputRazorpayKey] = useState<string>(razorpayKeyId);
   const [keySavedNotice, setKeySavedNotice] = useState<string | null>(null);
+
+  // Dispatcher & Student Registry state
+  const [dispatchCourseId, setDispatchCourseId] = useState<string>('course-aissee-sainik');
+  const [dispatchPhone, setDispatchPhone] = useState<string>('');
+  const [dispatchEmail, setDispatchEmail] = useState<string>('');
+  const [dispatchStudentName, setDispatchStudentName] = useState<string>('Student');
+  const [dispatchUsername, setDispatchUsername] = useState<string>('');
+  const [dispatchPassword, setDispatchPassword] = useState<string>('');
+  const [dispatchCopied, setDispatchCopied] = useState<boolean>(false);
+  const [dispatchEmailStatus, setDispatchEmailStatus] = useState<string | null>(null);
+  const [isSendingDispatchEmail, setIsSendingDispatchEmail] = useState<boolean>(false);
+  const [studentSearchTerm, setStudentSearchTerm] = useState<string>('');
+  const [registeredStudentsList, setRegisteredStudentsList] = useState<RegisteredStudentAccount[]>(() => {
+    try {
+      return getRegisteredStudents();
+    } catch {
+      return [];
+    }
+  });
 
   // Admin Password Gate State (Default passcode: "admin123" or user-configured)
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
@@ -368,7 +391,7 @@ export default function CatalogAdminModal({
     downloadStudyMaterialFile(courseId, studentName);
   };
 
-  if (!isOpen) return null;
+  if (!isOpen && !standalone) return null;
 
   // --- PRODUCT ACTIONS ---
   const handleOpenNewProduct = () => {
@@ -578,7 +601,193 @@ export default function CatalogAdminModal({
     downloadAnchor.remove();
   };
 
+  const currentDispatchCourse = courses.find((c) => c.id === dispatchCourseId) || courses[0] || {
+    id: 'course-aissee-sainik',
+    title: 'AISSEE All India Sainik School Class 6 & 9',
+    price: 999,
+  };
+
+  const dispatchEffectiveUsername = dispatchUsername || dispatchStudentName.toLowerCase().replace(/[^a-z0-9]/g, '_');
+  const dispatchEffectivePassword = dispatchPassword || 'NextClass@2027';
+
+  const dispatchFormattedMessage = generateWhatsAppDispatchMessage(
+    dispatchCourseId,
+    dispatchStudentName,
+    dispatchEffectiveUsername,
+    dispatchEffectivePassword
+  );
+
+  const handleSendDispatchWhatsApp = () => {
+    let cleanPhone = dispatchPhone.replace(/[^0-9]/g, '');
+    if (cleanPhone.length === 10) cleanPhone = '91' + cleanPhone;
+    const destPhone = cleanPhone || '918281644058';
+    const waUrl = `https://wa.me/${destPhone}?text=${encodeURIComponent(dispatchFormattedMessage)}`;
+    window.open(waUrl, '_blank');
+  };
+
+  const handleSendDispatchEmail = async () => {
+    if (!dispatchEmail) {
+      setDispatchEmailStatus('⚠️ Please specify student email address.');
+      setTimeout(() => setDispatchEmailStatus(null), 3000);
+      return;
+    }
+
+    setIsSendingDispatchEmail(true);
+    setDispatchEmailStatus(null);
+
+    const mockAccount: RegisteredStudentAccount = {
+      id: 'acc-' + Date.now(),
+      name: dispatchStudentName,
+      email: dispatchEmail,
+      phone: dispatchPhone,
+      username: dispatchEffectiveUsername,
+      password: dispatchEffectivePassword,
+      courseId: currentDispatchCourse.id,
+      courseTitle: currentDispatchCourse.title,
+      enrolledCourseIds: [currentDispatchCourse.id],
+      targetExamCode: 'AISSEE',
+      learningGoal: 'Entrance Prep',
+      registeredAt: new Date().toISOString().split('T')[0],
+      amount: currentDispatchCourse.price,
+    };
+
+    const res = await sendStudentCredentialsEmail(mockAccount);
+    setIsSendingDispatchEmail(false);
+
+    if (res.outboundSmtpSent) {
+      setDispatchEmailStatus(`✓ Credentials & study pack sent directly to ${dispatchEmail} via SMTP!`);
+    } else {
+      const gmailUrl = res.gmailComposeUrl || generateGmailComposeUrl(mockAccount);
+      window.open(gmailUrl, '_blank');
+      setDispatchEmailStatus(`✓ Opened in Gmail! Click 'Send' to deliver directly to ${dispatchEmail}.`);
+    }
+    setTimeout(() => setDispatchEmailStatus(null), 6000);
+  };
+
+  const handleOpenDispatchGmail = () => {
+    const mockAccount: RegisteredStudentAccount = {
+      id: 'acc-' + Date.now(),
+      name: dispatchStudentName,
+      email: dispatchEmail,
+      phone: dispatchPhone,
+      username: dispatchEffectiveUsername,
+      password: dispatchEffectivePassword,
+      courseId: currentDispatchCourse.id,
+      courseTitle: currentDispatchCourse.title,
+      enrolledCourseIds: [currentDispatchCourse.id],
+      targetExamCode: 'AISSEE',
+      learningGoal: 'Entrance Prep',
+      registeredAt: new Date().toISOString().split('T')[0],
+      amount: currentDispatchCourse.price,
+    };
+    const gmailUrl = generateGmailComposeUrl(mockAccount);
+    window.open(gmailUrl, '_blank');
+  };
+
   if (!isAuthenticated) {
+    if (standalone) {
+      return (
+        <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center p-4 text-neutral-100 selection:bg-orange-500 selection:text-neutral-950">
+          <div className="w-full max-w-md mb-4 flex justify-between items-center">
+            {onBackToHome && (
+              <button
+                type="button"
+                onClick={onBackToHome}
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-xs font-semibold text-neutral-300 hover:text-white border border-neutral-800 transition-colors cursor-pointer"
+              >
+                <ArrowLeft className="w-3.5 h-3.5 text-orange-400" />
+                <span>Return to Nextclasses.in</span>
+              </button>
+            )}
+            <span className="text-[11px] font-mono text-neutral-500 bg-neutral-900/80 px-2.5 py-1 rounded-md border border-neutral-800">
+              nextclasses.in/admin
+            </span>
+          </div>
+
+          <div className="w-full max-w-md bg-neutral-900 border border-neutral-800 rounded-3xl shadow-2xl p-6 sm:p-8 text-neutral-100">
+            <div className="flex flex-col items-center text-center mb-6">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center text-neutral-950 font-black shadow-lg shadow-orange-500/25 mb-4">
+                <Lock className="w-7 h-7 text-neutral-950" />
+              </div>
+              <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">Staff & Merchant Admin Console</h1>
+              <p className="text-xs text-neutral-400 mt-1.5 leading-relaxed">
+                Authorized Personnel Only • Enter your passcode to manage courses, catalog, Razorpay keys, and payment claims.
+              </p>
+            </div>
+
+            <form onSubmit={handleAdminLogin} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-neutral-300 mb-1.5">
+                  Admin Passcode
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={passwordInput}
+                    onChange={(e) => {
+                      setPasswordInput(e.target.value);
+                      if (authError) setAuthError(null);
+                    }}
+                    placeholder="Enter administrator passcode"
+                    autoFocus
+                    className="w-full px-4 py-3 pr-10 rounded-xl bg-neutral-950 border border-neutral-700 text-white placeholder:text-neutral-600 focus:outline-none focus:border-orange-500 text-sm tracking-wider"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300 transition-colors cursor-pointer"
+                    title={showPassword ? "Hide passcode" : "Show passcode"}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                {authError && (
+                  <div className="mt-2 space-y-1.5">
+                    <p className="text-xs text-rose-400 font-medium flex items-center gap-1.5">
+                      <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                      <span>{authError}</span>
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleResetPasswordToDefault}
+                      className="text-[11px] text-orange-400 hover:text-orange-300 underline cursor-pointer block font-medium"
+                    >
+                      Click here to reset passcode to default & unlock instantly
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-2 flex gap-3">
+                {onBackToHome && (
+                  <button
+                    type="button"
+                    onClick={onBackToHome}
+                    className="flex-1 py-2.5 px-4 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold text-neutral-300 transition-colors cursor-pointer"
+                  >
+                    Return Home
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-neutral-950 text-xs font-bold transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Unlock className="w-4 h-4" />
+                  <span>Unlock Admin</span>
+                </button>
+              </div>
+            </form>
+
+            <div className="mt-6 pt-4 border-t border-neutral-800/80 text-center">
+              <span className="text-[11px] text-neutral-500">
+                Authorized personnel only • Nextclasses.in Store Admin
+              </span>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-950/85 backdrop-blur-md animate-in fade-in duration-200">
         <div 
@@ -676,36 +885,51 @@ export default function CatalogAdminModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-neutral-950/85 backdrop-blur-md animate-in fade-in duration-200">
+    <div className={standalone ? "min-h-screen bg-neutral-950 flex flex-col text-neutral-100 selection:bg-orange-500 selection:text-neutral-950" : "fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-neutral-950/85 backdrop-blur-md animate-in fade-in duration-200"}>
       <div 
-        className="relative w-full max-w-5xl h-[90vh] bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden text-neutral-100"
+        className={standalone ? "w-full flex-1 flex flex-col" : "relative w-full max-w-5xl h-[90vh] bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden text-neutral-100"}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-800 bg-neutral-950">
+        <div className={`flex flex-col sm:flex-row sm:items-center justify-between ${standalone ? 'px-4 sm:px-8 py-4' : 'px-6 py-4'} border-b border-neutral-800 bg-neutral-950 gap-3`}>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center text-neutral-950 font-black shadow-lg shadow-orange-500/20">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center text-neutral-950 font-black shadow-lg shadow-orange-500/20 shrink-0">
               <ShieldCheck className="w-5 h-5 text-neutral-950" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-lg font-extrabold text-white">Nextclasses.in Admin & Payment Reconciliation Portal</h3>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-orange-500/20 text-orange-400 border border-orange-500/30">
-                  Admin Panel
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-base sm:text-lg font-black text-white">Nextclasses.in Admin & Management Console</h3>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-orange-500/20 text-orange-400 border border-orange-500/30">
+                  nextclasses.in/admin
+                </span>
+                <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Live Session
                 </span>
               </div>
-              <p className="text-xs text-neutral-400">
+              <p className="text-xs text-neutral-400 hidden sm:block">
                 Reconcile Razorpay & UPI payments, verify student enrollments, issue credentials, and manage course catalog.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            {standalone && onBackToHome && (
+              <button
+                type="button"
+                onClick={onBackToHome}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-xs font-bold text-neutral-200 border border-neutral-700 hover:border-neutral-600 transition-colors cursor-pointer"
+                title="Return to Public Storefront"
+              >
+                <ArrowLeft className="w-3.5 h-3.5 text-orange-400" />
+                <span>Back to Website</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={handleExportJSON}
               title="Export catalog as JSON backup"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold text-neutral-200 transition-colors"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold text-neutral-200 transition-colors cursor-pointer"
             >
               <Download className="w-3.5 h-3.5 text-amber-400" />
               <span>Export JSON</span>
@@ -714,7 +938,7 @@ export default function CatalogAdminModal({
               type="button"
               onClick={() => setShowResetConfirm(true)}
               title="Restore factory default catalog"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-rose-950/60 hover:text-rose-300 text-xs font-semibold text-neutral-300 border border-neutral-700 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-rose-950/60 hover:text-rose-300 text-xs font-semibold text-neutral-300 border border-neutral-700 transition-colors cursor-pointer"
             >
               <RefreshCw className="w-3.5 h-3.5 text-rose-400" />
               <span className="hidden sm:inline">Reset Defaults</span>
@@ -723,18 +947,20 @@ export default function CatalogAdminModal({
               type="button"
               onClick={handleAdminLogout}
               title="Lock Admin Session"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold text-neutral-300 border border-neutral-700 hover:text-white transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold text-neutral-300 border border-neutral-700 hover:text-white transition-colors cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5 text-orange-400" />
               <span className="hidden sm:inline">Lock Admin</span>
             </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            {(!standalone || !onBackToHome) && onClose && (
+              <button
+                type="button"
+                onClick={onClose}
+                className="p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
           </div>
         </div>
 
@@ -763,7 +989,40 @@ export default function CatalogAdminModal({
             )}
           </button>
 
-          {/* TAB 2: DIGITAL PRODUCTS */}
+          {/* TAB 2: DISPATCH MATERIALS */}
+          <button
+            type="button"
+            onClick={() => setActiveTab('dispatch')}
+            className={`flex items-center gap-2 px-4 py-3 text-xs sm:text-sm font-bold border-b-2 transition-colors whitespace-nowrap cursor-pointer ${
+              activeTab === 'dispatch'
+                ? 'border-orange-500 text-orange-400'
+                : 'border-transparent text-neutral-400 hover:text-neutral-200'
+            }`}
+          >
+            <Send className="w-4 h-4 text-emerald-400" />
+            <span>Dispatch Materials</span>
+          </button>
+
+          {/* TAB 3: ENROLLED STUDENTS */}
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('students');
+              try {
+                setRegisteredStudentsList(getRegisteredStudents());
+              } catch {}
+            }}
+            className={`flex items-center gap-2 px-4 py-3 text-xs sm:text-sm font-bold border-b-2 transition-colors whitespace-nowrap cursor-pointer ${
+              activeTab === 'students'
+                ? 'border-orange-500 text-orange-400'
+                : 'border-transparent text-neutral-400 hover:text-neutral-200'
+            }`}
+          >
+            <UserCheck className="w-4 h-4 text-sky-400" />
+            <span>Enrolled Students ({registeredStudentsList.length})</span>
+          </button>
+
+          {/* TAB 4: DIGITAL PRODUCTS */}
           <button
             type="button"
             onClick={() => {
@@ -847,7 +1106,7 @@ export default function CatalogAdminModal({
         </div>
 
         {/* Content Body */}
-        <div className="flex-1 overflow-y-auto p-6 bg-neutral-900/60">
+        <div className={`flex-1 overflow-y-auto ${standalone ? 'p-4 sm:p-8 max-w-7xl w-full mx-auto' : 'p-6'} bg-neutral-900/60`}>
           
           {/* TAB 1: DIGITAL PRODUCTS */}
           {activeTab === 'products' && (
@@ -2670,6 +2929,300 @@ export default function CatalogAdminModal({
             </div>
           )}
 
+          {/* TAB: MANUAL DISPATCHER & CREDENTIAL GENERATOR */}
+          {activeTab === 'dispatch' && (
+            <div className="max-w-4xl mx-auto space-y-6">
+              <div className="p-4 rounded-2xl bg-neutral-950 border border-neutral-800 space-y-1">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold text-white text-sm sm:text-base flex items-center gap-2">
+                    <Send className="w-4 h-4 text-emerald-400" />
+                    <span>Study Materials & Portal Credentials Dispatcher</span>
+                  </h4>
+                  <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-800/80">
+                    Live Dispatch Mode
+                  </span>
+                </div>
+                <p className="text-xs text-neutral-400 leading-relaxed">
+                  Enter student details manually to issue entrance exam study packs, mock test syllabus, and portal credentials directly to their WhatsApp and Email.
+                </p>
+              </div>
+
+              {/* Form Fields */}
+              <div className="p-5 rounded-2xl bg-neutral-950 border border-neutral-800 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-semibold text-neutral-300 block mb-1">Student Full Name</label>
+                    <input
+                      type="text"
+                      value={dispatchStudentName}
+                      onChange={(e) => setDispatchStudentName(e.target.value)}
+                      placeholder="e.g. Arjun Sharma"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-sm text-white focus:outline-none focus:border-orange-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-neutral-300 block mb-1">Student WhatsApp Number</label>
+                    <input
+                      type="tel"
+                      value={dispatchPhone}
+                      onChange={(e) => setDispatchPhone(e.target.value)}
+                      placeholder="e.g. 8281644058"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-sm text-white focus:outline-none focus:border-orange-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-neutral-300 block mb-1">Student Email Address</label>
+                    <input
+                      type="email"
+                      value={dispatchEmail}
+                      onChange={(e) => setDispatchEmail(e.target.value)}
+                      placeholder="e.g. student@gmail.com"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-sm text-white focus:outline-none focus:border-orange-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-neutral-300 block mb-1">Assigned Username & Password</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={dispatchUsername}
+                        onChange={(e) => setDispatchUsername(e.target.value)}
+                        placeholder={dispatchEffectiveUsername}
+                        className="w-1/2 px-2.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-xs text-sky-400 font-mono focus:outline-none focus:border-orange-500"
+                      />
+                      <input
+                        type="text"
+                        value={dispatchPassword}
+                        onChange={(e) => setDispatchPassword(e.target.value)}
+                        placeholder="NextClass@2027"
+                        className="w-1/2 px-2.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-xs text-amber-400 font-mono focus:outline-none focus:border-orange-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Course Selector */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-semibold text-neutral-300 block">Select Target Course / Program Pack</label>
+                    <span className="text-[11px] text-orange-400 font-bold">{courses.length} Courses Available</span>
+                  </div>
+                  <select
+                    value={dispatchCourseId}
+                    onChange={(e) => setDispatchCourseId(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-sm text-white focus:outline-none focus:border-orange-500 cursor-pointer"
+                  >
+                    {courses.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.title} (₹{c.price.toLocaleString('en-IN')})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Message Preview */}
+                <div className="space-y-2 pt-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-neutral-300">Dispatch Message Preview (WhatsApp & Email Body)</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard?.writeText(dispatchFormattedMessage);
+                        setDispatchCopied(true);
+                        setTimeout(() => setDispatchCopied(false), 2000);
+                      }}
+                      className="text-xs text-orange-400 hover:text-orange-300 font-medium inline-flex items-center gap-1 cursor-pointer"
+                    >
+                      {dispatchCopied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                      <span>{dispatchCopied ? 'Copied!' : 'Copy Text'}</span>
+                    </button>
+                  </div>
+                  <div className="p-3.5 rounded-xl bg-neutral-900 border border-neutral-800 text-xs text-neutral-300 font-sans whitespace-pre-line max-h-48 overflow-y-auto leading-relaxed font-mono">
+                    {dispatchFormattedMessage}
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-3">
+                  <button
+                    type="button"
+                    onClick={handleSendDispatchWhatsApp}
+                    className="py-3 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-950 cursor-pointer"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    <span>Send on WhatsApp</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleSendDispatchEmail}
+                    disabled={isSendingDispatchEmail}
+                    className="py-3 px-3 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-sky-950 cursor-pointer disabled:opacity-50"
+                  >
+                    {isSendingDispatchEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+                    <span>Send via SMTP</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleOpenDispatchGmail}
+                    className="py-3 px-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-red-950 cursor-pointer"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    <span>Gmail Web 1-Click</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleDownloadStudyPack(dispatchCourseId, dispatchStudentName)}
+                    className="py-3 px-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 hover:text-white font-bold text-xs flex items-center justify-center gap-2 transition-all border border-neutral-700 cursor-pointer"
+                  >
+                    <Download className="w-4 h-4 text-orange-400" />
+                    <span>Download Study Pack</span>
+                  </button>
+                </div>
+
+                {dispatchEmailStatus && (
+                  <p className="text-xs text-center font-semibold text-emerald-400 pt-1">
+                    {dispatchEmailStatus}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* TAB: ENROLLED STUDENTS REGISTRY */}
+          {activeTab === 'students' && (
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-neutral-950 border border-neutral-800">
+                <div>
+                  <h4 className="text-base font-bold text-white flex items-center gap-2">
+                    <UserCheck className="w-5 h-5 text-sky-400" />
+                    <span>Registered Student Accounts ({registeredStudentsList.length})</span>
+                  </h4>
+                  <p className="text-xs text-neutral-400 mt-0.5">
+                    View active student portal accounts, auto-generated login credentials, and course enrollments.
+                  </p>
+                </div>
+                <div className="relative w-full sm:w-64">
+                  <Search className="w-3.5 h-3.5 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={studentSearchTerm}
+                    onChange={(e) => setStudentSearchTerm(e.target.value)}
+                    placeholder="Search name, email, phone..."
+                    className="w-full pl-8 pr-3 py-2 rounded-xl bg-neutral-900 border border-neutral-800 text-xs text-white focus:outline-none focus:border-orange-500"
+                  />
+                </div>
+              </div>
+
+              {registeredStudentsList.length === 0 ? (
+                <div className="p-12 text-center rounded-2xl bg-neutral-950 border border-neutral-800 text-neutral-400 space-y-2">
+                  <UserCheck className="w-10 h-10 text-neutral-600 mx-auto" />
+                  <p className="text-sm font-semibold text-white">No registered students yet</p>
+                  <p className="text-xs">When payment claims are approved or students register, their accounts appear here.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                  {registeredStudentsList
+                    .filter((student) => {
+                      if (!studentSearchTerm.trim()) return true;
+                      const term = studentSearchTerm.toLowerCase();
+                      return (
+                        student.name.toLowerCase().includes(term) ||
+                        student.email.toLowerCase().includes(term) ||
+                        student.phone.includes(term) ||
+                        student.username.toLowerCase().includes(term) ||
+                        student.courseTitle.toLowerCase().includes(term)
+                      );
+                    })
+                    .map((student) => (
+                      <div
+                        key={student.id}
+                        className="p-4 rounded-2xl bg-neutral-950 border border-neutral-800 hover:border-neutral-700 transition-colors space-y-3"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <span className="font-bold text-white text-sm">{student.name}</span>
+                            <span className="block text-[11px] text-neutral-400">{student.courseTitle}</span>
+                          </div>
+                          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-sky-950 text-sky-400 border border-sky-800">
+                            {student.registeredAt || 'Active'}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 p-2.5 rounded-xl bg-neutral-900/80 border border-neutral-800 text-[11px]">
+                          <div>
+                            <span className="text-neutral-500 block">Username:</span>
+                            <span className="font-mono text-sky-400 font-bold">@{student.username}</span>
+                          </div>
+                          <div>
+                            <span className="text-neutral-500 block">Password:</span>
+                            <span className="font-mono text-amber-400 font-bold">{student.password}</span>
+                          </div>
+                          <div>
+                            <span className="text-neutral-500 block">Phone:</span>
+                            <span className="font-mono text-neutral-200">+91 {student.phone}</span>
+                          </div>
+                          <div>
+                            <span className="text-neutral-500 block">Email:</span>
+                            <span className="font-mono text-neutral-200 truncate block">{student.email}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 pt-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDispatchStudentName(student.name);
+                              setDispatchPhone(student.phone);
+                              setDispatchEmail(student.email);
+                              setDispatchUsername(student.username);
+                              setDispatchPassword(student.password);
+                              setDispatchCourseId(student.courseId || 'course-aissee-sainik');
+                              setActiveTab('dispatch');
+                            }}
+                            className="flex-1 py-1.5 px-2.5 rounded-lg bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 border border-orange-500/30 font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                          >
+                            <Send className="w-3.5 h-3.5" />
+                            <span>Quick Dispatch</span>
+                          </button>
+
+                          <a
+                            href={`https://wa.me/91${student.phone.replace(/[^0-9]/g, '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-emerald-400 border border-neutral-800 transition-colors cursor-pointer"
+                            title="WhatsApp Chat"
+                          >
+                            <MessageCircle className="w-3.5 h-3.5" />
+                          </a>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard?.writeText(
+                                `NextClasses.in Student Credentials:\nStudent: ${student.name}\nUsername: ${student.username}\nPassword: ${student.password}\nPortal: https://www.nextclasses.in`
+                              );
+                              setDispatchCopied(true);
+                              setTimeout(() => setDispatchCopied(false), 2000);
+                            }}
+                            className="p-2 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border border-neutral-800 transition-colors cursor-pointer"
+                            title="Copy Credentials"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* TAB 6: ADMIN PASSCODE & ACCESS SECURITY */}
           {activeTab === 'security' && (
             <div className="max-w-2xl mx-auto space-y-6">
@@ -2858,18 +3411,30 @@ export default function CatalogAdminModal({
         )}
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-6 py-3 border-t border-neutral-800 bg-neutral-950 text-xs text-neutral-400">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-6 py-3 border-t border-neutral-800 bg-neutral-950 text-xs text-neutral-400">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>Changes persist securely in your browser &amp; exports as clean JSON.</span>
+            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>Nextclasses.in Dedicated Admin Console • Changes persist securely in browser storage.</span>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-neutral-950 font-bold transition-colors cursor-pointer"
-          >
-            Close Panel
-          </button>
+          <div className="flex items-center gap-2">
+            {standalone && onBackToHome ? (
+              <button
+                type="button"
+                onClick={onBackToHome}
+                className="px-4 py-2 rounded-lg bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-white font-bold transition-colors cursor-pointer"
+              >
+                ← Back to Main Website
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-neutral-950 font-bold transition-colors cursor-pointer"
+              >
+                Close Panel
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

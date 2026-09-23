@@ -33,9 +33,7 @@ interface StudentPortalModalProps {
   onClose: () => void;
   onLaunchMockTest?: (testId: string) => void;
   portalVideos?: PortalVideoLesson[];
-  onOpenAdmin?: () => void;
   initialCourseId?: string;
-  onOpenAdminDispatch?: () => void;
 }
 
 // Course-specific Curriculums
@@ -2123,9 +2121,7 @@ const COURSE_CURRICULUMS: Record<string, {
 export default function StudentPortalModal({ 
   onClose, 
   onLaunchMockTest,
-  onOpenAdmin,
   initialCourseId = 'course-aissee-sainik-6',
-  onOpenAdminDispatch,
 }: StudentPortalModalProps) {
   const { user, loginWithCredentials, logout, setStudentStandard } = useAuth();
 
@@ -2489,19 +2485,6 @@ export default function StudentPortalModal({
               <span className="hidden sm:inline">WhatsApp Links</span>
             </button>
 
-            {/* Admin Dispatch button if provided */}
-            {onOpenAdminDispatch && (
-              <button
-                type="button"
-                onClick={onOpenAdminDispatch}
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-[#1e293b] hover:bg-[#2d3d56] text-amber-300 text-xs font-semibold border border-amber-500/30 transition-colors cursor-pointer"
-                title="Admin Dispatcher"
-              >
-                <Send className="w-3 h-3 text-amber-400" />
-                <span className="hidden md:inline">Admin Send</span>
-              </button>
-            )}
-
             {/* Logout / Switch Account */}
             <button
               type="button"
@@ -2805,16 +2788,6 @@ export default function StudentPortalModal({
                   <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider block">
                     Curriculum Masterclasses ({effectiveVideos.length})
                   </span>
-                  {onOpenAdmin && (
-                    <button
-                      type="button"
-                      onClick={onOpenAdmin}
-                      className="text-[11px] font-bold text-orange-400 hover:text-orange-300 inline-flex items-center gap-1 cursor-pointer"
-                    >
-                      <Settings className="w-3 h-3" />
-                      <span>Manage</span>
-                    </button>
-                  )}
                 </div>
 
                 <div className="space-y-2 max-h-[420px] overflow-y-auto">

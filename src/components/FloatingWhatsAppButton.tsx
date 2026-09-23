@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
-import { MessageCircle, X, Send, CheckCircle2, ChevronRight, QrCode } from 'lucide-react';
+import { MessageCircle, X, Send, CheckCircle2, ChevronRight } from 'lucide-react';
 
 interface FloatingWhatsAppButtonProps {
   phone?: string;
-  onOpenUpiModal?: () => void;
 }
 
 export const FloatingWhatsAppButton: React.FC<FloatingWhatsAppButtonProps> = ({
   phone = '8281644058',
-  onOpenUpiModal,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -33,7 +31,7 @@ export const FloatingWhatsAppButton: React.FC<FloatingWhatsAppButtonProps> = ({
     },
     {
       title: 'Direct Academic Counselor',
-      desc: 'Talk to an AI mentor on WhatsApp',
+      desc: 'Talk to an academic mentor on WhatsApp',
       msg: 'Hi Nextclasses.in, I would like to speak directly with an academic mentor.',
     },
   ];
@@ -82,7 +80,7 @@ export const FloatingWhatsAppButton: React.FC<FloatingWhatsAppButtonProps> = ({
           <div className="p-4 space-y-3 bg-[#0b141a] text-neutral-200">
             <div className="p-3 rounded-xl bg-[#111b21] border border-[#202c33] text-xs leading-relaxed space-y-1">
               <p className="text-[#e9edef] font-medium">
-                👋 Welcome to <strong className="text-emerald-400">Nextclasses.in</strong> & <strong className="text-orange-400">Fetecart</strong>!
+                👋 Welcome to <strong className="text-emerald-400">Nextclasses.in</strong>!
               </p>
               <p className="text-[#8696a0] text-[11px]">
                 If automated WhatsApp notifications are delayed or you prefer direct human support, tap below to chat with our counselors right away.
@@ -114,24 +112,6 @@ export const FloatingWhatsAppButton: React.FC<FloatingWhatsAppButtonProps> = ({
               ))}
             </div>
 
-            {/* Direct UPI Scan Option */}
-            {onOpenUpiModal && (
-              <button
-                type="button"
-                onClick={() => {
-                  setIsOpen(false);
-                  onOpenUpiModal();
-                }}
-                className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-orange-500/20 to-amber-500/20 hover:from-orange-500/30 hover:to-amber-500/30 border border-orange-500/40 text-orange-400 hover:text-white font-bold text-xs flex items-center justify-between transition-all cursor-pointer"
-              >
-                <div className="flex items-center gap-2">
-                  <QrCode className="w-4 h-4 text-orange-400" />
-                  <span>Direct UPI QR (Scan & Pay)</span>
-                </div>
-                <ChevronRight className="w-3.5 h-3.5 text-orange-400" />
-              </button>
-            )}
-
             {/* Direct 1-tap button */}
             <button
               type="button"
@@ -145,23 +125,8 @@ export const FloatingWhatsAppButton: React.FC<FloatingWhatsAppButtonProps> = ({
         </div>
       )}
 
-      {/* Floating Trigger Buttons */}
+      {/* Floating Trigger Button */}
       <div className="flex items-center gap-2">
-        {onOpenUpiModal && (
-          <button
-            id="floating-upi-qr-btn"
-            type="button"
-            onClick={onOpenUpiModal}
-            className="flex items-center gap-1.5 px-3.5 py-3 rounded-full bg-[#121824] hover:bg-[#1a2335] text-white shadow-xl shadow-black/60 border border-[#2b3952] hover:border-orange-500/50 transition-all duration-200 cursor-pointer"
-            title="Direct Scan to Pay (8281644058@hdfc)"
-          >
-            <QrCode className="w-4 h-4 text-orange-400" />
-            <span className="text-xs font-bold tracking-tight hidden sm:inline text-neutral-200">
-              Direct QR
-            </span>
-          </button>
-        )}
-
         <button
           id="floating-whatsapp-btn"
           type="button"

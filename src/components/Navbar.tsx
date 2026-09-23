@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ShoppingBag, BookOpen, Menu, X, Sparkles, UserCheck, MessageSquare, MessageCircle, LogIn, User, LogOut, Target, Languages, Settings, QrCode, Send, Phone } from 'lucide-react';
+import { ShoppingBag, BookOpen, Menu, X, Sparkles, UserCheck, MessageSquare, MessageCircle, LogIn, User, LogOut, Target, Languages } from 'lucide-react';
 import { CartItem } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -12,10 +12,6 @@ interface NavbarProps {
   onOpenAuthModal?: () => void;
   onOpenMockTest?: () => void;
   onOpenLanguageSelector?: () => void;
-  onOpenAdmin?: () => void;
-  onOpenUpiModal?: () => void;
-  onOpenAdminDispatch?: () => void;
-  onOpenVoiceReceptionist?: () => void;
 }
 
 export default function Navbar({
@@ -26,10 +22,6 @@ export default function Navbar({
   onOpenAuthModal,
   onOpenMockTest,
   onOpenLanguageSelector,
-  onOpenAdmin,
-  onOpenUpiModal,
-  onOpenAdminDispatch,
-  onOpenVoiceReceptionist,
 }: NavbarProps) {
   const { user, logout } = useAuth();
   const { currentLanguage, t } = useLanguage();
@@ -133,35 +125,6 @@ export default function Navbar({
               <UserCheck className="w-3.5 h-3.5 text-amber-400" />
               <span>Portal</span>
             </button>
-
-            {/* Voice Receptionist Button (Priya - Indian Accent) */}
-            {onOpenVoiceReceptionist && (
-              <button
-                id="navbar-voice-receptionist-btn"
-                type="button"
-                onClick={onOpenVoiceReceptionist}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-950/80 hover:bg-emerald-900/90 border border-emerald-500/40 text-emerald-300 hover:text-white text-xs font-bold transition-all shadow-sm cursor-pointer active:scale-95"
-                title="Talk to Priya • AI Voice Receptionist (Indian Accent)"
-              >
-                <Phone className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-                <span>Talk to Priya</span>
-                <span className="hidden xl:inline text-[9px] bg-emerald-500/20 text-emerald-300 px-1 py-0.2 rounded font-medium">Voice</span>
-              </button>
-            )}
-
-            {/* Admin Dispatch Study Materials Button */}
-            {onOpenAdminDispatch && (
-              <button
-                id="navbar-dispatch-materials-btn"
-                type="button"
-                onClick={onOpenAdminDispatch}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 border border-orange-500/40 text-xs font-bold transition-all shadow-sm cursor-pointer"
-                title="Send Sainik School & Entrance Study Packs to Student WhatsApp & Email"
-              >
-                <Send className="w-3.5 h-3.5 text-orange-400" />
-                <span>Send Materials</span>
-              </button>
-            )}
 
             {/* Direct WhatsApp Helpline */}
             <a
@@ -310,21 +273,6 @@ export default function Navbar({
               <span>Translate Courses: {currentLanguage.nativeName} ({currentLanguage.name}) {currentLanguage.flag}</span>
             </button>
 
-            {/* Mobile Admin Button */}
-            {onOpenAdmin && (
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  onOpenAdmin();
-                }}
-                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-neutral-800 text-neutral-200 text-xs font-semibold hover:bg-neutral-700 transition-colors cursor-pointer"
-              >
-                <Settings className="w-4 h-4 text-orange-400" />
-                <span>Admin: Add/Delete Products & Courses</span>
-              </button>
-            )}
-
             <button
               type="button"
               onClick={() => {
@@ -337,20 +285,6 @@ export default function Navbar({
               <span>Interactive Mock Tests (CBT)</span>
             </button>
 
-            {onOpenVoiceReceptionist && (
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  onOpenVoiceReceptionist();
-                }}
-                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-950/90 border border-emerald-500/50 text-emerald-300 text-xs font-bold hover:bg-emerald-900 transition-colors"
-              >
-                <Phone className="w-4 h-4 text-emerald-400 animate-pulse" />
-                <span>Talk to Priya • AI Voice Receptionist</span>
-              </button>
-            )}
-
             <button
               type="button"
               onClick={() => {
@@ -362,20 +296,6 @@ export default function Navbar({
               <UserCheck className="w-4 h-4 text-amber-400" />
               <span>{user ? `Portal (${user.name})` : 'Preview Student Dashboard'}</span>
             </button>
-
-            {onOpenAdminDispatch && (
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  onOpenAdminDispatch();
-                }}
-                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-orange-500/20 border border-orange-500/40 text-orange-300 text-xs font-bold hover:bg-orange-500/30 transition-colors"
-              >
-                <Send className="w-4 h-4 text-orange-400" />
-                <span>Send Materials to Student WhatsApp</span>
-              </button>
-            )}
 
             {!user && (
               <button

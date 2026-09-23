@@ -17,18 +17,18 @@ import {
   FileText,
   Layers,
   Sparkles,
-  QrCode,
   Send,
   Eye,
   Check,
   AlertCircle,
-  Loader2
+  Loader2,
+  User,
+  Mail
 } from 'lucide-react';
 import { CartItem, ExamScheduleCalculation } from '../types';
 import { calculateDaysToExam, calculateWeeksToExam, generateWeeklyDispatchRoadmap } from '../utils/examScheduler';
 import { useAuth } from '../context/AuthContext';
 import { registerPaidStudent } from '../utils/studentRegistry';
-import { DirectUPIQRCodeCard } from './DirectUPIQRCodeCard';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -38,7 +38,6 @@ interface CartDrawerProps {
   onClearCart: () => void;
   onOpenPortalDemo: () => void;
   customRazorpayKeyId?: string;
-  onOpenAdmin?: () => void;
   onOpenPolicyModal?: (tab: 'about' | 'terms' | 'privacy' | 'refund' | 'shipping' | 'pricing') => void;
   onOpenVerificationModal?: (details: {
     courseId: string;
@@ -61,7 +60,6 @@ export default function CartDrawer({
   onClearCart,
   onOpenPortalDemo,
   customRazorpayKeyId = '',
-  onOpenAdmin,
   onOpenPolicyModal,
   onOpenVerificationModal,
 }: CartDrawerProps) {
@@ -85,9 +83,6 @@ export default function CartDrawer({
   const [studentName, setStudentName] = useState(user?.name || '');
   const [studentEmail, setStudentEmail] = useState(user?.email || '');
   const [studentPhone, setStudentPhone] = useState(user?.phone ? user.phone.replace('+91 ', '') : '');
-  const [paymentMethod, setPaymentMethod] = useState<'direct_upi' | 'razorpay'>('razorpay');
-  const [upiId, setUpiId] = useState('8281644058@hdfc');
-  const [showQrCode, setShowQrCode] = useState(true);
 
   // Sync contact details if logged in user state changes
   useEffect(() => {
@@ -264,11 +259,8 @@ export default function CartDrawer({
         amount: finalTotal,
         utr: customData?.utr || '',
         paymentMethod:
-          customData?.paymentMethod ||
-          (paymentMethod === 'razorpay'
-            ? 'Razorpay Gateway (Cards / NetBanking / UPI)'
-            : 'Direct HDFC UPI (8281644058@hdfc)'),
-        paymentApp: customData?.paymentApp || (paymentMethod === 'razorpay' ? 'Razorpay' : 'Google Pay'),
+          customData?.paymentMethod || 'Razorpay Gateway (Cards / NetBanking / UPI)',
+        paymentApp: customData?.paymentApp || 'Razorpay',
         studentName: studentName || user?.name || '',
         email: studentEmail || user?.email || '',
         phone: studentPhone || '',
@@ -280,9 +272,21 @@ export default function CartDrawer({
     e.preventDefault();
     setPaymentError(null);
 
-    // If Direct UPI is selected, open the separate verification popup window directly
-    if (paymentMethod === 'direct_upi') {
-      handleOpenVerification();
+    // Validate 10-digit contact number
+    const cleanPhone = studentPhone.replace(/\D/g, '');
+    if (!cleanPhone || cleanPhone.length < 10) {
+      setPaymentError('Please enter a valid 10-digit mobile / WhatsApp number before opening the payment gateway.');
+      const phoneInput = document.getElementById('checkout-student-phone');
+      if (phoneInput) phoneInput.focus();
+      return;
+    }
+
+    // Validate email address
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!studentEmail || !emailRegex.test(studentEmail.trim())) {
+      setPaymentError('Please enter a valid email address to receive your login credentials and payment receipt.');
+      const emailInput = document.getElementById('checkout-student-email');
+      if (emailInput) emailInput.focus();
       return;
     }
 
@@ -300,6 +304,8 @@ export default function CartDrawer({
       }
     });
 
+    const formattedContact = cleanPhone.length === 10 ? `+91${cleanPhone}` : cleanPhone.startsWith('91') ? `+${cleanPhone}` : `+91${cleanPhone}`;
+
     // Razorpay Gateway Flow
     if (isLiveKeyConfigured) {
       if (typeof window !== 'undefined' && (window as any).Razorpay) {
@@ -312,13 +318,14 @@ export default function CartDrawer({
             description: items.map((it) => it.title).join(', ').substring(0, 80),
             image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=120&q=80',
             prefill: {
-              name: studentName || user?.name || 'Student',
-              email: studentEmail || user?.email || '',
-              contact: studentPhone ? (studentPhone.startsWith('+91') ? studentPhone : `+91${studentPhone}`) : '',
+              name: studentName.trim() || user?.name || 'Student',
+              email: studentEmail.trim(),
+              contact: formattedContact,
             },
             notes: {
-              studentName: studentName || user?.name || 'Student',
-              studentEmail: studentEmail || user?.email || '',
+              studentName: studentName.trim() || user?.name || 'Student',
+              studentEmail: studentEmail.trim(),
+              studentPhone: formattedContact,
               courseCount: items.length.toString(),
             },
             theme: {
@@ -333,7 +340,6 @@ export default function CartDrawer({
               setIsProcessing(false);
               const rzpPaymentId = response.razorpay_payment_id || `pay_${Date.now()}`;
               onClearCart();
-              // The user requested: "payment werification window should popup after razorpay payment also"
               // Pop up verification window immediately with Razorpay Payment ID prefilled!
               handleOpenVerification({
                 utr: rzpPaymentId,
@@ -401,7 +407,7 @@ Channels: WhatsApp (+91 ${completedOrderDetails.phone}) + Student Learning Porta
 Guarantee: 100% 7-Day Money-Back Guarantee
 =====================================================
 Thank you for choosing Nextclasses.in!
-Support: fetecart@gmail.com | WhatsApp: +91 82816 44058 | https://www.nextclasses.in
+Support: support@nextclasses.in | WhatsApp: +91 82816 44058 | https://www.nextclasses.in
     `.trim();
 
     const element = document.createElement('a');
@@ -961,203 +967,170 @@ Support: fetecart@gmail.com | WhatsApp: +91 82816 44058 | https://www.nextclasse
                   </div>
                 )}
 
-                {/* Payment Options */}
-                <div className="pt-2 space-y-2.5">
-                  <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider block">
-                    Select Payment Method
-                  </span>
-
-                  <div className="grid grid-cols-2 gap-2.5">
-                    {/* Option 1: Razorpay Gateway */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPaymentMethod('razorpay');
-                        if (paymentError) setPaymentError(null);
-                      }}
-                      className={`p-3 rounded-2xl border text-left transition-all cursor-pointer relative overflow-hidden ${
-                        paymentMethod === 'razorpay'
-                          ? 'bg-orange-500/15 border-orange-500 text-white shadow-md shadow-orange-500/10'
-                          : 'bg-neutral-900/90 border-neutral-800 text-neutral-400 hover:border-neutral-700 hover:text-white'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-1.5">
-                        <div className="flex items-center gap-1.5">
-                          <CreditCard className="w-4 h-4 text-orange-400" />
-                          <span className="text-xs font-bold text-white">Razorpay</span>
-                        </div>
-                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                          LIVE
-                        </span>
+                {/* Student Contact Information Provision (Collected before Razorpay opens) */}
+                <div className="p-4 rounded-2xl bg-neutral-900/90 border border-neutral-800 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center">
+                        <User className="w-3.5 h-3.5" />
                       </div>
-                      <p className="text-[11px] text-neutral-300 font-medium">Cards • NetBanking • UPI</p>
-                      <span className="text-[10px] text-neutral-400 block mt-0.5">50+ Banks, RuPay, Visa, Wallets</span>
-                    </button>
-
-                    {/* Option 2: Direct UPI */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPaymentMethod('direct_upi');
-                        if (paymentError) setPaymentError(null);
-                      }}
-                      className={`p-3 rounded-2xl border text-left transition-all cursor-pointer relative overflow-hidden ${
-                        paymentMethod === 'direct_upi'
-                          ? 'bg-orange-500/15 border-orange-500 text-white shadow-md shadow-orange-500/10'
-                          : 'bg-neutral-900/90 border-neutral-800 text-neutral-400 hover:border-neutral-700 hover:text-white'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-1.5">
-                        <div className="flex items-center gap-1.5">
-                          <QrCode className="w-4 h-4 text-orange-400" />
-                          <span className="text-xs font-bold text-white">Direct UPI</span>
-                        </div>
-                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                          0% Fee
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-neutral-300 font-medium">GPay • PhonePe • Paytm</p>
-                      <span className="text-[10px] text-neutral-400 block mt-0.5 font-mono">8281644058@hdfc</span>
-                    </button>
+                      <span className="text-xs font-bold text-white uppercase tracking-wider">
+                        Student Contact Details
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-amber-400 font-semibold px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20">
+                      Required for Portal Access
+                    </span>
                   </div>
 
-                  {/* Razorpay Gateway Overview */}
-                  {paymentMethod === 'razorpay' && (
-                    <div className="p-3.5 rounded-2xl bg-neutral-900/90 border border-neutral-800 space-y-3 text-xs">
-                      <div className="flex items-start gap-2.5">
-                        <div className="w-7 h-7 rounded-xl bg-orange-500/20 border border-orange-500/30 text-orange-400 flex items-center justify-center shrink-0 mt-0.5">
-                          <Zap className="w-4 h-4" />
-                        </div>
-                        <div className="space-y-1">
-                          <p className="font-bold text-white text-xs">Razorpay Secure Checkout</p>
-                          <p className="text-[11px] text-neutral-300 leading-relaxed">
-                            Razorpay opens automatically upon clicking below. Pay with any method of your choice:
-                          </p>
-                        </div>
-                      </div>
+                  <p className="text-[11px] text-neutral-400 leading-relaxed">
+                    Provide your mobile number and email. Your student login credentials, receipt, and downloadable study packs will be sent here immediately.
+                  </p>
 
-                      <div className="grid grid-cols-2 gap-2 pt-1">
-                        <div className="p-2 rounded-xl bg-neutral-950/70 border border-neutral-800 flex items-center gap-2">
-                          <CreditCard className="w-3.5 h-3.5 text-orange-400 shrink-0" />
-                          <div>
-                            <span className="text-[11px] font-semibold text-white block">Cards</span>
-                            <span className="text-[9px] text-neutral-400 block">Credit & Debit (Visa, MC, RuPay)</span>
-                          </div>
-                        </div>
-                        <div className="p-2 rounded-xl bg-neutral-950/70 border border-neutral-800 flex items-center gap-2">
-                          <Building className="w-3.5 h-3.5 text-orange-400 shrink-0" />
-                          <div>
-                            <span className="text-[11px] font-semibold text-white block">Net Banking</span>
-                            <span className="text-[9px] text-neutral-400 block">50+ Banks (SBI, HDFC, ICICI...)</span>
-                          </div>
-                        </div>
-                        <div className="p-2 rounded-xl bg-neutral-950/70 border border-neutral-800 flex items-center gap-2">
-                          <Smartphone className="w-3.5 h-3.5 text-orange-400 shrink-0" />
-                          <div>
-                            <span className="text-[11px] font-semibold text-white block">UPI & Apps</span>
-                            <span className="text-[9px] text-neutral-400 block">Google Pay, PhonePe, Paytm, CRED</span>
-                          </div>
-                        </div>
-                        <div className="p-2 rounded-xl bg-neutral-950/70 border border-neutral-800 flex items-center gap-2">
-                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                          <div>
-                            <span className="text-[11px] font-semibold text-white block">Wallets & PayLater</span>
-                            <span className="text-[9px] text-neutral-400 block">Amazon Pay, Mobikwik, etc.</span>
-                          </div>
-                        </div>
+                  <div className="space-y-3 pt-1">
+                    {/* Full Name */}
+                    <div>
+                      <label htmlFor="checkout-student-name" className="block text-[11px] font-semibold text-neutral-300 mb-1">
+                        Full Name
+                      </label>
+                      <div className="relative">
+                        <User className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <input
+                          id="checkout-student-name"
+                          type="text"
+                          value={studentName}
+                          onChange={(e) => {
+                            setStudentName(e.target.value);
+                            if (paymentError) setPaymentError(null);
+                          }}
+                          placeholder="e.g. Rahul Sharma"
+                          className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-neutral-950 border border-neutral-700 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors"
+                        />
                       </div>
+                    </div>
 
-                      <div className="flex items-center justify-between text-[10px] text-neutral-400 pt-1 border-t border-neutral-800">
-                        <span className="flex items-center gap-1 text-emerald-400">
-                          <ShieldCheck className="w-3.5 h-3.5" />
-                          <span>PCI-DSS Level 1 & RBI Regulated</span>
+                    {/* Contact Number (WhatsApp / Mobile) */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label htmlFor="checkout-student-phone" className="block text-[11px] font-semibold text-neutral-300">
+                          Contact Number (WhatsApp) <span className="text-rose-400">*</span>
+                        </label>
+                        <span className="text-[10px] text-emerald-400 font-medium flex items-center gap-1">
+                          <Smartphone className="w-3 h-3" />
+                          Direct WhatsApp Delivery
                         </span>
-                        <span>Instant Access & Receipt</span>
                       </div>
-                    </div>
-                  )}
-
-                  {/* Direct UPI details */}
-                  {paymentMethod === 'direct_upi' && (
-                    <div className="space-y-3">
-                      {/* Sub-selector between Direct QR Scan vs Collect Request */}
-                      <div className="flex rounded-xl bg-neutral-900 p-1 border border-neutral-800">
-                        <button
-                          type="button"
-                          onClick={() => setShowQrCode(true)}
-                          className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                            showQrCode
-                              ? 'bg-orange-500 text-neutral-950 shadow-md font-bold'
-                              : 'text-neutral-400 hover:text-white'
-                          }`}
-                        >
-                          <QrCode className="w-3.5 h-3.5" />
-                          <span>Direct QR Scan (Instant)</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setShowQrCode(false)}
-                          className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                            !showQrCode
-                              ? 'bg-orange-500 text-neutral-950 shadow-md font-bold'
-                              : 'text-neutral-400 hover:text-white'
-                          }`}
-                        >
-                          <Smartphone className="w-3.5 h-3.5" />
-                          <span>UPI ID / Collect</span>
-                        </button>
+                      <div className="relative flex">
+                        <div className="inline-flex items-center px-3 rounded-l-xl bg-neutral-900 border border-r-0 border-neutral-700 text-neutral-300 text-xs font-mono font-bold select-none">
+                          🇮🇳 +91
+                        </div>
+                        <input
+                          id="checkout-student-phone"
+                          type="tel"
+                          inputMode="numeric"
+                          maxLength={10}
+                          value={studentPhone}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                            setStudentPhone(val);
+                            if (paymentError) setPaymentError(null);
+                          }}
+                          placeholder="98765 43210 (10 digits)"
+                          className="w-full px-3 py-2.5 rounded-r-xl bg-neutral-950 border border-neutral-700 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 font-mono tracking-wider transition-colors"
+                          required
+                        />
                       </div>
-
-                      {showQrCode ? (
-                        <div className="pt-1">
-                          <DirectUPIQRCodeCard
-                            amount={finalTotal}
-                            orderId={items[0]?.id ? `ORD-${items[0].id.slice(-4).toUpperCase()}` : undefined}
-                            courseId={items[0]?.id}
-                            courseTitle={items[0]?.title}
-                            onOpenVerificationModal={handleOpenVerification}
-                            showConfirmationInput={true}
-                          />
-                        </div>
-                      ) : (
-                        <div className="p-3.5 rounded-2xl bg-neutral-900/80 border border-neutral-800 space-y-2.5 text-xs">
-                          <div className="flex items-center justify-between">
-                            <label className="text-[11px] text-neutral-300 font-medium">Enter Your UPI ID / VPA:</label>
-                            <span className="text-[10px] text-neutral-400">Collect Request</span>
-                          </div>
-
-                          <input
-                            type="text"
-                            value={upiId}
-                            onChange={(e) => setUpiId(e.target.value)}
-                            placeholder="e.g. yourname@okhdfcbank"
-                            className="w-full px-3 py-2 rounded-lg bg-neutral-950 border border-neutral-700 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-orange-500 font-mono"
-                          />
-
-                          <div className="flex flex-wrap gap-1.5 pt-1">
-                            {['8281644058@hdfc', '@oksbi', '@okhdfcbank', '@paytm', '@okaxis', '@ybl'].map((handle) => (
-                              <button
-                                key={handle}
-                                type="button"
-                                onClick={() => setUpiId(handle.includes('@') && !handle.startsWith('@') ? handle : (prev) => prev.split('@')[0] + handle)}
-                                className="px-2 py-0.5 rounded bg-neutral-800 hover:bg-neutral-700 text-[10px] text-neutral-300 font-mono cursor-pointer"
-                              >
-                                {handle}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                      <span className="text-[10px] text-neutral-500 mt-1 block">
+                        We dispatch portal logins & weekly updates directly to this WhatsApp number.
+                      </span>
                     </div>
-                  )}
 
-                  <div className="flex items-center justify-between text-[10px] text-neutral-500 pt-1">
-                    <span className="flex items-center gap-1">
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>{paymentMethod === 'razorpay' ? 'Razorpay Payment Gateway Verified' : 'Direct Bank UPI Verified (HDFC)'}</span>
+                    {/* Email Address */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label htmlFor="checkout-student-email" className="block text-[11px] font-semibold text-neutral-300">
+                          Email Address <span className="text-rose-400">*</span>
+                        </label>
+                        <span className="text-[10px] text-neutral-400">PDF Study Pack & Receipt</span>
+                      </div>
+                      <div className="relative">
+                        <Mail className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <input
+                          id="checkout-student-email"
+                          type="email"
+                          value={studentEmail}
+                          onChange={(e) => {
+                            setStudentEmail(e.target.value);
+                            if (paymentError) setPaymentError(null);
+                          }}
+                          placeholder="student@example.com"
+                          className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-neutral-950 border border-neutral-700 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 font-medium transition-colors"
+                          required
+                        />
+                      </div>
+                      <span className="text-[10px] text-neutral-500 mt-1 block">
+                        Your enrollment confirmation & payment receipt will be sent here immediately.
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Razorpay Gateway Information Banner */}
+                <div className="p-4 rounded-2xl bg-neutral-900/90 border border-neutral-800 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="w-4 h-4 text-orange-400" />
+                      <span className="text-xs font-bold text-white uppercase tracking-wider">
+                        Razorpay Secure Gateway
+                      </span>
+                    </div>
+                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      RBI COMPLIANT
                     </span>
-                    <span className="font-mono text-neutral-400">PCI-DSS Compliant</span>
+                  </div>
+
+                  <p className="text-[11px] text-neutral-300 leading-relaxed">
+                    Razorpay checkout will launch with your contact details prefilled. Choose from any supported payment mode:
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-2 pt-1 text-xs">
+                    <div className="p-2.5 rounded-xl bg-neutral-950/70 border border-neutral-800 flex items-center gap-2">
+                      <Smartphone className="w-3.5 h-3.5 text-orange-400 shrink-0" />
+                      <div>
+                        <span className="text-[11px] font-semibold text-white block">UPI Instant</span>
+                        <span className="text-[9px] text-neutral-400 block">GPay, PhonePe, Paytm, CRED</span>
+                      </div>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-neutral-950/70 border border-neutral-800 flex items-center gap-2">
+                      <CreditCard className="w-3.5 h-3.5 text-orange-400 shrink-0" />
+                      <div>
+                        <span className="text-[11px] font-semibold text-white block">Cards</span>
+                        <span className="text-[9px] text-neutral-400 block">Debit & Credit (Visa, MC, RuPay)</span>
+                      </div>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-neutral-950/70 border border-neutral-800 flex items-center gap-2">
+                      <Building className="w-3.5 h-3.5 text-orange-400 shrink-0" />
+                      <div>
+                        <span className="text-[11px] font-semibold text-white block">Net Banking</span>
+                        <span className="text-[9px] text-neutral-400 block">50+ Banks (SBI, HDFC, ICICI...)</span>
+                      </div>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-neutral-950/70 border border-neutral-800 flex items-center gap-2">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <div>
+                        <span className="text-[11px] font-semibold text-white block">Wallets & PayLater</span>
+                        <span className="text-[9px] text-neutral-400 block">Amazon Pay, Mobikwik, etc.</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-[10px] text-neutral-400 pt-1.5 border-t border-neutral-800">
+                    <span className="flex items-center gap-1 text-emerald-400 font-medium">
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>PCI-DSS Level 1 & 256-Bit SSL Encrypted</span>
+                    </span>
+                    <span>Zero Platform Fees</span>
                   </div>
                 </div>
 
@@ -1193,36 +1166,23 @@ Support: fetecart@gmail.com | WhatsApp: +91 82816 44058 | https://www.nextclasse
                   {isProcessing ? (
                     <div className="flex items-center gap-2">
                       <div className="w-4 h-4 border-2 border-neutral-950 border-t-transparent rounded-full animate-spin" />
-                      <span>
-                        {paymentMethod === 'razorpay'
-                          ? 'Opening Razorpay Secure Gateway...'
-                          : 'Confirming Direct UPI Payment...'}
-                      </span>
+                      <span>Opening Razorpay Secure Gateway...</span>
                     </div>
                   ) : (
                     <>
-                      {paymentMethod === 'razorpay' ? (
-                        <>
-                          <span>Pay ₹{finalTotal.toLocaleString('en-IN')} via Razorpay (Cards, NetBanking, UPI)</span>
-                          <ArrowRight className="w-4 h-4" />
-                        </>
-                      ) : (
-                        <>
-                          <ShieldCheck className="w-4 h-4" />
-                          <span>Submit 12-Digit UTR for Bank Verification</span>
-                          <ArrowRight className="w-4 h-4" />
-                        </>
-                      )}
+                      <CreditCard className="w-4 h-4" />
+                      <span>Pay ₹{finalTotal.toLocaleString('en-IN')} via Razorpay</span>
+                      <ArrowRight className="w-4 h-4" />
                     </>
                   )}
                 </button>
 
                 <div className="flex items-center justify-center gap-2 text-[11px] text-neutral-400 pt-1">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Anti-Fraud Protected • Verification Required Before Credential Dispatch</span>
+                  <span>Instant Verification & Portal Activation</span>
                 </div>
 
-                {/* Direct link for students who already paid via Razorpay or UPI */}
+                {/* Direct link for students who already paid via Razorpay */}
                 <div className="pt-1">
                   <button
                     type="button"
@@ -1230,7 +1190,7 @@ Support: fetecart@gmail.com | WhatsApp: +91 82816 44058 | https://www.nextclasse
                     className="w-full py-2.5 px-3 rounded-xl bg-neutral-900/90 hover:bg-neutral-800 border border-neutral-700 text-neutral-300 hover:text-white text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
                   >
                     <ShieldCheck className="w-3.5 h-3.5 text-orange-400" />
-                    <span>Already paid via Razorpay or UPI? Submit Verification Popup</span>
+                    <span>Already completed Razorpay payment? Submit Verification Details</span>
                   </button>
                 </div>
 
