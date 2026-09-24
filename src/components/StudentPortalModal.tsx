@@ -13,6 +13,7 @@ import { COURSES_DATA } from '../data';
 import { PortalVideoLesson } from '../types';
 import { generateMailtoUrl } from '../utils/studentRegistry';
 import { COURSE_VIDEO_PLAYLISTS } from '../utils/courseVideos';
+import { getDailyStudyMaterial, downloadDailyStudyMaterial } from '../utils/dailyStudyMaterials';
 import { CourseVoiceDoubtBot } from './CourseVoiceDoubtBot';
 import { StudentFriendWelcomeBot } from './StudentFriendWelcomeBot';
 
@@ -2212,7 +2213,7 @@ export default function StudentPortalModal({
     }
   }, [user]);
 
-  const [activeTab, setActiveTab] = useState<'lessons' | 'dispatches' | 'mock_tests' | 'badges' | 'prompts' | 'certificate'>('lessons');
+  const [activeTab, setActiveTab] = useState<'lessons' | 'daily' | 'dispatches' | 'mock_tests' | 'badges' | 'prompts' | 'certificate'>('lessons');
   const [copiedPromptIndex, setCopiedPromptIndex] = useState<number | null>(null);
   const [downloadNotice, setDownloadNotice] = useState<string | null>(null);
   const [isSendingWhatsApp, setIsSendingWhatsApp] = useState(false);
@@ -2236,6 +2237,7 @@ export default function StudentPortalModal({
   const weeksLeft = calculateWeeksToExam(daysLeft);
 
   const currentLesson = effectiveVideos.find((l) => l.id === activeVideoId) || effectiveVideos[0];
+  const dailyMaterial = useMemo(() => getDailyStudyMaterial(selectedCourseId), [selectedCourseId]);
 
   const handleCopy = (text: string, index: number) => {
     navigator.clipboard?.writeText(text);
@@ -2679,6 +2681,19 @@ export default function StudentPortalModal({
           </button>
           <button
             type="button"
+            onClick={() => setActiveTab('daily')}
+            className={`py-3 border-b-2 whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'daily'
+                ? 'border-orange-500 text-white'
+                : 'border-transparent text-neutral-400 hover:text-neutral-200'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <span>Today’s Study Material</span>
+            <span className="px-1.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px]">New Today</span>
+          </button>
+          <button
+            type="button"
             onClick={() => setActiveTab('dispatches')}
             className={`py-3 border-b-2 whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'dispatches'
@@ -2782,6 +2797,47 @@ export default function StudentPortalModal({
 
         {/* Tab Content */}
         <div className="p-4 sm:p-6 overflow-y-auto flex-1">
+          {activeTab === 'daily' && (
+            <div className="max-w-4xl mx-auto space-y-5">
+              <div className="p-5 rounded-2xl bg-gradient-to-br from-orange-950/50 to-[#111827] border border-orange-500/30">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                  <div>
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-orange-400">Published daily lesson • {dailyMaterial.date}</div>
+                    <h3 className="text-xl font-black text-white mt-1">{dailyMaterial.title}</h3>
+                    <p className="text-sm text-neutral-300 mt-1">{dailyMaterial.focus}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => downloadDailyStudyMaterial(dailyMaterial, studentName)}
+                    className="px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-400 text-neutral-950 text-xs font-extrabold flex items-center justify-center gap-2 shrink-0"
+                  >
+                    <Download className="w-4 h-4" /> Download Today’s Material
+                  </button>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <section className="p-5 rounded-2xl bg-[#111827] border border-[#233047]">
+                  <h4 className="font-extrabold text-white mb-3 flex items-center gap-2"><BookOpen className="w-4 h-4 text-orange-400" /> Lesson notes</h4>
+                  <ul className="space-y-3 text-sm text-neutral-300">
+                    {dailyMaterial.lesson.map((item) => <li key={item} className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" /><span>{item}</span></li>)}
+                  </ul>
+                </section>
+                <section className="p-5 rounded-2xl bg-[#111827] border border-[#233047]">
+                  <h4 className="font-extrabold text-white mb-3 flex items-center gap-2"><Target className="w-4 h-4 text-orange-400" /> Practice activity</h4>
+                  <ol className="space-y-3 text-sm text-neutral-300 list-decimal pl-5">
+                    {dailyMaterial.practice.map((item) => <li key={item}>{item}</li>)}
+                  </ol>
+                </section>
+              </div>
+              <details className="p-5 rounded-2xl bg-[#0f172a] border border-[#233047]">
+                <summary className="font-bold text-amber-300 cursor-pointer">Open answer and self-check guide after completing the activity</summary>
+                <ol className="mt-4 space-y-2 text-sm text-neutral-300 list-decimal pl-5">
+                  {dailyMaterial.answers.map((item) => <li key={item}>{item}</li>)}
+                </ol>
+              </details>
+            </div>
+          )}
+
           {/* LESSONS TAB */}
           {activeTab === 'lessons' && (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
