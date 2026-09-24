@@ -25,111 +25,14 @@ export function getAppPortalUrl(): string {
   return '/?portal=true';
 }
 
-// Standard pre-configured accounts for testing, demonstrations, and instructors
-const INITIAL_SEED_ACCOUNTS: RegisteredStudentAccount[] = [
-  {
-    id: 'student-biju-aissee',
-    name: 'Biju P. B.',
-    email: 'bijubpb78@gmail.com',
-    phone: '+91 87921 34951',
-    gender: 'male',
-    username: 'bijubpb78',
-    password: 'Sainik@2027',
-    courseId: 'course-aissee-sainik',
-    courseTitle: 'AISSEE (All India Sainik School Entrance) 2027: Class 6 & 9 Kit',
-    enrolledCourseIds: ['course-aissee-sainik'],
-    targetExamCode: 'AISSEE',
-    targetExamDate: '2027-01-10',
-    learningGoal: 'Crack Sainik School Class 6 & 9 AISSEE Entrance (280+ Target)',
-    registeredAt: '2026-09-18',
-    paymentReference: 'UPI-AISSEE-8792134951',
-    credentialsDeliveredViaEmail: true,
-    credentialsEmailSentAt: '2026-09-18T07:07:00.000Z',
-    amount: 1799,
-    emailSent: true,
-  },
-  {
-    id: 'student-sainik-seed',
-    name: 'Arjun K. (Sainik Cadet)',
-    email: 'arjun.sainik@nextclass.in',
-    phone: '+91 82816 44058',
-    gender: 'male',
-    username: 'sainik_demo',
-    password: 'Sainik@2027',
-    courseId: 'course-aissee-sainik',
-    courseTitle: 'AISSEE (All India Sainik School Entrance) 2027: Class 6 & 9 Kit',
-    enrolledCourseIds: ['course-aissee-sainik'],
-    targetExamCode: 'AISSEE',
-    targetExamDate: '2027-01-10',
-    learningGoal: 'Crack Sainik School Class 6 Entrance with 270+ Marks',
-    registeredAt: '2026-09-10',
-    paymentReference: 'UPI-DEMO-8291',
-    credentialsDeliveredViaEmail: true,
-    credentialsEmailSentAt: '2026-09-10T10:00:00.000Z',
-    amount: 1799,
-    emailSent: true,
-  },
-  {
-    id: 'student-neet-seed',
-    name: 'Anjali Nair',
-    email: 'anjali.nair@gmail.com',
-    phone: '+91 82816 44058',
-    gender: 'female',
-    username: 'neet_demo',
-    password: 'Neet@2027',
-    courseId: 'course-neet-ug',
-    courseTitle: 'NEET (UG) 2027 Medical Entrance: AI Adaptive Prep',
-    enrolledCourseIds: ['course-neet-ug'],
-    targetExamCode: 'NEET',
-    targetExamDate: '2027-05-02',
-    learningGoal: 'Secure AIIMS & Kerala Medical College MBBS Seat (680+ Marks)',
-    registeredAt: '2026-09-01',
-    paymentReference: 'UPI-DEMO-5512',
-    credentialsDeliveredViaEmail: true,
-    amount: 2499,
-    emailSent: true,
-  },
-  {
-    id: 'student-jnvst-seed',
-    name: 'Sneha Pillai',
-    email: 'sneha.jnvst@nextclass.in',
-    phone: '+91 82816 44058',
-    gender: 'female',
-    username: 'jnvst_demo',
-    password: 'Jnvst@2027',
-    courseId: 'course-navodaya-jnvst',
-    courseTitle: 'Navodaya Vidyalaya (JNVST Class 6 & 9) 2027 Rapid Kit',
-    enrolledCourseIds: ['course-navodaya-jnvst'],
-    targetExamCode: 'NAVODAYA',
-    targetExamDate: '2027-01-20',
-    learningGoal: 'Clear Navodaya JNVST Mental Ability & Arithmetic Sections',
-    registeredAt: '2026-09-08',
-    paymentReference: 'UPI-DEMO-7341',
-    credentialsDeliveredViaEmail: true,
-    amount: 1499,
-    emailSent: true,
-  },
-  {
-    id: 'student-claude-seed',
-    name: 'Dev Menon',
-    email: 'dev.ai@nextclass.in',
-    phone: '+91 82816 44058',
-    gender: 'male',
-    username: 'claude_demo',
-    password: 'Claude@2027',
-    courseId: 'course-claude-ai',
-    courseTitle: 'Master Claude AI & Advanced Prompt Engineering 2026',
-    enrolledCourseIds: ['course-claude-ai'],
-    targetExamCode: 'CLAUDE-AI',
-    targetExamDate: '2026-12-31',
-    learningGoal: 'Master Anthropic Claude 3.7 Sonnet Extended Thinking',
-    registeredAt: '2026-09-05',
-    paymentReference: 'UPI-DEMO-2194',
-    credentialsDeliveredViaEmail: true,
-    amount: 1499,
-    emailSent: true,
-  },
-];
+// Remove legacy demonstration accounts that older versions stored in the browser.
+const LEGACY_DEMO_ACCOUNT_IDS = new Set([
+  'student-biju-aissee',
+  'student-sainik-seed',
+  'student-neet-seed',
+  'student-jnvst-seed',
+  'student-claude-seed',
+]);
 
 /**
  * Accurately determines student gender for appropriate voice tutor selection:
@@ -157,28 +60,28 @@ export function getRegisteredStudents(): RegisteredStudentAccount[] {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed: RegisteredStudentAccount[] = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        // Ensure that all seed accounts (such as Biju P. B.) exist in the returned list
-        const merged = [...parsed];
-        for (const seed of INITIAL_SEED_ACCOUNTS) {
-          if (!merged.some((m) => m.email.toLowerCase() === seed.email.toLowerCase() || m.username.toLowerCase() === seed.username.toLowerCase())) {
-            merged.unshift(seed);
-          }
+      if (Array.isArray(parsed)) {
+        const realStudents = parsed.filter((student) =>
+          !LEGACY_DEMO_ACCOUNT_IDS.has(student.id) &&
+          !student.username?.toLowerCase().endsWith('_demo') &&
+          !String(student.paymentReference || '').startsWith('UPI-DEMO-')
+        );
+        if (realStudents.length !== parsed.length) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(realStudents));
         }
-        return merged;
+        return realStudents;
       }
     }
   } catch (err) {
     console.error('Failed to read student registry:', err);
   }
 
-  // Seed default demo accounts
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_SEED_ACCOUNTS));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
   } catch {
     // ignore
   }
-  return INITIAL_SEED_ACCOUNTS;
+  return [];
 }
 
 export function saveRegisteredStudents(students: RegisteredStudentAccount[]): void {
