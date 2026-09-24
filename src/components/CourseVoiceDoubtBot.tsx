@@ -118,6 +118,7 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
                 audioBase64: base64Data,
                 mimeType: 'audio/webm',
                 language: selectedLanguage,
+          voicePreference: studentGender === 'female' ? 'male' : 'female',
               }),
             });
             const data = await res.json();
@@ -675,7 +676,7 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
                   Speak Your Doubts in Real Time
                 </h4>
                 <p className="text-xs text-neutral-400 leading-relaxed">
-                  Tap the microphone and ask any question in your regional language. The bot will listen, analyze, answer with spoken voice, and write out the explanation!
+                  Tap the microphone and ask in your preferred language. Your OpenAI powered mentor will answer by voice and text. The voice is AI generated.
                 </p>
               </div>
 
