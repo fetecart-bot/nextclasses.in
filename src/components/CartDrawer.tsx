@@ -311,6 +311,10 @@ export default function CartDrawer({
     if (isLiveKeyConfigured) {
       if (typeof window !== 'undefined' && (window as any).Razorpay) {
         try {
+          // Release small checkout fields before mounting Razorpay. This prevents
+          // iOS Safari's input zoom from making the payment sheet wider than the viewport.
+          if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+          window.scrollTo({ left: 0, behavior: 'instant' as ScrollBehavior });
           const options = {
             key: razorpayKeyId,
             amount: Math.round(finalTotal * 100), // amount in paise
@@ -491,7 +495,7 @@ Support: support@nextclasses.in | WhatsApp: +91 82816 44058 | https://www.nextcl
       onClick={(e) => {
         if (e.target === e.currentTarget) handleClose();
       }}
-      className="fixed inset-0 z-50 flex justify-end bg-black/80 backdrop-blur-xs transition-opacity"
+      className="fixed inset-0 z-50 flex justify-end bg-black/80 backdrop-blur-xs transition-opacity overflow-x-hidden"
     >
       <div className="relative w-full max-w-lg bg-neutral-950 border-l border-neutral-800 text-white h-full flex flex-col shadow-2xl">
         
@@ -1019,7 +1023,7 @@ Support: support@nextclasses.in | WhatsApp: +91 82816 44058 | https://www.nextcl
                             if (paymentError) setPaymentError(null);
                           }}
                           placeholder="e.g. Rahul Sharma"
-                          className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-neutral-950 border border-neutral-700 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors"
+                          className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-neutral-950 border border-neutral-700 text-base sm:text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors"
                         />
                       </div>
                     </div>
@@ -1051,7 +1055,7 @@ Support: support@nextclasses.in | WhatsApp: +91 82816 44058 | https://www.nextcl
                             if (paymentError) setPaymentError(null);
                           }}
                           placeholder="98765 43210 (10 digits)"
-                          className="w-full px-3 py-2.5 rounded-r-xl bg-neutral-950 border border-neutral-700 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 font-mono tracking-wider transition-colors"
+                          className="w-full min-w-0 px-3 py-2.5 rounded-r-xl bg-neutral-950 border border-neutral-700 text-base sm:text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 font-mono tracking-wider transition-colors"
                           required
                         />
                       </div>
@@ -1079,7 +1083,7 @@ Support: support@nextclasses.in | WhatsApp: +91 82816 44058 | https://www.nextcl
                             if (paymentError) setPaymentError(null);
                           }}
                           placeholder="student@example.com"
-                          className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-neutral-950 border border-neutral-700 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 font-medium transition-colors"
+                          className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-neutral-950 border border-neutral-700 text-base sm:text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 font-medium transition-colors"
                           required
                         />
                       </div>

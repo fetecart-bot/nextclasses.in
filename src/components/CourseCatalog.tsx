@@ -27,6 +27,7 @@ export default function CourseCatalog({
   const [selectedLevel, setSelectedLevel] = useState<string>('all');
   const [sharingCourse, setSharingCourse] = useState<Course | null>(null);
   const [voiceDoubtCourse, setVoiceDoubtCourse] = useState<Course | null>(null);
+  const [showAllCourses, setShowAllCourses] = useState(false);
 
   const categories: { id: CourseCategory; label: string; count: number }[] = [
     { id: 'all', label: t('allPrograms', 'All Programs'), count: courses.length },
@@ -66,6 +67,9 @@ export default function CourseCatalog({
 
     return list;
   }, [courses, activeCategory, selectedLevel, searchQuery]);
+
+  const shouldLimitCatalog = activeCategory === 'all' && !searchQuery && selectedLevel === 'all' && !showAllCourses;
+  const visibleCourses = shouldLimitCatalog ? filteredCourses.slice(0, 9) : filteredCourses;
 
   return (
     <section id="courses" className="py-20 sm:py-28 bg-neutral-950 text-white border-b border-neutral-800">
@@ -234,7 +238,7 @@ export default function CourseCatalog({
           </div>
         ) : (
           <div id="course-cards-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {filteredCourses.map((course) => {
+            {visibleCourses.map((course) => {
               const discountPercent =
                 course.originalPrice && course.originalPrice > course.price
                   ? Math.round(((course.originalPrice - course.price) / course.originalPrice) * 100)
@@ -289,7 +293,7 @@ export default function CourseCatalog({
                         <div className="flex items-center gap-1.5 shrink-0">
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-950/85 backdrop-blur-md text-[10px] font-bold text-red-400 border border-red-500/40 shadow-xs">
                             <Play className="w-2.5 h-2.5 fill-current" />
-                            YouTube Demo
+                            YouTube Preview
                           </span>
                           <button
                             type="button"
@@ -456,6 +460,20 @@ export default function CourseCatalog({
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {shouldLimitCatalog && filteredCourses.length > visibleCourses.length && (
+          <div className="mt-10 text-center">
+            <button
+              type="button"
+              onClick={() => setShowAllCourses(true)}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-neutral-900 border border-neutral-700 text-white font-bold text-sm hover:border-orange-500/60 hover:text-orange-300 transition-colors"
+            >
+              View all {filteredCourses.length} programs
+              <ArrowRight className="w-4 h-4" />
+            </button>
+            <p className="mt-2 text-xs text-neutral-500">Or choose a category above to find the right program faster.</p>
           </div>
         )}
 

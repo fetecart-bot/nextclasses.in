@@ -83,7 +83,7 @@ export default function CourseModal({ course, onClose, onAddToCart }: CourseModa
               • {course.language}
             </span>
             <span className="text-xs text-emerald-400 font-medium hidden md:inline">
-              • {courseVideos.length} Video Lessons
+              • {courseVideos.length} Free Preview Videos
             </span>
           </div>
 
@@ -216,13 +216,13 @@ export default function CourseModal({ course, onClose, onAddToCart }: CourseModa
                 <div className="flex items-center gap-2">
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-600/15 text-red-400 border border-red-500/30 text-xs font-bold">
                     <Tv className="w-3.5 h-3.5 text-red-400" />
-                    Curated Video Masterclasses ({courseVideos.length} Lessons)
+                    Curated YouTube Previews ({courseVideos.length})
                   </span>
-                  <span className="text-xs text-neutral-400 hidden sm:inline">Select any lesson below to watch preview</span>
+                  <span className="text-xs text-neutral-400 hidden sm:inline">Independent educator previews selected for this syllabus</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded">
-                    HD 1080p Stream
+                    YouTube Embed
                   </span>
                   <button
                     type="button"
@@ -286,6 +286,9 @@ export default function CourseModal({ course, onClose, onAddToCart }: CourseModa
                   <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
                     {activeVideo.description}
                   </p>
+                  <p className="text-[10px] text-neutral-500 mt-2">
+                    Preview source: {activeVideo.company}. This public YouTube video is provided for course evaluation; enrolled materials and support are delivered by NextClasses.in.
+                  </p>
                 </div>
               </div>
 
@@ -325,7 +328,7 @@ export default function CourseModal({ course, onClose, onAddToCart }: CourseModa
                 <div className="flex items-center justify-between px-1">
                   <span className="text-xs font-bold uppercase tracking-wider text-neutral-300 flex items-center gap-1.5">
                     <Play className="w-3.5 h-3.5 text-orange-400 fill-orange-400" />
-                    All Video Lessons in this Course ({courseVideos.length})
+                    Free Course Preview Library ({courseVideos.length})
                   </span>
                   <span className="text-[11px] text-neutral-400">Click to switch lesson</span>
                 </div>
