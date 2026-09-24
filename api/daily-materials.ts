@@ -7,6 +7,40 @@ function adminAuthorized(req: any) {
   return expected.length > 0 && supplied.length === expected.length && crypto.timingSafeEqual(supplied, expected);
 }
 
+async function notifyPublishedMaterial(material: any) {
+  if (!process.env.RESEND_API_KEY) return;
+  const enrollments = await supabaseRequest(`enrollments?course_id=eq.${encodeURIComponent(material.course_id)}&select=student_id`);
+  const ids = [...new Set((enrollments || []).map((item: any) => item.student_id).filter(Boolean))];
+  if (!ids.length) return;
+  const students = await supabaseRequest(`students?id=in.(${ids.map((id) => encodeURIComponent(String(id))).join(',')})&active=eq.true&select=id,name,email`);
+  const recipients = (students || []).filter((student: any) => student.email).slice(0, 100);
+  await Promise.allSettled(recipients.map(async (student: any) => {
+    let status = 'sent';
+    let providerReference: string | null = null;
+    let errorMessage: string | null = null;
+    try {
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          from: 'NextClasses <study@nextclasses.in>', to: [student.email],
+          subject: `New study material: ${material.title}`,
+          html: `<h2>${material.title}</h2><p>Hello ${student.name || 'Student'},</p><p>${material.focus}</p><p>Your new material for <strong>${material.course_title}</strong> is available in the student portal.</p><p><a href="https://www.nextclasses.in/">Open Student Portal</a></p><p>NextClasses Academy</p>`,
+        }),
+      });
+      const result: any = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.message || 'Resend delivery failed');
+      providerReference = result.id || null;
+    } catch (error: any) {
+      status = 'failed'; errorMessage = error?.message || 'Email delivery failed';
+    }
+    await supabaseRequest('delivery_logs', {
+      method: 'POST', headers: { Prefer: 'return=minimal' },
+      body: JSON.stringify({ material_id: material.id, student_id: student.id, channel: 'email', status, provider_reference: providerReference, error_message: errorMessage }),
+    });
+  }));
+}
+
 export default async function handler(req: any, res: any) {
   try {
     if (req.method === 'GET') {
@@ -20,6 +54,8 @@ export default async function handler(req: any, res: any) {
       const id = String(req.body?.id || '');
       const status = String(req.body?.status || '');
       if (!id || !['approved', 'published', 'rejected'].includes(status)) return res.status(400).json({ error: 'Invalid material update' });
+      const existing = await supabaseRequest(`daily_materials?id=eq.${encodeURIComponent(id)}&limit=1`);
+      if (!existing?.[0]) return res.status(404).json({ error: 'Material not found' });
       const now = new Date().toISOString();
       const editable: Record<string, unknown> = {};
       for (const field of ['title', 'focus']) {
@@ -32,6 +68,10 @@ export default async function handler(req: any, res: any) {
         method: 'PATCH', headers: { Prefer: 'return=minimal' },
         body: JSON.stringify({ ...editable, status, reviewed_by: 'Nextclasses Admin', reviewed_at: now, ...(status === 'published' ? { published_at: now } : {}) }),
       });
+      if (status === 'published' && existing[0].status !== 'published') {
+        const published = await supabaseRequest(`daily_materials?id=eq.${encodeURIComponent(id)}&limit=1`);
+        if (published?.[0]) await notifyPublishedMaterial(published[0]);
+      }
       return res.status(200).json({ success: true });
     }
     if (req.method === 'POST') {
