@@ -33,6 +33,10 @@ const LEGACY_DEMO_ACCOUNT_IDS = new Set([
   'student-jnvst-seed',
   'student-claude-seed',
 ]);
+const LEGACY_DEMO_EMAILS = new Set([
+  'siddharth.varma@gmail.com',
+  'ananya.ramesh@gmail.com',
+]);
 
 /**
  * Accurately determines student gender for appropriate voice tutor selection:
@@ -63,6 +67,7 @@ export function getRegisteredStudents(): RegisteredStudentAccount[] {
       if (Array.isArray(parsed)) {
         const realStudents = parsed.filter((student) =>
           !LEGACY_DEMO_ACCOUNT_IDS.has(student.id) &&
+          !LEGACY_DEMO_EMAILS.has(student.email?.toLowerCase()) &&
           !student.username?.toLowerCase().endsWith('_demo') &&
           !String(student.paymentReference || '').startsWith('UPI-DEMO-')
         );

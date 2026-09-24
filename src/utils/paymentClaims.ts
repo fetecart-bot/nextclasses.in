@@ -27,53 +27,24 @@ export interface PaymentClaim {
 
 const STORAGE_KEY = 'nextclass_payment_claims_v1';
 
-// Initial seed claims for demonstration & admin testing
-const SEED_CLAIMS: PaymentClaim[] = [
-  {
-    id: 'claim-seed-1',
-    claimCode: 'CLAIM-77291',
-    studentName: 'Siddharth Varma',
-    email: 'siddharth.varma@gmail.com',
-    phone: '9847123456',
-    courseId: 'course-aissee-sainik',
-    courseTitle: 'AISSEE (All India Sainik School Entrance) 2027: Class 6 & 9 Kit',
-    amount: 1799,
-    utrNumber: '425981726481',
-    paymentMethod: 'Direct HDFC UPI (8281644058@hdfc)',
-    paymentApp: 'Google Pay',
-    status: 'pending_verification',
-    submittedAt: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
-    notes: 'Paid via GPay. Awaiting admin bank reconciliation.',
-  },
-  {
-    id: 'claim-seed-2',
-    claimCode: 'CLAIM-66104',
-    studentName: 'Ananya Ramesh',
-    email: 'ananya.ramesh@gmail.com',
-    phone: '8281987654',
-    courseId: 'course-deepseek-r1',
-    courseTitle: 'DeepSeek R1 Reasoning Model: Deep Dive 2026',
-    amount: 899,
-    utrNumber: '426019384725',
-    paymentMethod: 'Direct HDFC UPI (8281644058@hdfc)',
-    paymentApp: 'PhonePe',
-    status: 'pending_verification',
-    submittedAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
-    notes: 'PhonePe transfer successful. Transaction ref attached.',
-  },
-];
+const LEGACY_DEMO_CLAIM_IDS = new Set(['claim-seed-1', 'claim-seed-2']);
 
 export function getPaymentClaims(): PaymentClaim[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(SEED_CLAIMS));
-      return SEED_CLAIMS;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
+      return [];
     }
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : SEED_CLAIMS;
+    if (!Array.isArray(parsed)) return [];
+    const realClaims = parsed.filter((claim) => !LEGACY_DEMO_CLAIM_IDS.has(claim.id));
+    if (realClaims.length !== parsed.length) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(realClaims));
+    }
+    return realClaims;
   } catch {
-    return SEED_CLAIMS;
+    return [];
   }
 }
 
