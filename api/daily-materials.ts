@@ -21,9 +21,16 @@ export default async function handler(req: any, res: any) {
       const status = String(req.body?.status || '');
       if (!id || !['approved', 'published', 'rejected'].includes(status)) return res.status(400).json({ error: 'Invalid material update' });
       const now = new Date().toISOString();
+      const editable: Record<string, unknown> = {};
+      for (const field of ['title', 'focus']) {
+        if (typeof req.body?.[field] === 'string') editable[field] = req.body[field].trim();
+      }
+      for (const field of ['lesson', 'practice', 'answers']) {
+        if (Array.isArray(req.body?.[field])) editable[field] = req.body[field].map((item: unknown) => String(item).trim()).filter(Boolean);
+      }
       await supabaseRequest(`daily_materials?id=eq.${encodeURIComponent(id)}`, {
         method: 'PATCH', headers: { Prefer: 'return=minimal' },
-        body: JSON.stringify({ status, reviewed_by: 'Nextclasses Admin', reviewed_at: now, ...(status === 'published' ? { published_at: now } : {}) }),
+        body: JSON.stringify({ ...editable, status, reviewed_by: 'Nextclasses Admin', reviewed_at: now, ...(status === 'published' ? { published_at: now } : {}) }),
       });
       return res.status(200).json({ success: true });
     }

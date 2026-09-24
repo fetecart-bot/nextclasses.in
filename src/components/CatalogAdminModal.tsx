@@ -27,6 +27,12 @@ import {
 } from '../utils/studyMaterialGenerator';
 import { getDailyStudyMaterial, downloadDailyStudyMaterial } from '../utils/dailyStudyMaterials';
 
+type CloudDailyMaterial = {
+  id: string; course_id: string; course_title: string; material_date: string;
+  title: string; focus: string; lesson: string[]; practice: string[]; answers: string[];
+  status: 'draft' | 'approved' | 'published' | 'rejected';
+};
+
 export function extractYouTubeId(urlOrId: string): string {
   if (!urlOrId) return '';
   const trimmed = urlOrId.trim();
@@ -101,6 +107,9 @@ export default function CatalogAdminModal({
   const [dispatchCopied, setDispatchCopied] = useState<boolean>(false);
   const [dispatchEmailStatus, setDispatchEmailStatus] = useState<string | null>(null);
   const [isSendingDispatchEmail, setIsSendingDispatchEmail] = useState<boolean>(false);
+  const [cloudMaterials, setCloudMaterials] = useState<CloudDailyMaterial[]>([]);
+  const [cloudQueueLoading, setCloudQueueLoading] = useState(false);
+  const [cloudQueueMessage, setCloudQueueMessage] = useState<string | null>(null);
   const [studentSearchTerm, setStudentSearchTerm] = useState<string>('');
   const [registeredStudentsList, setRegisteredStudentsList] = useState<RegisteredStudentAccount[]>(() => {
     try {
@@ -160,6 +169,41 @@ export default function CatalogAdminModal({
       // ignore
     }
   };
+
+  const loadCloudMaterials = async () => {
+    setCloudQueueLoading(true);
+    setCloudQueueMessage(null);
+    try {
+      const response = await fetch('/api/daily-materials?status=draft', { headers: { 'x-admin-key': getStoredPassword() } });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || 'Unable to load the cloud queue');
+      setCloudMaterials(Array.isArray(payload.materials) ? payload.materials : []);
+    } catch (error: any) {
+      setCloudQueueMessage(error?.message || 'Unable to load the cloud queue');
+    } finally { setCloudQueueLoading(false); }
+  };
+
+  const updateCloudMaterial = (id: string, changes: Partial<CloudDailyMaterial>) => {
+    setCloudMaterials((items) => items.map((item) => item.id === id ? { ...item, ...changes } : item));
+  };
+
+  const saveCloudMaterial = async (material: CloudDailyMaterial, status: 'approved' | 'published' | 'rejected') => {
+    setCloudQueueMessage(null);
+    try {
+      const response = await fetch('/api/daily-materials', {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json', 'x-admin-key': getStoredPassword() },
+        body: JSON.stringify({ id: material.id, status, title: material.title, focus: material.focus, lesson: material.lesson, practice: material.practice, answers: material.answers }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || 'Unable to update material');
+      setCloudMaterials((items) => items.filter((item) => item.id !== material.id));
+      setCloudQueueMessage(status === 'published' ? 'Material published to enrolled students.' : status === 'rejected' ? 'Draft rejected.' : 'Draft approved.');
+    } catch (error: any) { setCloudQueueMessage(error?.message || 'Unable to update material'); }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated && activeTab === 'dispatch') loadCloudMaterials();
+  }, [isAuthenticated, activeTab]);
 
   // Product Form State
   const [isEditingProduct, setIsEditingProduct] = useState(false);
@@ -2927,6 +2971,43 @@ export default function CatalogAdminModal({
           {/* TAB: MANUAL DISPATCHER & CREDENTIAL GENERATOR */}
           {activeTab === 'dispatch' && (
             <div className="max-w-4xl mx-auto space-y-6">
+              <div className="p-5 rounded-2xl bg-neutral-950 border border-emerald-500/30 space-y-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Supabase cloud queue</div>
+                    <h4 className="font-black text-white mt-1">Daily Material Approval</h4>
+                    <p className="text-xs text-neutral-400 mt-1">Review and edit generated drafts before students can see them.</p>
+                  </div>
+                  <button type="button" onClick={loadCloudMaterials} disabled={cloudQueueLoading} className="px-3 py-2 rounded-xl border border-neutral-700 text-xs font-bold text-white hover:border-emerald-500 flex items-center gap-1.5 disabled:opacity-50">
+                    <RefreshCw className={`w-3.5 h-3.5 ${cloudQueueLoading ? 'animate-spin' : ''}`} /> Refresh
+                  </button>
+                </div>
+                {cloudQueueMessage && <div className="text-xs rounded-lg bg-neutral-900 border border-neutral-800 p-3 text-emerald-300">{cloudQueueMessage}</div>}
+                {!cloudQueueLoading && cloudMaterials.length === 0 && <div className="rounded-xl bg-neutral-900 border border-neutral-800 p-4 text-sm text-neutral-400">No drafts are waiting. New course drafts are generated every day at 6:00 AM IST.</div>}
+                <div className="space-y-4">
+                  {cloudMaterials.map((material) => (
+                    <div key={material.id} className="rounded-xl bg-neutral-900 border border-neutral-800 p-4 space-y-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="text-xs font-bold text-orange-300">{material.course_title} • {material.material_date}</div>
+                        <span className="text-[10px] uppercase font-bold text-amber-300 border border-amber-700 rounded px-2 py-0.5">Draft</span>
+                      </div>
+                      <input value={material.title} onChange={(e) => updateCloudMaterial(material.id, { title: e.target.value })} className="w-full px-3 py-2 rounded-lg bg-neutral-950 border border-neutral-700 text-sm font-bold text-white" />
+                      <textarea value={material.focus} onChange={(e) => updateCloudMaterial(material.id, { focus: e.target.value })} rows={2} className="w-full px-3 py-2 rounded-lg bg-neutral-950 border border-neutral-700 text-xs text-neutral-200" />
+                      {(['lesson', 'practice', 'answers'] as const).map((field) => (
+                        <div key={field}>
+                          <label className="text-[10px] uppercase font-bold text-neutral-500">{field} — one item per line</label>
+                          <textarea value={material[field].join('\n')} onChange={(e) => updateCloudMaterial(material.id, { [field]: e.target.value.split('\n') })} rows={3} className="mt-1 w-full px-3 py-2 rounded-lg bg-neutral-950 border border-neutral-700 text-xs text-neutral-300" />
+                        </div>
+                      ))}
+                      <div className="flex flex-wrap justify-end gap-2">
+                        <button type="button" onClick={() => saveCloudMaterial(material, 'rejected')} className="px-3 py-2 rounded-lg border border-red-800 text-xs font-bold text-red-300">Reject</button>
+                        <button type="button" onClick={() => saveCloudMaterial(material, 'approved')} className="px-3 py-2 rounded-lg border border-cyan-700 text-xs font-bold text-cyan-300">Approve</button>
+                        <button type="button" onClick={() => saveCloudMaterial(material, 'published')} className="px-3 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-neutral-950 text-xs font-black">Publish to Students</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
               <div className="p-5 rounded-2xl bg-gradient-to-br from-orange-950/40 to-neutral-950 border border-orange-500/30 space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                   <div>
