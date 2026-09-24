@@ -1,10 +1,9 @@
 import { useState, useMemo } from 'react';
-import { Search, Sparkles, Star, Users, CheckCircle2, BookOpen, Clock, Globe, ArrowRight, ShieldCheck, Languages, Settings, Play, Share2, Mic } from 'lucide-react';
+import { Search, Sparkles, Star, Users, CheckCircle2, BookOpen, Clock, Globe, ArrowRight, ShieldCheck, Languages, Settings, Play, Share2 } from 'lucide-react';
 import { Course, CourseCategory, CartItem } from '../types';
 import { useLanguage } from '../context/LanguageContext';
 import { getCourseVideos } from '../utils/courseVideos';
 import ShareCourseModal from './ShareCourseModal';
-import { CourseVoiceDoubtBot } from './CourseVoiceDoubtBot';
 
 interface CourseCatalogProps {
   courses: Course[];
@@ -26,7 +25,6 @@ export default function CourseCatalog({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLevel, setSelectedLevel] = useState<string>('all');
   const [sharingCourse, setSharingCourse] = useState<Course | null>(null);
-  const [voiceDoubtCourse, setVoiceDoubtCourse] = useState<Course | null>(null);
   const [showAllCourses, setShowAllCourses] = useState(false);
 
   const categories: { id: CourseCategory; label: string; count: number }[] = [
@@ -405,17 +403,6 @@ export default function CourseCatalog({
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            setVoiceDoubtCourse(course);
-                          }}
-                          className="p-2 rounded-lg bg-neutral-800 text-neutral-300 hover:text-orange-400 hover:bg-neutral-700 transition-colors cursor-pointer shrink-0"
-                          title="Ask Doubts Live with Voice AI (gemini-3.8-live)"
-                        >
-                          <Mic className="w-3.5 h-3.5 text-orange-400 animate-pulse" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
                             setSharingCourse(course);
                           }}
                           className="p-2 rounded-lg bg-neutral-800 text-neutral-300 hover:text-orange-400 hover:bg-neutral-700 transition-colors cursor-pointer shrink-0"
@@ -486,14 +473,6 @@ export default function CourseCatalog({
         onClose={() => setSharingCourse(null)}
       />
 
-      {/* Voice Doubt Bot for Selected Course */}
-      {voiceDoubtCourse && (
-        <CourseVoiceDoubtBot
-          isOpen={!!voiceDoubtCourse}
-          onClose={() => setVoiceDoubtCourse(null)}
-          course={voiceDoubtCourse}
-        />
-      )}
     </section>
   );
 }

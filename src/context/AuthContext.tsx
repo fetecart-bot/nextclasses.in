@@ -95,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       };
     }
 
-    const courseChoice = courseIdOrStandard || verified.courseId || 'course-aissee-sainik-6';
+    const courseChoice = verified.courseId || verified.enrolledCourseIds?.[0] || courseIdOrStandard || 'course-aissee-sainik-6';
     let effectiveStandard: 'class-6' | 'class-9' = verified.standard === 'class-9' ? 'class-9' : 'class-6';
     if (courseChoice === 'class-9' || courseChoice === 'course-aissee-sainik-9') {
       effectiveStandard = 'class-9';
@@ -125,11 +125,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       gender: detectedGender,
       username: verified.username,
       password: verified.password || passwordInput,
-      standard: effectiveStandard,
+      standard: courseChoice.includes('sainik') ? effectiveStandard : undefined,
       enrolledCourseIds: updatedEnrolled,
-      targetExamCode: effectiveStandard === 'class-9' ? 'AISSEE-9' : 'AISSEE-6',
-      targetExamDate: verified.targetExamDate || '2027-01-10',
-      learningGoal: verified.learningGoal || `Master AISSEE ${effectiveStandard.replace('class-', 'Class ')}`,
+      targetExamCode: verified.targetExamCode || (courseChoice.includes('sainik') ? (effectiveStandard === 'class-9' ? 'AISSEE-9' : 'AISSEE-6') : undefined),
+      targetExamDate: verified.targetExamDate,
+      learningGoal: verified.learningGoal || `Master ${verified.courseTitle || 'your enrolled course'}`,
       registeredAt: verified.registeredAt || new Date().toISOString().split('T')[0],
       credentialsDeliveredViaEmail: verified.credentialsDeliveredViaEmail,
       credentialsEmailSentAt: verified.credentialsEmailSentAt,

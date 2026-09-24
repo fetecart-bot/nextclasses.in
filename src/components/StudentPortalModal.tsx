@@ -3,7 +3,7 @@ import {
   X, Play, CheckCircle2, Clock, Calendar, Download, Send, 
   Copy, Check, Award, Tv, ExternalLink, Target, 
   BarChart3, ArrowRight, Loader2, MessageCircle, Settings, BookOpen, Sparkles,
-  Lock, KeyRound, LogOut, Mail, Eye, EyeOff, UserCheck, ShieldCheck, Medal, Mic, Radio
+  Lock, KeyRound, LogOut, Mail, Eye, EyeOff, UserCheck, ShieldCheck, Medal, Radio
 } from 'lucide-react';
 import StudentBadges from './StudentBadges';
 import { useAuth } from '../context/AuthContext';
@@ -14,8 +14,6 @@ import { PortalVideoLesson } from '../types';
 import { generateMailtoUrl } from '../utils/studentRegistry';
 import { COURSE_VIDEO_PLAYLISTS } from '../utils/courseVideos';
 import { getDailyStudyMaterial, downloadDailyStudyMaterial } from '../utils/dailyStudyMaterials';
-import { CourseVoiceDoubtBot } from './CourseVoiceDoubtBot';
-import { StudentFriendWelcomeBot } from './StudentFriendWelcomeBot';
 
 function calculateDaysToExam(targetDateStr: string): number {
   try {
@@ -2176,12 +2174,6 @@ export default function StudentPortalModal({
 
   // Determine active course (strictly prefers student's enrolled course and standard)
   const defaultCourse = useMemo(() => {
-    if (user?.standard === 'class-9' && COURSE_CURRICULUMS['course-aissee-sainik-9']) {
-      return 'course-aissee-sainik-9';
-    }
-    if (user?.standard === 'class-6' && COURSE_CURRICULUMS['course-aissee-sainik-6']) {
-      return 'course-aissee-sainik-6';
-    }
     if (user?.enrolledCourseIds && user.enrolledCourseIds.length > 0) {
       const first = user.enrolledCourseIds[0];
       if (COURSE_CURRICULUMS[first]) return first;
@@ -2222,8 +2214,6 @@ export default function StudentPortalModal({
   const [copiedPromptIndex, setCopiedPromptIndex] = useState<number | null>(null);
   const [downloadNotice, setDownloadNotice] = useState<string | null>(null);
   const [isSendingWhatsApp, setIsSendingWhatsApp] = useState(false);
-  const [isVoiceDoubtOpen, setIsVoiceDoubtOpen] = useState(false);
-  const [isFriendWelcomeOpen, setIsFriendWelcomeOpen] = useState(false);
 
   // Active curriculum based on selected course
   const currentCurriculum = COURSE_CURRICULUMS[selectedCourseId] || COURSE_CURRICULUMS['course-aissee-sainik'];
@@ -2326,9 +2316,7 @@ export default function StudentPortalModal({
     setIsLoggingIn(true);
     const res = await loginWithCredentials(loginIdentifier.trim(), loginPassword.trim(), loginCourseId);
     setIsLoggingIn(false);
-    if (res.success) {
-      setIsFriendWelcomeOpen(true);
-    } else {
+    if (!res.success) {
       setLoginError(res.message || 'Invalid credentials. Please verify or register via enrollment.');
     }
   };
@@ -2538,31 +2526,6 @@ export default function StudentPortalModal({
 
           {/* Quick Header Action Buttons */}
           <div className="flex items-center gap-2">
-            {/* Live Voice Doubt Tutor Button */}
-            <button
-              type="button"
-              onClick={() => setIsVoiceDoubtOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:opacity-90 text-neutral-950 text-xs font-black transition-all shadow-md shadow-orange-500/20 cursor-pointer"
-              title="Ask doubts in real time with Voice AI (gemini-3.8-live)"
-            >
-              <Mic className="w-3.5 h-3.5 text-neutral-950 animate-pulse" />
-              <span className="hidden sm:inline">Voice Doubt AI</span>
-              <span className="sm:hidden">Doubts</span>
-            </button>
-
-            {/* Friend Welcome & Companion Bot Button */}
-            {user && (
-              <button
-                type="button"
-                onClick={() => setIsFriendWelcomeOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/40 text-orange-300 text-xs font-bold transition-all shadow-md shadow-orange-500/10 cursor-pointer"
-                title="Friend Bot: Aim, Doubts & Family Chat"
-              >
-                <span>🤝</span>
-                <span className="hidden sm:inline">Friend Bot</span>
-              </button>
-            )}
-
             {/* Direct Study Material Download Button */}
             <button
               type="button"
@@ -2627,31 +2590,13 @@ export default function StudentPortalModal({
               }}
               className="px-2.5 py-1 rounded-lg bg-[#141d2d] border border-[#263750] text-xs font-bold text-white focus:outline-none focus:border-orange-500 cursor-pointer"
             >
-              <option value="course-google-ai-studio">💻 Google AI Studio & Gemini 2.0 Flash</option>
-              <option value="course-claude-mastery">🤖 Claude AI Masterclass: Claude 3.7 Sonnet</option>
-              <option value="course-chatgpt-6-openai">🧠 ChatGPT & OpenAI: GPT-4o, o1, o3-mini</option>
-              <option value="course-deepseek-finance-excel">📊 DeepSeek R1 & Excel Financial Modeling</option>
-              <option value="course-cursor-copilot-coding">💻 Cursor AI & GitHub Copilot Coding</option>
-              <option value="course-autonomous-ai-agents">🤖 Autonomous AI Agents: LangGraph & CrewAI</option>
-              <option value="course-voice-ai-telephony">📞 Voice AI & Realtime Telephony Calling</option>
-              <option value="course-ai-automation">⚡ AI Automation: n8n & Autonomous Workflows</option>
-              <option value="course-ai-video-filmmaking">🎬 AI Video Filmmaking & Viral Content Studio</option>
-              <option value="course-midjourney-visuals">🎨 Midjourney v6 & Ideogram Creative Studio</option>
-              <option value="course-ai-designer">🎨 Next-Gen AI Designer: Posters, Branding & Creative Media</option>
-              <option value="course-genai-beginners">🚀 Generative AI Complete Guide for Beginners</option>
-              <option value="course-ai-teachers">🍎 AI for Teachers: Lesson Plans & Question Papers</option>
-              <option value="course-ai-students">🎓 AI for Students: Academic Superpowers & Flashcards</option>
-              <option value="course-english-speaking">🗣️ Fluent English Speaking & Pronunciation</option>
-              <option value="course-french-speaking">🇫🇷 French Speaking & Fluency (CEFR A1–B2)</option>
-              <option value="course-german-speaking">🇩🇪 German Speaking & Fluency (Goethe A1–B2)</option>
-              <option value="course-public-speaking-articulation">🎙️ Public Speaking, Articulation & Stage Mastery</option>
-              <option value="course-aissee-sainik-6">🎖️ AISSEE Sainik School: Class 6 (300 Marks Track)</option>
-              <option value="course-aissee-sainik-9">🎖️ AISSEE Sainik School: Class 9 (400 Marks Track)</option>
-              <option value="course-aissee-sainik">🎖️ AISSEE Sainik School: Dual Track (Class 6 & 9)</option>
-              <option value="course-navodaya-jnvst">🏫 Navodaya Vidyalaya (JNVST) Rapid Kit</option>
-              <option value="course-neet-ug">🩺 NEET (UG) 2027 Medical Entrance Track</option>
-              <option value="course-iit-jee">📐 IIT JEE (Main & Advanced) 2027 Track</option>
-              <option value="course-keam-prep">⚡ KEAM 2027 (Kerala Engineering) Speed Master</option>
+              {(user?.enrolledCourseIds || [])
+                .filter((courseId) => COURSE_CURRICULUMS[courseId])
+                .map((courseId) => (
+                  <option key={courseId} value={courseId}>
+                    {COURSE_CURRICULUMS[courseId].courseTitle}
+                  </option>
+                ))}
             </select>
 
             {/* Quick Standard Toggle for Sainik School aspirants */}
@@ -2923,31 +2868,6 @@ export default function StudentPortalModal({
                       {currentLesson.description}
                     </p>
 
-                    {/* Voice Doubt AI Quick Prompt Banner */}
-                    <div className="p-3 rounded-xl bg-gradient-to-r from-orange-950/50 to-amber-950/40 border border-orange-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-orange-500 text-neutral-950 flex items-center justify-center font-bold shrink-0">
-                          <Mic className="w-4 h-4 text-neutral-950 animate-pulse" />
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-white">Have a doubt in this lesson? Ask Voice Tutor</span>
-                            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-500/40">gemini-3.8-live</span>
-                          </div>
-                          <p className="text-[11px] text-neutral-300">
-                            Speak in Malayalam, Tamil, Telugu, Hindi, or English. Get real-time spoken and written clarification.
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setIsVoiceDoubtOpen(true)}
-                        className="w-full sm:w-auto px-3 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-400 text-neutral-950 font-bold text-xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer shadow-md"
-                      >
-                        <Mic className="w-3 h-3 text-neutral-950" />
-                        <span>Ask Doubts</span>
-                      </button>
-                    </div>
                   </div>
                 )}
               </div>
@@ -3282,41 +3202,7 @@ export default function StudentPortalModal({
           </button>
         </div>
 
-        {/* Floating Voice Doubt Tutor Pill */}
-        <button
-          type="button"
-          onClick={() => setIsVoiceDoubtOpen(true)}
-          className="fixed sm:absolute bottom-5 right-5 z-30 px-3.5 py-2.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 hover:opacity-95 text-neutral-950 font-black text-xs shadow-2xl shadow-orange-500/30 border border-amber-300/40 flex items-center gap-2 cursor-pointer transition-transform active:scale-95"
-          title="Ask course doubts live with voice AI (Gemini 3.8 Live)"
-        >
-          <Mic className="w-4 h-4 text-neutral-950 animate-pulse" />
-          <span>🎙️ Voice Doubt AI</span>
-        </button>
-
       </div>
-
-      {/* Real-time Voice Doubt Resolution Bot for Active Student Portal Course */}
-      <CourseVoiceDoubtBot
-        isOpen={isVoiceDoubtOpen}
-        onClose={() => setIsVoiceDoubtOpen(false)}
-        course={{
-          id: selectedCourseId,
-          title: currentCurriculum.courseTitle,
-          category: currentCurriculum.examCode,
-        }}
-      />
-
-      {/* Student Friend Welcome & Companion Bot */}
-      {isFriendWelcomeOpen && user && (
-        <StudentFriendWelcomeBot
-          isOpen={isFriendWelcomeOpen}
-          onClose={() => setIsFriendWelcomeOpen(false)}
-          student={user}
-          courseTitle={currentCurriculum.courseTitle}
-          courseId={selectedCourseId}
-          onContinueToDashboard={() => setIsFriendWelcomeOpen(false)}
-        />
-      )}
     </div>
   );
 }
