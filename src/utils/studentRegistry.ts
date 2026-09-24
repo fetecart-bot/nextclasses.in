@@ -340,6 +340,9 @@ export async function registerPaidStudent(details: {
   courseId: string;
   amount?: number;
   utrNumber?: string;
+  username?: string;
+  password?: string;
+  courseTitle?: string;
 }): Promise<RegisteredStudentAccount> {
   const students = getRegisteredStudents();
   const cleanEmail = details.email.trim().toLowerCase();
@@ -375,10 +378,10 @@ export async function registerPaidStudent(details: {
       name: details.name.trim(),
       email: cleanEmail,
       phone: `+91 ${cleanPhone}`,
-      username,
-      password,
+      username: details.username || username,
+      password: details.password || password,
       courseId: details.courseId,
-      courseTitle: course.title,
+      courseTitle: details.courseTitle || course.title,
       enrolledCourseIds: [details.courseId],
       targetExamCode: course.targetExamCode || 'AISSEE',
       targetExamDate: course.defaultExamDate || '2027-01-10',
@@ -515,4 +518,3 @@ export function isRegisteredStudent(user: StudentUser | null): boolean {
   const cleanEmail = user.email.trim().toLowerCase();
   return students.some((s) => s.email.toLowerCase() === cleanEmail);
 }
-

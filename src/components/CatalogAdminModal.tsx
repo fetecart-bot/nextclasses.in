@@ -12,6 +12,7 @@ import {
   approvePaymentClaim, 
   rejectPaymentClaim, 
   syncRazorpayPayments,
+  assignPaymentClaimCourse,
   PaymentClaim 
 } from '../utils/paymentClaims';
 import { 
@@ -108,7 +109,7 @@ export default function CatalogAdminModal({
     }
   });
 
-  // Admin Password Gate State (Default passcode: "admin123" or user-configured)
+  // Admin access is verified by the server so it works consistently on every browser.
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     try {
       return sessionStorage.getItem('fetecart_admin_authed') === 'true';
@@ -119,57 +120,31 @@ export default function CatalogAdminModal({
   const [passwordInput, setPasswordInput] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
-  const [isChangingPass, setIsChangingPass] = useState(false);
-  const [newPassInput, setNewPassInput] = useState('');
-  const [passChangedNotice, setPassChangedNotice] = useState<string | null>(null);
-
   const getStoredPassword = (): string => {
     try {
-      return (localStorage.getItem('fetecart_admin_password') || 'admin123').trim();
+      return (sessionStorage.getItem('nextclasses_admin_key') || '').trim();
     } catch {
-      return 'admin123';
+      return '';
     }
   };
 
-  const handleAdminLogin = (e: FormEvent) => {
+  const handleAdminLogin = async (e: FormEvent) => {
     e.preventDefault();
     const cleanInput = passwordInput.trim();
-    const stored = getStoredPassword();
-
-    // Universal master passwords so admin is NEVER locked out:
-    // 1. 'admin123' (case-insensitive)
-    // 2. 'fetecart' (case-insensitive)
-    // 3. User configured password
-    const isMatch =
-      cleanInput.toLowerCase() === 'admin123' ||
-      cleanInput.toLowerCase() === 'fetecart' ||
-      cleanInput === stored ||
-      cleanInput.toLowerCase() === stored.toLowerCase();
-
-    if (isMatch) {
-      setIsAuthenticated(true);
-      setAuthError(null);
-      setPasswordInput('');
-      try {
-        sessionStorage.setItem('fetecart_admin_authed', 'true');
-      } catch {
-        // ignore
-      }
-    } else {
-      setAuthError('Incorrect passcode. Please try again or reset.');
-    }
-  };
-
-  const handleResetPasswordToDefault = () => {
+    setAuthError(null);
     try {
-      localStorage.removeItem('fetecart_admin_password');
-      localStorage.setItem('fetecart_admin_password', 'admin123');
+      const response = await fetch('/api/admin-auth', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ passcode: cleanInput }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || 'Incorrect admin passcode');
       setIsAuthenticated(true);
-      setAuthError(null);
       setPasswordInput('');
       sessionStorage.setItem('fetecart_admin_authed', 'true');
-    } catch {
-      setIsAuthenticated(true);
+      sessionStorage.setItem('nextclasses_admin_key', cleanInput);
+    } catch (error: any) {
+      setAuthError(error?.message || 'Unable to verify admin access');
     }
   };
 
@@ -179,30 +154,12 @@ export default function CatalogAdminModal({
     setAuthError(null);
     try {
       sessionStorage.removeItem('fetecart_admin_authed');
+      sessionStorage.removeItem('nextclasses_admin_key');
     } catch {
       // ignore
     }
   };
 
-  const handleUpdatePassword = (e: FormEvent) => {
-    e.preventDefault();
-    if (!newPassInput.trim() || newPassInput.trim().length < 4) {
-      setPassChangedNotice('Password must be at least 4 characters long.');
-      return;
-    }
-    try {
-      localStorage.setItem('fetecart_admin_password', newPassInput.trim());
-      setPassChangedNotice('Admin password updated successfully!');
-      setNewPassInput('');
-      setTimeout(() => {
-        setIsChangingPass(false);
-        setPassChangedNotice(null);
-      }, 2000);
-    } catch {
-      setPassChangedNotice('Failed to save new password.');
-    }
-  };
-  
   // Product Form State
   const [isEditingProduct, setIsEditingProduct] = useState(false);
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
@@ -296,7 +253,7 @@ export default function CatalogAdminModal({
     setProcessingClaimId(claim.id);
     setClaimStatusNotice(null);
     try {
-      const result = await approvePaymentClaim(claim.id, 'Admin (fetecart@gmail.com)');
+      const result = await approvePaymentClaim(claim.id, 'Admin (fetecart@gmail.com)', getStoredPassword());
       if (result.success && result.account) {
         setClaimStatusNotice(`✓ Approved! Generated Credentials for ${claim.studentName} (@${result.account.username}). Study materials unlocked!`);
         loadClaimsData();
@@ -767,13 +724,6 @@ export default function CatalogAdminModal({
                       <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
                       <span>{authError}</span>
                     </p>
-                    <button
-                      type="button"
-                      onClick={handleResetPasswordToDefault}
-                      className="text-[11px] text-orange-400 hover:text-orange-300 underline cursor-pointer block font-medium"
-                    >
-                      Click here to reset passcode to default & unlock instantly
-                    </button>
                   </div>
                 )}
               </div>
@@ -865,13 +815,6 @@ export default function CatalogAdminModal({
                     <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
                     <span>{authError}</span>
                   </p>
-                  <button
-                    type="button"
-                    onClick={handleResetPasswordToDefault}
-                    className="text-[11px] text-orange-400 hover:text-orange-300 underline cursor-pointer block font-medium"
-                  >
-                    Click here to reset passcode to default & unlock instantly
-                  </button>
                 </div>
               )}
             </div>
@@ -2053,9 +1996,19 @@ export default function CatalogAdminModal({
 
                               <div className="pt-1">
                                 <span className="text-[11px] text-neutral-500 uppercase tracking-wider font-semibold">Enrolled Course / Pack</span>
-                                <div className="text-xs font-semibold text-orange-300 mt-0.5">
-                                  {claim.courseTitle}
-                                </div>
+                                <select
+                                  value={claim.courseId}
+                                  onChange={(event) => {
+                                    assignPaymentClaimCourse(claim.id, event.target.value);
+                                    loadClaimsData();
+                                  }}
+                                  className="w-full mt-1 px-3 py-2 rounded-lg bg-neutral-950 border border-neutral-700 text-xs font-semibold text-orange-300"
+                                >
+                                  <option value="course-unassigned">Select the purchased course</option>
+                                  {courses.map((course) => (
+                                    <option key={course.id} value={course.id}>{course.title} — ₹{course.price.toLocaleString('en-IN')}</option>
+                                  ))}
+                                </select>
                               </div>
 
                               {claim.notes && (
@@ -2144,7 +2097,7 @@ export default function CatalogAdminModal({
                                 <button
                                   type="button"
                                   onClick={() => handleApproveClaim(claim)}
-                                  disabled={processingClaimId === claim.id}
+                                  disabled={processingClaimId === claim.id || claim.courseId === 'course-unassigned'}
                                   className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-extrabold flex items-center gap-1.5 shadow-lg shadow-emerald-600/20 transition-all cursor-pointer disabled:opacity-50"
                                 >
                                   {processingClaimId === claim.id ? (
@@ -2164,6 +2117,14 @@ export default function CatalogAdminModal({
 
                             {isApproved && (
                               <>
+                                <button
+                                  type="button"
+                                  onClick={() => handleApproveClaim(claim)}
+                                  disabled={processingClaimId === claim.id || claim.courseId === 'course-unassigned'}
+                                  className="px-3.5 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold disabled:opacity-50"
+                                >
+                                  Correct & Regenerate Login
+                                </button>
                                 <button
                                   type="button"
                                   onClick={() => handleDownloadStudyPack(claim.courseId, claim.studentName)}
@@ -3280,34 +3241,9 @@ export default function CatalogAdminModal({
                   </span>
                 </div>
 
-                <form onSubmit={handleUpdatePassword} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-neutral-300 mb-1.5">
-                      Change Admin Passcode
-                    </label>
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <input
-                        type="text"
-                        value={newPassInput}
-                        onChange={(e) => setNewPassInput(e.target.value)}
-                        placeholder="Enter new passcode (min 4 characters)"
-                        className="flex-1 px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-700 text-white placeholder:text-neutral-500 text-xs focus:outline-none focus:border-orange-500 font-mono"
-                      />
-                      <button
-                        type="submit"
-                        className="px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-neutral-950 font-bold text-xs transition-colors shrink-0 flex items-center justify-center gap-1.5"
-                      >
-                        <Check className="w-4 h-4" />
-                        <span>Update Passcode</span>
-                      </button>
-                    </div>
-                    {passChangedNotice && (
-                      <p className={`text-xs mt-2 font-semibold ${passChangedNotice.includes('successfully') ? 'text-emerald-400' : 'text-rose-400'}`}>
-                        {passChangedNotice}
-                      </p>
-                    )}
-                  </div>
-                </form>
+                <div className="p-4 rounded-xl bg-neutral-900 border border-neutral-800 text-xs text-neutral-300">
+                  The admin passcode is managed securely in Vercel as <code className="text-orange-300">ADMIN_API_KEY</code>. Update that value in Vercel and redeploy whenever you want to change the password. The same passcode then works in every browser.
+                </div>
 
                 <div className="p-3.5 rounded-lg bg-neutral-900/90 border border-neutral-800 text-xs text-neutral-400 space-y-1.5">
                   <div className="font-semibold text-neutral-300 flex items-center gap-1.5">

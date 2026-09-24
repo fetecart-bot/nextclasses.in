@@ -85,6 +85,18 @@ export function savePaymentClaims(claims: PaymentClaim[]): void {
   }
 }
 
+export function assignPaymentClaimCourse(claimId: string, courseId: string): boolean {
+  const course = COURSES_DATA.find((item) => item.id === courseId);
+  if (!course) return false;
+  const claims = getPaymentClaims();
+  const claim = claims.find((item) => item.id === claimId);
+  if (!claim) return false;
+  claim.courseId = course.id;
+  claim.courseTitle = course.title;
+  savePaymentClaims(claims);
+  return true;
+}
+
 export async function syncRazorpayPayments(adminKey: string): Promise<{ imported: number; total: number }> {
   const response = await fetch('/api/razorpay-payments', {
     headers: { 'x-admin-key': adminKey },
@@ -97,7 +109,9 @@ export async function syncRazorpayPayments(adminKey: string): Promise<{ imported
   let imported = 0;
   for (const payment of payload.payments || []) {
     if (!payment.id || knownRefs.has(payment.id)) continue;
-    const course = COURSES_DATA.find((item) => item.id === payment.courseId);
+    const exactCourse = COURSES_DATA.find((item) => item.id === payment.courseId);
+    const priceMatches = COURSES_DATA.filter((item) => Number(item.price) === Number(payment.amount));
+    const course = exactCourse || (priceMatches.length === 1 ? priceMatches[0] : undefined);
     claims.unshift({
       id: `claim-rzp-${payment.id}`,
       claimCode: `RZP-${payment.id.slice(-8).toUpperCase()}`,
@@ -193,7 +207,8 @@ export async function submitPaymentClaim(params: {
  */
 export async function approvePaymentClaim(
   claimId: string,
-  verifiedBy: string = 'Admin (fetecart@gmail.com)'
+  verifiedBy: string = 'Admin (fetecart@gmail.com)',
+  adminKey: string = ''
 ): Promise<{ success: boolean; account?: RegisteredStudentAccount; error?: string }> {
   const claims = getPaymentClaims();
   const index = claims.findIndex((c) => c.id === claimId);
@@ -203,8 +218,23 @@ export async function approvePaymentClaim(
 
   const claim = claims[index];
 
+  if (!claim.courseId || claim.courseId === 'course-unassigned') {
+    return { success: false, error: 'Choose the correct course before approval' };
+  }
+
   try {
     // 1. Register student account and dispatch official credentials
+    let serverAccount: any = null;
+    if (claim.utrNumber.startsWith('pay_')) {
+      const response = await fetch('/api/payment-credentials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+        body: JSON.stringify({ paymentId: claim.utrNumber, courseId: claim.courseId, courseTitle: claim.courseTitle }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || 'Unable to verify Razorpay payment');
+      serverAccount = payload.account;
+    }
     const account = await registerPaidStudent({
       name: claim.studentName,
       email: claim.email,
@@ -212,6 +242,9 @@ export async function approvePaymentClaim(
       courseId: claim.courseId,
       amount: claim.amount,
       utrNumber: claim.utrNumber,
+      username: serverAccount?.username,
+      password: serverAccount?.password,
+      courseTitle: claim.courseTitle,
     });
 
     // 2. Mark claim as approved
