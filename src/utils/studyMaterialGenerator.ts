@@ -1,4 +1,5 @@
 import { Course } from '../types';
+import { COURSES_DATA } from '../data';
 
 export interface StudyMaterialPack {
   courseId: string;
@@ -469,12 +470,74 @@ export const STUDY_MATERIALS_DATABASE: Record<string, StudyMaterialPack> = {
   },
 };
 
+function buildCourseStudyMaterialPack(course: Course): StudyMaterialPack {
+  const modules = course.curriculum || [];
+  const targetExam = course.examName || course.title;
+
+  return {
+    courseId: course.id,
+    courseTitle: course.title,
+    targetExam,
+    description: course.subtitle,
+    syllabusOverview: modules.map((module) => ({
+      section: `Module ${module.moduleNumber}: ${module.title}`,
+      weightage: module.duration,
+      keyTopics: module.lessons,
+    })),
+    formulaAndTips: [
+      `Follow the ${course.duration} learning plan and complete each module in order.`,
+      'Write short notes after every lesson and practise the demonstrated workflow before continuing.',
+      'Use the student portal quizzes and exercises to check understanding after each module.',
+      'Keep a revision list of difficult topics and revisit it at the end of every week.',
+      'Contact the academic support team when a lesson or exercise needs clarification.',
+    ],
+    sampleQuestions: modules.slice(0, 6).map((module, index) => ({
+      id: index + 1,
+      subject: module.title,
+      question: `Which lesson is included in Module ${module.moduleNumber} of this course?`,
+      options: [
+        `A) ${module.lessons[0] || module.title}`,
+        'B) An unrelated Sainik School entrance topic',
+        'C) A module from a different course',
+        'D) None of the above',
+      ],
+      correctOption: `A) ${module.lessons[0] || module.title}`,
+      explanation: `This topic is part of Module ${module.moduleNumber}: ${module.title}.`,
+    })),
+    weeklySchedule: modules.map((module, index) => ({
+      week: index + 1,
+      title: module.title,
+      focus: module.lessons.join('; '),
+      deliverables: `Lesson notes, guided practice and module review (${module.duration})`,
+    })),
+  };
+}
+
+export function getStudyMaterialPack(courseId: string): StudyMaterialPack {
+  const dedicatedPack = STUDY_MATERIALS_DATABASE[courseId];
+  if (dedicatedPack) return dedicatedPack;
+
+  const course = COURSES_DATA.find((item) => item.id === courseId);
+  if (course) return buildCourseStudyMaterialPack(course);
+
+  return {
+    courseId,
+    courseTitle: 'Course study material',
+    targetExam: 'Assigned course',
+    description: 'The course assignment could not be matched. Ask the administrator to select the enrolled course before downloading this pack.',
+    syllabusOverview: [],
+    formulaAndTips: ['Confirm the enrolled course in the admin portal before issuing study materials.'],
+    sampleQuestions: [],
+    weeklySchedule: [],
+  };
+}
+
 /**
  * Generates an attractive, standalone, printable HTML document representing the official study package.
  * This can be opened, printed, or saved as PDF in any browser with 1-click.
  */
 export function generatePrintableStudyMaterialHtml(courseId: string, studentName = 'NextClass Student'): string {
-  const pack = STUDY_MATERIALS_DATABASE[courseId] || STUDY_MATERIALS_DATABASE['course-aissee-sainik'];
+  const pack = getStudyMaterialPack(courseId);
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -728,7 +791,7 @@ export function downloadStudyMaterialFile(courseId: string, studentName = 'Stude
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  const pack = STUDY_MATERIALS_DATABASE[courseId] || STUDY_MATERIALS_DATABASE['course-aissee-sainik'];
+  const pack = getStudyMaterialPack(courseId);
   const cleanTitle = pack.targetExam.replace(/[^a-zA-Z0-9]/g, '_');
   a.download = `NextClass_${cleanTitle}_Study_Pack.html`;
   document.body.appendChild(a);
@@ -751,7 +814,7 @@ export function generateWhatsAppDispatchMessage(
     ? (standardChoice === 'class-9' ? 'course-aissee-sainik-9' : 'course-aissee-sainik-6')
     : courseId;
 
-  const pack = STUDY_MATERIALS_DATABASE[effectiveId] || STUDY_MATERIALS_DATABASE['course-aissee-sainik-6'] || STUDY_MATERIALS_DATABASE['course-aissee-sainik'];
+  const pack = getStudyMaterialPack(effectiveId);
 
   const origin = typeof window !== 'undefined' && window.location ? window.location.origin : 'https://www.nextclasses.in';
   const portalUrl = `${origin}/?portal=true`;
@@ -759,7 +822,10 @@ export function generateWhatsAppDispatchMessage(
   const isClass6 = effectiveId.includes('-6') || standardChoice === 'class-6';
   const isClass9 = effectiveId.includes('-9') || standardChoice === 'class-9';
 
-  let syllabusBullets = `• Complete Class 6 & 9 Blueprint & Syllabus Breakdown\n• Speed Arithmetic, Non-Verbal Intelligence & GK Question Bank\n• Official 300/400-Mark OMR Practice Sheet & Solutions`;
+  let syllabusBullets = pack.syllabusOverview
+    .slice(0, 3)
+    .map((section) => `• ${section.section}: ${section.keyTopics.slice(0, 2).join(', ')}`)
+    .join('\n');
   if (isClass6) {
     syllabusBullets = `• Complete Class 6 Blueprint & 300-Mark Official Syllabus (Maths 150 M, Reason 50 M, GK 50 M, Lang 50 M)\n• Speed Vedic Arithmetic, Non-Verbal Picture Puzzles & Defence GK\n• Official 300-Mark Sainik OMR Practice Sheet & Answer Solutions`;
   } else if (isClass9) {

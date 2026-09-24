@@ -253,18 +253,28 @@ export async function registerPaidStudent(details: {
   const course = COURSES_DATA.find((c) => c.id === details.courseId) || COURSES_DATA[2];
 
   // Check if this student email is already registered for this course
-  let existing = students.find(
-    (s) => s.email.toLowerCase() === cleanEmail && s.courseId === details.courseId
+  let existing = students.find((s) =>
+    (s.email.toLowerCase() === cleanEmail && s.courseId === details.courseId) ||
+    Boolean(details.utrNumber && s.paymentReference === details.utrNumber)
   );
 
   let account: RegisteredStudentAccount;
 
   if (existing) {
-    // Update existing credentials and refresh
+    // Refresh the account and its course assignment. This is also used by the
+    // admin's "Correct & Regenerate Login" action after correcting a claim.
     account = {
       ...existing,
       name: details.name.trim(),
       phone: `+91 ${cleanPhone}`,
+      username: details.username || existing.username,
+      password: details.password || existing.password,
+      courseId: details.courseId,
+      courseTitle: details.courseTitle || course.title,
+      enrolledCourseIds: [details.courseId],
+      targetExamCode: course.targetExamCode || 'OTHER',
+      targetExamDate: course.defaultExamDate,
+      learningGoal: `Excel in ${details.courseTitle || course.title}`,
       amount: details.amount || existing.amount,
       utrNumber: details.utrNumber || existing.utrNumber,
       paymentReference: details.utrNumber || existing.paymentReference,
