@@ -49,6 +49,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [justLoggedInUser, setJustLoggedInUser] = useState<StudentUser | null>(null);
 
+  // Refresh restored sessions from the server so admin course corrections take
+  // effect without asking a student to clear browser storage or sign out.
+  useEffect(() => {
+    const restored = user;
+    if (!restored?.password || !(restored.username || restored.email)) return;
+    let cancelled = false;
+    fetch('/api/student-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identifier: restored.username || restored.email, password: restored.password }),
+    })
+      .then(async (response) => ({ ok: response.ok, data: await response.json().catch(() => ({})) }))
+      .then(({ ok, data }) => {
+        if (!cancelled && ok && data.account?.enrolledCourseIds?.length) {
+          setUser((current) => current ? { ...current, ...data.account, password: current.password } : current);
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
   useEffect(() => {
     if (user) {
       try {
