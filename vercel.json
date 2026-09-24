@@ -1,4 +1,7 @@
 {
+  "crons": [
+    { "path": "/api/daily-materials-cron", "schedule": "30 0 * * *" }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",

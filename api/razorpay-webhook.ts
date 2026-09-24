@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import nodemailer from 'nodemailer';
 import { credentialsFor } from './_razorpay.js';
+import { saveStudentAndEnrollment } from './_supabase.js';
 
 export const config = { api: { bodyParser: false } };
 
@@ -26,6 +27,12 @@ export default async function handler(req: any, res: any) {
   const account = credentialsFor(payment);
   const portal = 'https://www.nextclasses.in/?portal=true';
   const message = `Hi ${account.name}, your Nextclasses payment is confirmed. Login: ${account.username} Password: ${account.password} Portal: ${portal}`;
+
+  try {
+    await saveStudentAndEnrollment(account, payment);
+  } catch (error) {
+    console.error('Supabase enrollment sync failed', error);
+  }
 
   if (account.email && process.env.SMTP_USER && process.env.SMTP_PASS) {
     const transport = nodemailer.createTransport({
