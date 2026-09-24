@@ -124,7 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       phone: verified.phone,
       gender: detectedGender,
       username: verified.username,
-      password: verified.password,
+      password: verified.password || passwordInput,
       standard: effectiveStandard,
       enrolledCourseIds: updatedEnrolled,
       targetExamCode: effectiveStandard === 'class-9' ? 'AISSEE-9' : 'AISSEE-6',

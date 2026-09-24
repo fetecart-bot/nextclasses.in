@@ -45,8 +45,20 @@ export default async function handler(req: any, res: any) {
       if (!student || student.password_hash !== passwordHash(password)) return res.status(401).json({ error: 'Invalid student credentials' });
       const enrollments = await supabaseRequest(`enrollments?student_id=eq.${student.id}&course_id=eq.${encodeURIComponent(courseId)}&limit=1`);
       if (!enrollments?.length) return res.status(403).json({ error: 'This course is not enrolled' });
+      const materialId = String(req.body?.materialId || '');
+      const action = String(req.body?.action || '');
+      if (materialId && ['opened', 'completed'].includes(action)) {
+        const allowed = await supabaseRequest(`daily_materials?id=eq.${encodeURIComponent(materialId)}&course_id=eq.${encodeURIComponent(courseId)}&status=eq.published&limit=1`);
+        if (!allowed?.length) return res.status(404).json({ error: 'Published material not found' });
+        const now = new Date().toISOString();
+        await supabaseRequest('student_progress?on_conflict=student_id,material_id', {
+          method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+          body: JSON.stringify({ student_id: student.id, material_id: materialId, opened_at: now, ...(action === 'completed' ? { completed_at: now } : {}) }),
+        });
+      }
       const rows = await supabaseRequest(`daily_materials?course_id=eq.${encodeURIComponent(courseId)}&status=eq.published&order=material_date.desc&limit=30`);
-      return res.status(200).json({ materials: rows });
+      const progress = await supabaseRequest(`student_progress?student_id=eq.${student.id}&select=material_id,opened_at,completed_at`);
+      return res.status(200).json({ materials: rows, progress });
     }
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (error: any) {

@@ -39,6 +39,11 @@ interface StudentPortalModalProps {
   initialCourseId?: string;
 }
 
+type PortalDailyMaterial = {
+  id?: string; date: string; title: string; focus: string;
+  lesson: string[]; practice: string[]; answers: string[];
+};
+
 // Course-specific Curriculums
 const COURSE_CURRICULUMS: Record<string, {
   courseTitle: string;
@@ -2238,6 +2243,37 @@ export default function StudentPortalModal({
 
   const currentLesson = effectiveVideos.find((l) => l.id === activeVideoId) || effectiveVideos[0];
   const dailyMaterial = useMemo(() => getDailyStudyMaterial(selectedCourseId), [selectedCourseId]);
+  const [cloudDailyMaterials, setCloudDailyMaterials] = useState<PortalDailyMaterial[]>([]);
+  const [completedMaterialIds, setCompletedMaterialIds] = useState<string[]>([]);
+  const [cloudMaterialLoading, setCloudMaterialLoading] = useState(false);
+
+  const syncCloudMaterials = async (action?: 'opened' | 'completed', materialId?: string) => {
+    if (!user?.password || !(user.username || user.email)) return;
+    setCloudMaterialLoading(true);
+    try {
+      const response = await fetch('/api/daily-materials', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier: user.username || user.email, password: user.password, courseId: selectedCourseId, action, materialId }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || 'Unable to load daily materials');
+      setCloudDailyMaterials((payload.materials || []).map((item: any) => ({ id: item.id, date: item.material_date, title: item.title, focus: item.focus, lesson: item.lesson || [], practice: item.practice || [], answers: item.answers || [] })));
+      setCompletedMaterialIds((payload.progress || []).filter((item: any) => item.completed_at).map((item: any) => item.material_id));
+    } catch {
+      setCloudDailyMaterials([]);
+    } finally { setCloudMaterialLoading(false); }
+  };
+
+  useEffect(() => {
+    if (user) syncCloudMaterials();
+  }, [user?.id, user?.password, selectedCourseId]);
+
+  useEffect(() => {
+    const newest = cloudDailyMaterials[0];
+    if (activeTab === 'daily' && newest?.id) syncCloudMaterials('opened', newest.id);
+  }, [activeTab, cloudDailyMaterials[0]?.id]);
+
+  const visibleDailyMaterials: PortalDailyMaterial[] = cloudDailyMaterials.length ? cloudDailyMaterials : [dailyMaterial];
 
   const handleCopy = (text: string, index: number) => {
     navigator.clipboard?.writeText(text);
@@ -2799,42 +2835,30 @@ export default function StudentPortalModal({
         <div className="p-4 sm:p-6 overflow-y-auto flex-1">
           {activeTab === 'daily' && (
             <div className="max-w-4xl mx-auto space-y-5">
-              <div className="p-5 rounded-2xl bg-gradient-to-br from-orange-950/50 to-[#111827] border border-orange-500/30">
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                  <div>
-                    <div className="text-[11px] font-bold uppercase tracking-wider text-orange-400">Published daily lesson • {dailyMaterial.date}</div>
-                    <h3 className="text-xl font-black text-white mt-1">{dailyMaterial.title}</h3>
-                    <p className="text-sm text-neutral-300 mt-1">{dailyMaterial.focus}</p>
+              {cloudMaterialLoading && <div className="text-xs text-neutral-400 flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Checking for published materials…</div>}
+              {visibleDailyMaterials.map((material, materialIndex) => (
+                <div key={material.id || material.date} className="space-y-5">
+                  <div className="p-5 rounded-2xl bg-gradient-to-br from-orange-950/50 to-[#111827] border border-orange-500/30">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                      <div>
+                        <div className="text-[11px] font-bold uppercase tracking-wider text-orange-400">{materialIndex === 0 ? 'Latest published lesson' : 'Previous lesson'} • {material.date}</div>
+                        <h3 className="text-xl font-black text-white mt-1">{material.title}</h3>
+                        <p className="text-sm text-neutral-300 mt-1">{material.focus}</p>
+                      </div>
+                      <button type="button" onClick={() => downloadDailyStudyMaterial({ ...material, id: material.id || `daily-${selectedCourseId}-${material.date}`, courseId: selectedCourseId, courseTitle: currentCurriculum.courseTitle, estimatedMinutes: 30 }, studentName)} className="px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-400 text-neutral-950 text-xs font-extrabold flex items-center justify-center gap-2 shrink-0">
+                        <Download className="w-4 h-4" /> Download Material
+                      </button>
+                    </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => downloadDailyStudyMaterial(dailyMaterial, studentName)}
-                    className="px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-400 text-neutral-950 text-xs font-extrabold flex items-center justify-center gap-2 shrink-0"
-                  >
-                    <Download className="w-4 h-4" /> Download Today’s Material
-                  </button>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <section className="p-5 rounded-2xl bg-[#111827] border border-[#233047]"><h4 className="font-extrabold text-white mb-3 flex items-center gap-2"><BookOpen className="w-4 h-4 text-orange-400" /> Lesson notes</h4><ul className="space-y-3 text-sm text-neutral-300">{material.lesson.map((item) => <li key={item} className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" /><span>{item}</span></li>)}</ul></section>
+                    <section className="p-5 rounded-2xl bg-[#111827] border border-[#233047]"><h4 className="font-extrabold text-white mb-3 flex items-center gap-2"><Target className="w-4 h-4 text-orange-400" /> Practice activity</h4><ol className="space-y-3 text-sm text-neutral-300 list-decimal pl-5">{material.practice.map((item) => <li key={item}>{item}</li>)}</ol></section>
+                  </div>
+                  <details className="p-5 rounded-2xl bg-[#0f172a] border border-[#233047]"><summary className="font-bold text-amber-300 cursor-pointer">Open answer and self-check guide after completing the activity</summary><ol className="mt-4 space-y-2 text-sm text-neutral-300 list-decimal pl-5">{material.answers.map((item) => <li key={item}>{item}</li>)}</ol></details>
+                  {material.id && <button type="button" disabled={completedMaterialIds.includes(material.id)} onClick={() => syncCloudMaterials('completed', material.id)} className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-950 disabled:text-emerald-400 text-white text-sm font-extrabold flex items-center justify-center gap-2"><CheckCircle2 className="w-4 h-4" />{completedMaterialIds.includes(material.id) ? 'Completed' : 'Mark as Completed'}</button>}
+                  {materialIndex < visibleDailyMaterials.length - 1 && <div className="border-t border-neutral-800" />}
                 </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <section className="p-5 rounded-2xl bg-[#111827] border border-[#233047]">
-                  <h4 className="font-extrabold text-white mb-3 flex items-center gap-2"><BookOpen className="w-4 h-4 text-orange-400" /> Lesson notes</h4>
-                  <ul className="space-y-3 text-sm text-neutral-300">
-                    {dailyMaterial.lesson.map((item) => <li key={item} className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" /><span>{item}</span></li>)}
-                  </ul>
-                </section>
-                <section className="p-5 rounded-2xl bg-[#111827] border border-[#233047]">
-                  <h4 className="font-extrabold text-white mb-3 flex items-center gap-2"><Target className="w-4 h-4 text-orange-400" /> Practice activity</h4>
-                  <ol className="space-y-3 text-sm text-neutral-300 list-decimal pl-5">
-                    {dailyMaterial.practice.map((item) => <li key={item}>{item}</li>)}
-                  </ol>
-                </section>
-              </div>
-              <details className="p-5 rounded-2xl bg-[#0f172a] border border-[#233047]">
-                <summary className="font-bold text-amber-300 cursor-pointer">Open answer and self-check guide after completing the activity</summary>
-                <ol className="mt-4 space-y-2 text-sm text-neutral-300 list-decimal pl-5">
-                  {dailyMaterial.answers.map((item) => <li key={item}>{item}</li>)}
-                </ol>
-              </details>
+              ))}
             </div>
           )}
 
