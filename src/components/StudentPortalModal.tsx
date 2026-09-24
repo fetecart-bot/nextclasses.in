@@ -3,7 +3,7 @@ import {
   X, Play, CheckCircle2, Clock, Calendar, Download, Send, 
   Copy, Check, Award, Tv, ExternalLink, Target, 
   BarChart3, ArrowRight, Loader2, MessageCircle, Settings, BookOpen, Sparkles,
-  Lock, KeyRound, LogOut, Mail, Eye, EyeOff, UserCheck, ShieldCheck, Medal, Radio
+  Lock, KeyRound, LogOut, Mail, Eye, EyeOff, UserCheck, ShieldCheck, Medal, Mic, Radio
 } from 'lucide-react';
 import StudentBadges from './StudentBadges';
 import { useAuth } from '../context/AuthContext';
@@ -14,6 +14,7 @@ import { PortalVideoLesson } from '../types';
 import { generateMailtoUrl } from '../utils/studentRegistry';
 import { COURSE_VIDEO_PLAYLISTS } from '../utils/courseVideos';
 import { getDailyStudyMaterial, downloadDailyStudyMaterial } from '../utils/dailyStudyMaterials';
+import { CourseVoiceDoubtBot } from './CourseVoiceDoubtBot';
 
 function calculateDaysToExam(targetDateStr: string): number {
   try {
@@ -2214,6 +2215,7 @@ export default function StudentPortalModal({
   const [copiedPromptIndex, setCopiedPromptIndex] = useState<number | null>(null);
   const [downloadNotice, setDownloadNotice] = useState<string | null>(null);
   const [isSendingWhatsApp, setIsSendingWhatsApp] = useState(false);
+  const [isVoiceMentorOpen, setIsVoiceMentorOpen] = useState(false);
 
   // Active curriculum based on selected course
   const currentCurriculum = COURSE_CURRICULUMS[selectedCourseId] || COURSE_CURRICULUMS['course-aissee-sainik'];
@@ -2526,6 +2528,16 @@ export default function StudentPortalModal({
 
           {/* Quick Header Action Buttons */}
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsVoiceMentorOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:opacity-90 text-neutral-950 text-xs font-black transition-all shadow-md shadow-orange-500/20 cursor-pointer"
+              title="Ask your course mentor by voice or text"
+            >
+              <Mic className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Course Voice Mentor</span>
+              <span className="sm:hidden">Mentor</span>
+            </button>
             {/* Direct Study Material Download Button */}
             <button
               type="button"
@@ -3203,6 +3215,13 @@ export default function StudentPortalModal({
         </div>
 
       </div>
+
+      <CourseVoiceDoubtBot
+        isOpen={isVoiceMentorOpen}
+        onClose={() => setIsVoiceMentorOpen(false)}
+        course={{ id: selectedCourseId, title: currentCurriculum.courseTitle, category: currentCurriculum.examCode }}
+        studentGender={user?.gender === 'female' ? 'female' : 'male'}
+      />
     </div>
   );
 }

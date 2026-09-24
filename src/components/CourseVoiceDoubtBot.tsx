@@ -31,6 +31,7 @@ export interface CourseVoiceDoubtBotProps {
     toolsCovered?: string[];
   };
   initialLanguage?: string;
+  studentGender?: 'male' | 'female';
 }
 
 interface DoubtExchange {
@@ -60,6 +61,7 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
   onClose,
   course,
   initialLanguage = 'ml',
+  studentGender = 'male',
 }) => {
   const [selectedLanguage, setSelectedLanguage] = useState<string>(initialLanguage);
   const [isListening, setIsListening] = useState<boolean>(false);
@@ -442,7 +444,7 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
     stopAudioPlayback();
 
     try {
-      const response = await fetch('/api/course-doubt/ask', {
+      const response = await fetch('/api/course-doubt', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -481,6 +483,8 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
       // Auto-play the spoken voice response
       if (data.audioUrl) {
         playAudio(data.audioUrl);
+      } else {
+        speakWithBrowser(data.spokenScript || data.writtenAnswer);
       }
     } catch (err: any) {
       console.error('Failed to ask doubt:', err);
@@ -500,6 +504,23 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
       const fallbackAudioUrl = `/api/voice-receptionist/tts?text=${encodeURIComponent(fallbackExchange.spokenScript)}&lang=${selectedLanguage}`;
       playAudio(fallbackAudioUrl);
     }
+  };
+
+  const speakWithBrowser = (text: string) => {
+    if (!text || !('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text.replace(/[*#_`]/g, ''));
+    const speechCodes: Record<string, string> = { ml: 'ml-IN', ta: 'ta-IN', hi: 'hi-IN', te: 'te-IN', kn: 'kn-IN', en: 'en-IN', fr: 'fr-FR', de: 'de-DE' };
+    utterance.lang = speechCodes[selectedLanguage] || 'en-IN';
+    const voices = window.speechSynthesis.getVoices();
+    const preferred = voices.find((voice) => voice.lang.toLowerCase().startsWith(utterance.lang.split('-')[0].toLowerCase()) && (studentGender === 'female' ? /male|ravi|raj|daniel/i.test(voice.name) : /female|veena|samantha|karen/i.test(voice.name)))
+      || voices.find((voice) => voice.lang.toLowerCase().startsWith(utterance.lang.split('-')[0].toLowerCase()));
+    if (preferred) utterance.voice = preferred;
+    utterance.rate = 0.96;
+    utterance.onstart = () => { setIsPlayingAudio(true); setLiveStatus('speaking'); };
+    utterance.onend = () => { setIsPlayingAudio(false); setLiveStatus('idle'); };
+    utterance.onerror = () => { setIsPlayingAudio(false); setLiveStatus('idle'); };
+    window.speechSynthesis.speak(utterance);
   };
 
   const playAudio = (url: string) => {
