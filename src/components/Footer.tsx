@@ -76,13 +76,12 @@ export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicy
             <h4 className="font-bold text-white text-xs uppercase tracking-wider">Company & Courses</h4>
             <ul className="space-y-2">
               <li>
-                <button
-                  type="button"
-                  onClick={() => onNavigateTo('about-us')}
+                <a
+                  href="/about/"
                   className="text-amber-400 hover:text-amber-300 font-semibold transition-colors text-left flex items-center gap-1"
                 >
                   <span>About Us (Nextclasses.in)</span>
-                </button>
+                </a>
               </li>
               <li>
                 <button

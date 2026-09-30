@@ -1,6 +1,11 @@
 User-agent: *
 Allow: /
 
+# Public learning and organization information may be indexed by search and AI crawlers.
+# Private student and administration screens are excluded from discovery.
+Disallow: /admin
+Disallow: /*?admin=true
+
 # Sitemap
 Sitemap: https://www.nextclasses.in/sitemap.xml
 Host: www.nextclasses.in

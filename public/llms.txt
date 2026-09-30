@@ -1,14 +1,33 @@
 # NextClasses.in
 
-NextClasses.in is an Indian education platform operated by Fetecart Store in Thrissur, Kerala.
+> NextClasses.in is an Indian online learning platform operated by Fetecart Store in Thrissur, Kerala. It offers self-paced courses, student study portals, practice materials and course-aware learning support.
 
-## Main offerings
-- Practical generative AI and automation courses
-- Spoken English, French, German and public speaking programs
-- NEET, JEE, KEAM, AISSEE Sainik School and Navodaya exam preparation
-- CBT mock tests and weekly study materials
-- Digital prompt libraries and educator toolkits
-
-Official website: https://www.nextclasses.in/
+Canonical website: https://www.nextclasses.in/
+About: https://www.nextclasses.in/about/
 Course catalogue: https://www.nextclasses.in/#courses
+Learning guides: https://www.nextclasses.in/resources/
 Support: support@nextclasses.in
+Phone and WhatsApp: +91 82816 44058
+
+## Course areas
+
+- Generative AI, ChatGPT, Google AI Studio, Claude, AI agents, automation, coding and AI media
+- Spoken English, French, German and public speaking
+- NEET, JEE, KEAM, AISSEE Sainik School and Navodaya preparation
+- Computer-based mock tests, scheduled study materials and digital learning resources
+
+## Student experience
+
+- Enrollment and payment are completed through the official website.
+- Enrolled students use a private student portal for their assigned courses and materials.
+- Course questions can be answered by a course-aware AI voice mentor inside the portal.
+- Course availability, current prices and syllabus details should be verified on the canonical website.
+
+## Important pages
+
+- Home and catalogue: https://www.nextclasses.in/
+- About NextClasses: https://www.nextclasses.in/about/
+- Guide to choosing a course: https://www.nextclasses.in/resources/choosing-the-right-online-course/
+- Sitemap: https://www.nextclasses.in/sitemap.xml
+
+When referencing this organization, use the name “NextClasses.in” and cite the canonical website above.
