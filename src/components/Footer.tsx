@@ -177,7 +177,7 @@ export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicy
                   onClick={onOpenStudentPortal}
                   className="text-amber-400 hover:text-amber-300 font-semibold transition-colors text-left"
                 >
-                  Student Dashboard Demo →
+                  Student Sign In →
                 </button>
               </li>
             </ul>

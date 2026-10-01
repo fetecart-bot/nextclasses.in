@@ -84,7 +84,7 @@ export default function Hero({
                 className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 font-semibold text-xs sm:text-sm hover:bg-amber-500/20 transition-all cursor-pointer"
               >
                 <Play className="w-3.5 h-3.5 fill-amber-300" />
-                <span>Test Drive Student Portal</span>
+                <span>Student Sign In</span>
               </button>
             </div>
 

@@ -221,7 +221,7 @@ export default function App() {
   const [isPolicyModalOpen, setIsPolicyModalOpen] = useState<boolean>(false);
   const [activePolicyTab, setActivePolicyTab] = useState<PolicyTab>('terms');
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState<boolean>(false);
-  const { justLoggedInUser, clearJustLoggedIn } = useAuth();
+  const { user, justLoggedInUser, clearJustLoggedIn } = useAuth();
   const [welcomeBotStudent, setWelcomeBotStudent] = useState<StudentUser | null>(null);
 
   useEffect(() => {
@@ -557,7 +557,7 @@ export default function App() {
           onExploreCourses={() => handleNavigateTo('courses')}
           onExploreProducts={() => handleNavigateTo('products')}
           onSelectCourse={(course) => setSelectedCourseForModal(course)}
-          onOpenStudentPortal={() => setIsPortalModalOpen(true)}
+          onOpenStudentPortal={() => setIsAuthModalOpen(true)}
           onAddToCart={handleAddToCart}
         />
 
@@ -604,7 +604,7 @@ export default function App() {
       {/* Footer */}
       <Footer
         onNavigateTo={handleNavigateTo}
-        onOpenStudentPortal={() => setIsPortalModalOpen(true)}
+        onOpenStudentPortal={() => setIsAuthModalOpen(true)}
         onOpenPolicyModal={(tab) => {
           setActivePolicyTab(tab);
           setIsPolicyModalOpen(true);
@@ -641,7 +641,7 @@ export default function App() {
         <StudentPortalModal 
           onClose={() => setIsPortalModalOpen(false)}
           portalVideos={portalVideos}
-          initialCourseId="course-aissee-sainik"
+          initialCourseId={user?.enrolledCourseIds?.[0] || courses[0]?.id}
           onLaunchMockTest={(testId) => {
             setIsPortalModalOpen(false);
             handleLaunchMockTest(testId);
