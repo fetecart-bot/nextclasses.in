@@ -53,6 +53,9 @@ export async function saveStudentAndEnrollment(account: any, payment: any) {
       course_id: account.courseId,
       course_title: account.courseTitle,
       payment_amount: Number(payment.amount || 0) / 100,
+      // A corrected admin assignment must become the login default even when
+      // this enrollment row already existed before an incorrect one.
+      created_at: new Date().toISOString(),
     }),
   });
   return student;
