@@ -141,7 +141,10 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
       setIsRecordingAudio(true);
       setIsListening(true);
       setLiveStatus('listening');
-      setLiveTranscript('Listening to your doubt via microphone...');
+      setLiveTranscript('Listening… speak now. Recording will stop automatically.');
+      window.setTimeout(() => {
+        if (mediaRecorder.state === 'recording') mediaRecorder.stop();
+      }, 9000);
     } catch (err) {
       console.warn('Microphone recording error:', err);
       setIsRecordingAudio(false);
@@ -455,6 +458,7 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
           courseTitle: course.title,
           question: questionText.trim(),
           language: selectedLanguage,
+          voicePreference: studentGender === 'female' ? 'male' : 'female',
         }),
       });
 
@@ -580,7 +584,7 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
                 </h3>
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-[10px] font-mono text-emerald-300">
                   <Radio className="w-2.5 h-2.5 text-emerald-400 animate-pulse" />
-                  gemini-3.8-live
+                  ChatGPT Voice Mentor
                 </span>
               </div>
               <p className="text-xs text-neutral-400 truncate">

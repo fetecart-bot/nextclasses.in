@@ -101,14 +101,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     passwordInput: string,
     courseIdOrStandard?: string
   ) => {
-    let verified = verifyStudentCredentials(usernameOrEmail, passwordInput);
-    if (!verified) {
-      try {
-        const response = await fetch('/api/student-login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ identifier: usernameOrEmail, password: passwordInput }) });
-        const data = await response.json();
-        if (response.ok && data.account) verified = data.account;
-      } catch { /* show the normal invalid credentials message */ }
-    }
+    // The server is authoritative. Mobile browsers may still hold an older
+    // locally cached account from before an admin corrected the course.
+    let verified: RegisteredStudentAccount | null = null;
+    try {
+      const response = await fetch('/api/student-login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ identifier: usernameOrEmail, password: passwordInput }) });
+      const data = await response.json();
+      if (response.ok && data.account) verified = data.account;
+    } catch { /* use the offline registry only when the server is unavailable */ }
+    if (!verified) verified = verifyStudentCredentials(usernameOrEmail, passwordInput);
     if (!verified) {
       return {
         success: false,
@@ -116,7 +117,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       };
     }
 
-    const courseChoice = verified.courseId || verified.enrolledCourseIds?.[0] || courseIdOrStandard || 'course-aissee-sainik-6';
+    // Prefer the corrected enrollment list over the legacy single courseId.
+    const courseChoice = verified.enrolledCourseIds?.[0] || verified.courseId || courseIdOrStandard || '';
     let effectiveStandard: 'class-6' | 'class-9' = verified.standard === 'class-9' ? 'class-9' : 'class-6';
     if (courseChoice === 'class-9' || courseChoice === 'course-aissee-sainik-9') {
       effectiveStandard = 'class-9';
@@ -127,7 +129,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const specificSainikCourseId = effectiveStandard === 'class-9' ? 'course-aissee-sainik-9' : 'course-aissee-sainik-6';
     
     // Construct enrolledCourseIds including specific selected course
-    const baseEnrolled = verified.enrolledCourseIds || (verified.courseId ? [verified.courseId] : ['course-aissee-sainik']);
+    const baseEnrolled = verified.enrolledCourseIds?.length
+      ? verified.enrolledCourseIds
+      : (verified.courseId ? [verified.courseId] : (courseIdOrStandard ? [courseIdOrStandard] : []));
     const updatedEnrolled = [...baseEnrolled];
     if (courseChoice && !courseChoice.startsWith('class-') && !updatedEnrolled.includes(courseChoice)) {
       updatedEnrolled.unshift(courseChoice);

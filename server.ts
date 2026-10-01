@@ -95,6 +95,19 @@ function parseJsonSafely(raw: string, defaultObj: any = {}): any {
   return defaultObj;
 }
 
+async function callOpenAIJson(system: string, user: string): Promise<string> {
+  const key = process.env.OPENAI_API_KEY;
+  if (!key) throw new Error("OPENAI_API_KEY environment variable is required");
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ model: "gpt-4o-mini", response_format: { type: "json_object" }, messages: [{ role: "system", content: system }, { role: "user", content: user }], temperature: 0.5 }),
+  });
+  if (!response.ok) throw new Error(`OpenAI request failed (${response.status})`);
+  const data: any = await response.json();
+  return data.choices?.[0]?.message?.content || "";
+}
+
 // Dynamically resolve the real live URL (e.g. Cloud Run active container URL or current request origin)
 function resolveAppBaseUrl(req: express.Request): string {
   if (process.env.APP_URL && !process.env.APP_URL.includes("MY_APP_URL") && !process.env.APP_URL.includes("placeholder")) {
@@ -284,6 +297,27 @@ Give a comprehensive, thorough, and articulate counseling answer as Priya in pur
         .replace(/\bRs\.?\s*/gi, "Rupees ")
         .replace(/\s+/g, " ")
         .trim();
+
+      // Prefer OpenAI's natural neural voices. Keep the existing Google TTS
+      // path below as a resilient fallback for regional languages/outages.
+      if (process.env.OPENAI_API_KEY) {
+        try {
+          const requestedVoice = String(req.query.voice || "female");
+          const voice = requestedVoice === "male" ? "onyx" : "nova";
+          const openaiTts = await fetch("https://api.openai.com/v1/audio/speech", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, "Content-Type": "application/json" },
+            body: JSON.stringify({ model: "gpt-4o-mini-tts", voice, input: cleanText, response_format: "mp3" }),
+          });
+          if (openaiTts.ok) {
+            res.setHeader("Content-Type", "audio/mpeg");
+            res.setHeader("Cache-Control", "public, max-age=3600");
+            return res.send(Buffer.from(await openaiTts.arrayBuffer()));
+          }
+        } catch (error) {
+          console.warn("OpenAI TTS fallback:", error);
+        }
+      }
 
       // Split into sentence chunks under 150 characters for optimal TTS rendering
       const sentences = cleanText.match(/[^.!?|]+[.!?|]*/g) || [cleanText];
@@ -613,7 +647,7 @@ Answer the student's inquiry intelligently, warmly, and thoroughly in ${language
   // Real-Time Course Doubt Resolution & Voice Tutor API
   app.post("/api/course-doubt/ask", async (req, res) => {
     try {
-      const { courseId, courseTitle, question, language } = req.body;
+      const { courseId, courseTitle, question, language, voicePreference = "female" } = req.body;
       if (!question || typeof question !== "string") {
         return res.status(400).json({ error: "Question is required" });
       }
@@ -694,12 +728,7 @@ Respond with a JSON object with these exact keys:
 
       let responseText = "";
       try {
-        responseText = await callGeminiWithCascade({
-          contents: prompt,
-          systemInstruction,
-          responseMimeType: "application/json",
-          temperature: 0.6,
-        });
+        responseText = await callOpenAIJson(systemInstruction, prompt);
       } catch (err: any) {
         console.warn("Course doubt cascade failed, generating contextual academic fallback:", err?.message);
       }
@@ -715,7 +744,7 @@ Respond with a JSON object with these exact keys:
       }
 
       const spokenScript = (parsed.spokenScript || parsed.writtenAnswer?.slice(0, 160) || "").replace(/[*#_~`]/g, "").trim();
-      const audioUrl = `/api/voice-receptionist/tts?text=${encodeURIComponent(spokenScript)}&lang=${currentLang.ttsLang}`;
+      const audioUrl = `/api/voice-receptionist/tts?text=${encodeURIComponent(spokenScript)}&lang=${currentLang.ttsLang}&voice=${voicePreference}`;
 
       return res.json({
         success: true,
