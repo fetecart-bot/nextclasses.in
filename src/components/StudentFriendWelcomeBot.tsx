@@ -170,13 +170,13 @@ export const StudentFriendWelcomeBot: React.FC<StudentFriendWelcomeBotProps> = (
         return {
           written: `Hey ${name}! 🎉 A super warm welcome to your **${course}**! I am your study buddy and close friend here.
 
-Just like talking to your best friend, tell me everything:
-1. 🎯 What is your biggest **dream or aim** with this course and exam?
-2. ❓ What subjects or chapters do you have the most **doubts or worries** about right now?
-3. 👨‍👩‍👧‍👦 How many **family members are in your house** cheering you on?
+Tell me what you want to improve:
+1. 🎯 What is your biggest **goal** with this course?
+2. ❓ Which **skill or topic** would you like help with right now?
+3. 🧭 Would you like an explanation, a practice drill, or feedback on an answer?
 
-Tell me all about it—I'm here for you every step of the way!`,
-          spoken: `Hey ${name}! A super warm welcome to your ${course}! I'm your study buddy and close friend. Tell me, what is your biggest aim with this exam? What subjects do you have doubts about? And how many family members are in your house? Tell me everything just like a friend!`,
+I'm ready to coach you step by step!`,
+          spoken: `Hey ${name}! A warm welcome to ${course}. I'm your course mentor and practice partner. Tell me what you want to improve today, and whether you would like an explanation, a practice drill, or feedback.`,
         };
     }
   };
@@ -214,10 +214,16 @@ Tell me all about it—I'm here for you every step of the way!`,
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isThinking]);
 
-  // Audio Playback using Web Speech API + Server TTS fallback
+  // Use the natural OpenAI server voice first. Browser speech is reserved for
+  // outages because its voice quality varies widely between phones and PCs.
   const speakText = (text: string, langCode: string, targetVoiceGender: 'male' | 'female') => {
     if (isMuted || !text) return;
     stopAudioPlayback();
+
+    fallbackServerTTS(text, langCode, targetVoiceGender);
+  };
+
+  const browserSpeechFallback = (text: string, langCode: string, targetVoiceGender: 'male' | 'female') => {
 
     // Strategy 1: Browser Web Speech API with gender-calibrated pitch and voices
     if ('speechSynthesis' in window) {
@@ -281,7 +287,6 @@ Tell me all about it—I'm here for you every step of the way!`,
         utterance.onend = () => setIsPlayingAudio(false);
         utterance.onerror = () => {
           setIsPlayingAudio(false);
-          fallbackServerTTS(text, langCode);
         };
 
         window.speechSynthesis.speak(utterance);
@@ -291,20 +296,20 @@ Tell me all about it—I'm here for you every step of the way!`,
       }
     }
 
-    fallbackServerTTS(text, langCode);
+    setIsPlayingAudio(false);
   };
 
-  const fallbackServerTTS = (text: string, langCode: string) => {
+  const fallbackServerTTS = (text: string, langCode: string, targetVoiceGender: 'male' | 'female') => {
     try {
-      const audioUrl = `/api/voice-receptionist/tts?text=${encodeURIComponent(text.slice(0, 300))}&lang=${langCode}`;
+      const audioUrl = `/api/voice-receptionist/tts?text=${encodeURIComponent(text.slice(0, 1200))}&lang=${langCode}&voice=${targetVoiceGender}`;
       const audio = new Audio(audioUrl);
       currentAudioRef.current = audio;
       setIsPlayingAudio(true);
       audio.onended = () => setIsPlayingAudio(false);
-      audio.onerror = () => setIsPlayingAudio(false);
-      audio.play().catch(() => setIsPlayingAudio(false));
+      audio.onerror = () => browserSpeechFallback(text, langCode, targetVoiceGender);
+      audio.play().catch(() => browserSpeechFallback(text, langCode, targetVoiceGender));
     } catch {
-      setIsPlayingAudio(false);
+      browserSpeechFallback(text, langCode, targetVoiceGender);
     }
   };
 
@@ -652,7 +657,13 @@ Tell me all about it—I'm here for you every step of the way!`,
   };
 
   // Quick prompt chips
-  const quickChips = [
+  const isPublicSpeakingCourse = /public speaking|articulation|stage mastery/i.test(courseTitle);
+  const quickChips = isPublicSpeakingCourse ? [
+    { label: '🎤 Improve my articulation', text: 'Give me a practical articulation warm-up and coach me through it step by step.' },
+    { label: '🧘 Overcome stage fear', text: 'Help me overcome stage fear with a short breathing and confidence exercise.' },
+    { label: '🗣️ Practise a short speech', text: 'Give me a one-minute speaking topic, then help me structure and improve my speech.' },
+    { label: '🎧 Improve voice and delivery', text: 'Teach me vocal variety, pacing and pauses with a practical exercise.' },
+  ] : [
     {
       label: selectedLanguage === 'kn' ? '🎯 ನನ್ನ ಗುರಿ: ಪರೀಕ್ಷೆಯಲ್ಲಿ ಟಾಪ್ ರ್ಯಾಂಕ್ ಗಳಿಸುವುದು' : '🎯 My Aim: Top Rank & 280+ Marks',
       text: selectedLanguage === 'kn' ? 'ನನ್ನ ಗುರಿ ಈ ಪರೀಕ್ಷೆಯಲ್ಲಿ ಅತ್ಯುನ್ನತ ಅಂಕ ಗಳಿಸಿ ಟಾಪ್ ರ್ಯಾಂಕ್ ಪಡೆಯುವುದು.' : 'My aim is to secure a top rank and score 280+ marks in this exam!',

@@ -5,6 +5,7 @@ export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   const identifier = String(req.body?.identifier || '').trim().toLowerCase();
   const password = String(req.body?.password || '').trim();
+  const requestedCourseId = String(req.body?.courseId || '').trim();
   if (!identifier || !password) return res.status(400).json({ error: 'Credentials required' });
   try {
     // Supabase is authoritative after an administrator corrects a course.
@@ -14,6 +15,10 @@ export default async function handler(req: any, res: any) {
       const student = students?.[0];
       if (student && student.password_hash === passwordHash(password)) {
         const enrollments = await supabaseRequest(`enrollments?student_id=eq.${encodeURIComponent(student.id)}&select=course_id,course_title&order=created_at.desc`);
+        if (requestedCourseId) {
+          const requestedIndex = enrollments.findIndex((item: any) => item.course_id === requestedCourseId);
+          if (requestedIndex > 0) enrollments.unshift(enrollments.splice(requestedIndex, 1)[0]);
+        }
         const enrolledCourseIds = (enrollments || []).map((item: any) => item.course_id).filter(Boolean);
         if (enrolledCourseIds.length) {
           return res.status(200).json({ account: {

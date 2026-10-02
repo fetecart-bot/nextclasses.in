@@ -105,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // locally cached account from before an admin corrected the course.
     let verified: RegisteredStudentAccount | null = null;
     try {
-      const response = await fetch('/api/student-login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ identifier: usernameOrEmail, password: passwordInput }) });
+      const response = await fetch('/api/student-login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ identifier: usernameOrEmail, password: passwordInput, courseId: courseIdOrStandard }) });
       const data = await response.json();
       if (response.ok && data.account) verified = data.account;
     } catch { /* use the offline registry only when the server is unavailable */ }
