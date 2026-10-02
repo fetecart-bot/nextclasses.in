@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { StudentUser, MockTestResult } from '../types';
 import { verifyStudentCredentials, getRegisteredStudents, RegisteredStudentAccount, isRegisteredStudent, detectStudentGender } from '../utils/studentRegistry';
+import { saveOfflineCoursePack } from '../utils/offlineMentor';
 
 interface AuthContextType {
   user: StudentUser | null;
@@ -164,6 +165,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     setUser(authenticatedUser);
+    authenticatedUser.enrolledCourseIds.forEach((courseId) => saveOfflineCoursePack(courseId));
     setJustLoggedInUser(authenticatedUser);
     setIsAuthModalOpen(false);
     return { success: true, user: authenticatedUser };

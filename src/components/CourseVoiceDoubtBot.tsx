@@ -18,6 +18,7 @@ import {
   Loader2,
   Bookmark,
 } from 'lucide-react';
+import { answerFromOfflinePack, historyKey, saveOfflineCoursePack } from '../utils/offlineMentor';
 
 export interface CourseVoiceDoubtBotProps {
   isOpen: boolean;
@@ -73,6 +74,8 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
   const [isLiveWsConnected, setIsLiveWsConnected] = useState<boolean>(false);
   const [history, setHistory] = useState<DoubtExchange[]>([]);
   const [activeTab, setActiveTab] = useState<'voice' | 'text'>('voice');
+  const [isOnline, setIsOnline] = useState(() => navigator.onLine);
+  const [offlineReady, setOfflineReady] = useState(false);
 
   const recognitionRef = useRef<any>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -83,6 +86,30 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
   const latestDoubtTranscriptRef = useRef<string>('');
   const silenceTimerRef = useRef<any>(null);
   const [isRecordingAudio, setIsRecordingAudio] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setOfflineReady(!!saveOfflineCoursePack(course.id));
+    try {
+      const saved = localStorage.getItem(historyKey(course.id));
+      if (saved) setHistory(JSON.parse(saved));
+    } catch {}
+    const online = () => setIsOnline(true);
+    const offline = () => setIsOnline(false);
+    window.addEventListener('online', online);
+    window.addEventListener('offline', offline);
+    return () => {
+      window.removeEventListener('online', online);
+      window.removeEventListener('offline', offline);
+    };
+  }, [isOpen, course.id]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    try {
+      localStorage.setItem(historyKey(course.id), JSON.stringify(history.slice(-20).map(({ audioUrl, ...item }) => item)));
+    } catch {}
+  }, [history, course.id, isOpen]);
 
   // Audio Recording Fallback with server transcription
   const startAudioRecording = async () => {
@@ -448,6 +475,7 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
     stopAudioPlayback();
 
     try {
+      if (!navigator.onLine) throw new Error('offline');
       const response = await fetch('/api/course-doubt', {
         method: 'POST',
         headers: {
@@ -496,18 +524,18 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
       setIsThinking(false);
       setLiveStatus('error');
       
+      const offlineAnswer = answerFromOfflinePack(course.id, questionText.trim());
       const fallbackExchange: DoubtExchange = {
         id: `doubt-fb-${Date.now()}`,
         question: questionText.trim(),
-        writtenAnswer: `### Explanation for: ${course.title}\n\nThank you for asking about **"${questionText.trim()}"**.\n\nOur Academic Mentors have noted your question. Key points to remember:\n• Review Module 1 & 2 video lessons for fundamental breakdown.\n• Check your printable study pack formula summary.\n• You can also send this question directly to our WhatsApp Helpline (+91 82816 44058) for personalized faculty feedback.`,
-        spokenScript: `Thank you for your question on ${course.title}. Our faculty is ready to assist you. You can review the course module or connect on WhatsApp for immediate guidance.`,
-        keyTakeaway: 'Master the fundamental definition before attempting complex numerical problems.',
+        writtenAnswer: offlineAnswer?.writtenAnswer || `### Offline Course Assistant\n\nThe downloaded pack is unavailable. Reconnect once to save ${course.title} for offline use.`,
+        spokenScript: offlineAnswer?.spokenScript || `Please reconnect once to save your course for offline use.`,
+        keyTakeaway: offlineAnswer?.keyTakeaway || 'Reconnect once to download the course pack.',
         language: selectedLanguage,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setHistory((prev) => [...prev, fallbackExchange]);
-      const fallbackAudioUrl = `/api/voice-receptionist/tts?text=${encodeURIComponent(fallbackExchange.spokenScript)}&lang=${selectedLanguage}`;
-      playAudio(fallbackAudioUrl);
+      speakWithBrowser(fallbackExchange.spokenScript);
     }
   };
 
@@ -585,6 +613,9 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-[10px] font-mono text-emerald-300">
                   <Radio className="w-2.5 h-2.5 text-emerald-400 animate-pulse" />
                   ChatGPT Voice Mentor
+                </span>
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full border text-[10px] font-semibold ${isOnline ? 'bg-sky-950/70 border-sky-500/40 text-sky-300' : 'bg-amber-950/70 border-amber-500/40 text-amber-300'}`}>
+                  {isOnline ? 'Online AI' : offlineReady ? 'Offline Course Assistant' : 'Offline pack unavailable'}
                 </span>
               </div>
               <p className="text-xs text-neutral-400 truncate">
