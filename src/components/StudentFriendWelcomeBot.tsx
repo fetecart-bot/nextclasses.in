@@ -83,6 +83,7 @@ export const StudentFriendWelcomeBot: React.FC<StudentFriendWelcomeBotProps> = (
   const [isListening, setIsListening] = useState<boolean>(false);
   const [isThinking, setIsThinking] = useState<boolean>(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState<boolean>(false);
+  const [isPreparingAudio, setIsPreparingAudio] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
 
   // Extracted student info
@@ -93,6 +94,7 @@ export const StudentFriendWelcomeBot: React.FC<StudentFriendWelcomeBotProps> = (
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+  const audioRequestRef = useRef<number>(0);
   const latestTranscriptRef = useRef<string>('');
   const silenceTimerRef = useRef<any>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -223,6 +225,30 @@ I'm ready to coach you step by step!`,
     fallbackServerTTS(text, langCode, targetVoiceGender);
   };
 
+  // Mobile browsers can drop the original tap permission while the mentor is
+  // waiting for the AI/TTS response. Reusing one audio element that is primed
+  // during the student's tap lets the completed response start automatically.
+  const primeAudioPlayback = () => {
+    try {
+      const audio = currentAudioRef.current || new Audio();
+      currentAudioRef.current = audio;
+      if (!audio.src) {
+        audio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQQAAACAgICA';
+      }
+      audio.volume = 0;
+      const unlock = audio.play();
+      unlock?.then(() => {
+        audio.pause();
+        audio.currentTime = 0;
+        audio.volume = 1;
+      }).catch(() => {
+        audio.volume = 1;
+      });
+    } catch {
+      // The normal browser-speech fallback remains available.
+    }
+  };
+
   const browserSpeechFallback = (text: string, langCode: string, targetVoiceGender: 'male' | 'female') => {
 
     // Strategy 1: Browser Web Speech API with gender-calibrated pitch and voices
@@ -302,18 +328,41 @@ I'm ready to coach you step by step!`,
   const fallbackServerTTS = (text: string, langCode: string, targetVoiceGender: 'male' | 'female') => {
     try {
       const audioUrl = `/api/voice-receptionist/tts?text=${encodeURIComponent(text.slice(0, 1200))}&lang=${langCode}&voice=${targetVoiceGender}`;
-      const audio = new Audio(audioUrl);
+      const requestId = ++audioRequestRef.current;
+      const audio = currentAudioRef.current || new Audio();
       currentAudioRef.current = audio;
-      setIsPlayingAudio(true);
-      audio.onended = () => setIsPlayingAudio(false);
-      audio.onerror = () => browserSpeechFallback(text, langCode, targetVoiceGender);
-      audio.play().catch(() => browserSpeechFallback(text, langCode, targetVoiceGender));
+      setIsPreparingAudio(true);
+      setIsPlayingAudio(false);
+      audio.oncanplay = () => {
+        if (requestId !== audioRequestRef.current) return;
+        setIsPreparingAudio(false);
+        audio.play().catch(() => browserSpeechFallback(text, langCode, targetVoiceGender));
+      };
+      audio.onplay = () => {
+        if (requestId !== audioRequestRef.current) return;
+        setIsPreparingAudio(false);
+        setIsPlayingAudio(true);
+      };
+      audio.onended = () => {
+        if (requestId !== audioRequestRef.current) return;
+        setIsPreparingAudio(false);
+        setIsPlayingAudio(false);
+      };
+      audio.onerror = () => {
+        if (requestId !== audioRequestRef.current) return;
+        setIsPreparingAudio(false);
+        browserSpeechFallback(text, langCode, targetVoiceGender);
+      };
+      audio.src = audioUrl;
+      audio.load();
     } catch {
+      setIsPreparingAudio(false);
       browserSpeechFallback(text, langCode, targetVoiceGender);
     }
   };
 
   const stopAudioPlayback = () => {
+    audioRequestRef.current += 1;
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
     }
@@ -322,6 +371,7 @@ I'm ready to coach you step by step!`,
       currentAudioRef.current.currentTime = 0;
       currentAudioRef.current = null;
     }
+    setIsPreparingAudio(false);
     setIsPlayingAudio(false);
   };
 
@@ -499,6 +549,7 @@ I'm ready to coach you step by step!`,
     if (!textToSend) return;
 
     stopAudioPlayback();
+    primeAudioPlayback();
     setInputText('');
 
     const userMsg: ChatMessage = {
@@ -843,10 +894,15 @@ I'm ready to coach you step by step!`,
                         <button
                           type="button"
                           onClick={() => speakText(msg.spokenScript || msg.text, selectedLanguage, voiceGender)}
+                          disabled={isPreparingAudio}
                           className="hover:text-orange-400 transition-colors cursor-pointer flex items-center gap-1 text-[10px]"
                         >
-                          <Volume2 className="w-3 h-3" />
-                          <span>Listen again</span>
+                          {isPreparingAudio ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : (
+                            <Volume2 className="w-3 h-3" />
+                          )}
+                          <span>{isPreparingAudio ? 'Preparing voice…' : 'Listen again'}</span>
                         </button>
                       )}
                     </div>
