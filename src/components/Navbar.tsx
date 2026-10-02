@@ -115,16 +115,19 @@ export default function Navbar({
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             </button>
 
-            {/* Student Portal */}
-            <button
-              id="navbar-student-portal-btn"
-              type="button"
-              onClick={onOpenStudentPortal}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 border border-neutral-700 text-neutral-200 text-xs font-semibold hover:border-neutral-500 hover:text-white transition-colors cursor-pointer"
-            >
-              <UserCheck className="w-3.5 h-3.5 text-amber-400" />
-              <span>Portal</span>
-            </button>
+            {/* Show the portal shortcut only after authentication. Before
+                login, the single Sign In action below is the clear entry. */}
+            {user && (
+              <button
+                id="navbar-student-portal-btn"
+                type="button"
+                onClick={onOpenStudentPortal}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 border border-neutral-700 text-neutral-200 text-xs font-semibold hover:border-neutral-500 hover:text-white transition-colors cursor-pointer"
+              >
+                <UserCheck className="w-3.5 h-3.5 text-amber-400" />
+                <span>My Portal</span>
+              </button>
+            )}
 
             {/* Direct WhatsApp Helpline */}
             <a
@@ -285,17 +288,19 @@ export default function Navbar({
               <span>Interactive Mock Tests (CBT)</span>
             </button>
 
-            <button
-              type="button"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onOpenStudentPortal();
-              }}
-              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-neutral-800 text-neutral-200 text-xs font-semibold hover:bg-neutral-700 transition-colors"
-            >
-              <UserCheck className="w-4 h-4 text-amber-400" />
-              <span>{user ? `Portal (${user.name})` : 'Preview Student Dashboard'}</span>
-            </button>
+            {user && (
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenStudentPortal();
+                }}
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-neutral-800 text-neutral-200 text-xs font-semibold hover:bg-neutral-700 transition-colors"
+              >
+                <UserCheck className="w-4 h-4 text-amber-400" />
+                <span>My Portal ({user.name})</span>
+              </button>
+            )}
 
             {!user && (
               <button
