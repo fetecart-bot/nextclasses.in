@@ -22,6 +22,7 @@ import { AIChatBot } from './components/AIChatBot';
 import { PaymentVerificationModal } from './components/PaymentVerificationModal';
 import { StudentFriendWelcomeBot } from './components/StudentFriendWelcomeBot';
 import SEOHead from './components/SEOHead';
+import SainikCampaignSpotlight from './components/SainikCampaignSpotlight';
 import { useAuth } from './context/AuthContext';
 import { COURSES_DATA, AI_PRODUCTS_DATA, DEFAULT_PORTAL_VIDEOS } from './data';
 import { Course, CartItem, AIProduct, PortalVideoLesson, StudentUser } from './types';
@@ -560,6 +561,9 @@ export default function App() {
           onOpenStudentPortal={() => setIsAuthModalOpen(true)}
           onAddToCart={handleAddToCart}
         />
+
+        {/* Direct campaign path for parents arriving from AISSEE promotions */}
+        <SainikCampaignSpotlight courses={courses} />
 
         {/* AI Courses Catalog */}
         <CourseCatalog
