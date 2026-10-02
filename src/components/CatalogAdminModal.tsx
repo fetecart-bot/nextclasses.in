@@ -4,7 +4,7 @@ import {
   Package, BookOpen, AlertTriangle, ShieldCheck, DollarSign, 
   Layers, Sparkles, ExternalLink, Copy, Link2, Video, Play, Tv, Eye, EyeOff,
   CreditCard, Key, Smartphone, HelpCircle, CheckCircle2, Lock, Unlock, LogOut,
-  Search, Clock, MessageCircle, Send, UserCheck, Loader2, Mail, ArrowLeft
+  Search, Clock, MessageCircle, Send, UserCheck, Loader2, Mail, ArrowLeft, Star
 } from 'lucide-react';
 import { AIProduct, Course, ProductCategory, CourseCategory, PortalVideoLesson } from '../types';
 import { 
@@ -33,6 +33,12 @@ type CloudDailyMaterial = {
   status: 'draft' | 'approved' | 'published' | 'rejected';
 };
 
+type StudentReview = {
+  id: string; display_name: string; course_title: string; rating: number;
+  review_text: string; status: 'pending' | 'published' | 'rejected';
+  consent_to_publish: boolean; created_at: string;
+};
+
 export function extractYouTubeId(urlOrId: string): string {
   if (!urlOrId) return '';
   const trimmed = urlOrId.trim();
@@ -55,7 +61,7 @@ interface CatalogAdminModalProps {
   courses: Course[];
   portalVideos?: PortalVideoLesson[];
   razorpayKeyId?: string;
-  initialTab?: 'reconciliation' | 'dispatch' | 'students' | 'products' | 'courses' | 'videos' | 'payments' | 'security';
+  initialTab?: 'reconciliation' | 'dispatch' | 'students' | 'reviews' | 'products' | 'courses' | 'videos' | 'payments' | 'security';
   onSaveRazorpayKey?: (key: string) => void;
   onAddProduct: (product: AIProduct) => void;
   onUpdateProduct: (product: AIProduct) => void;
@@ -93,7 +99,7 @@ export default function CatalogAdminModal({
   onResetPortalVideos,
   onResetToDefault,
 }: CatalogAdminModalProps) {
-  const [activeTab, setActiveTab] = useState<'reconciliation' | 'dispatch' | 'students' | 'products' | 'courses' | 'videos' | 'payments' | 'security'>(initialTab || 'reconciliation');
+  const [activeTab, setActiveTab] = useState<'reconciliation' | 'dispatch' | 'students' | 'reviews' | 'products' | 'courses' | 'videos' | 'payments' | 'security'>(initialTab || 'reconciliation');
   const [inputRazorpayKey, setInputRazorpayKey] = useState<string>(razorpayKeyId);
   const [keySavedNotice, setKeySavedNotice] = useState<string | null>(null);
 
@@ -110,6 +116,9 @@ export default function CatalogAdminModal({
   const [cloudMaterials, setCloudMaterials] = useState<CloudDailyMaterial[]>([]);
   const [cloudQueueLoading, setCloudQueueLoading] = useState(false);
   const [cloudQueueMessage, setCloudQueueMessage] = useState<string | null>(null);
+  const [studentReviews, setStudentReviews] = useState<StudentReview[]>([]);
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [reviewMessage, setReviewMessage] = useState<string | null>(null);
   const [studentSearchTerm, setStudentSearchTerm] = useState<string>('');
   const [registeredStudentsList, setRegisteredStudentsList] = useState<RegisteredStudentAccount[]>(() => {
     try {
@@ -136,6 +145,34 @@ export default function CatalogAdminModal({
     } catch {
       return '';
     }
+  };
+
+  const loadStudentReviews = async () => {
+    setReviewLoading(true);
+    setReviewMessage(null);
+    try {
+      const response = await fetch('/api/reviews?admin=true', { headers: { 'x-admin-key': getStoredPassword() } });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || 'Unable to load reviews');
+      setStudentReviews(Array.isArray(payload.reviews) ? payload.reviews : []);
+    } catch (error: any) {
+      setReviewMessage(error?.message || 'Unable to load reviews');
+    } finally { setReviewLoading(false); }
+  };
+
+  const moderateReview = async (id: string, status: 'published' | 'rejected') => {
+    setReviewMessage(null);
+    try {
+      const response = await fetch('/api/reviews', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': getStoredPassword() },
+        body: JSON.stringify({ id, status }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || 'Unable to update review');
+      setStudentReviews((items) => items.map((item) => item.id === id ? { ...item, status } : item));
+      setReviewMessage(status === 'published' ? 'Review published on the website.' : 'Review rejected and kept private.');
+    } catch (error: any) { setReviewMessage(error?.message || 'Unable to update review'); }
   };
 
   const handleAdminLogin = async (e: FormEvent) => {
@@ -203,6 +240,7 @@ export default function CatalogAdminModal({
 
   useEffect(() => {
     if (isAuthenticated && activeTab === 'dispatch') loadCloudMaterials();
+    if (isAuthenticated && activeTab === 'reviews') loadStudentReviews();
   }, [isAuthenticated, activeTab]);
 
   // Product Form State
@@ -1029,6 +1067,24 @@ export default function CatalogAdminModal({
           >
             <UserCheck className="w-4 h-4 text-sky-400" />
             <span>Enrolled Students ({registeredStudentsList.length})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('reviews')}
+            className={`flex items-center gap-2 px-4 py-3 text-xs sm:text-sm font-bold border-b-2 transition-colors whitespace-nowrap cursor-pointer ${
+              activeTab === 'reviews'
+                ? 'border-orange-500 text-orange-400'
+                : 'border-transparent text-neutral-400 hover:text-neutral-200'
+            }`}
+          >
+            <Star className="w-4 h-4 text-amber-400" />
+            <span>Student Reviews</span>
+            {studentReviews.filter((review) => review.status === 'pending').length > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-orange-500 text-neutral-950">
+                {studentReviews.filter((review) => review.status === 'pending').length} Pending
+              </span>
+            )}
           </button>
 
           {/* TAB 4: DIGITAL PRODUCTS */}
@@ -3327,6 +3383,47 @@ export default function CatalogAdminModal({
                         </div>
                       </div>
                     ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'reviews' && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between gap-3 p-4 rounded-2xl bg-neutral-950 border border-neutral-800">
+                <div>
+                  <h4 className="text-base font-bold text-white flex items-center gap-2"><Star className="w-5 h-5 text-amber-400" />Student Review Approval</h4>
+                  <p className="text-xs text-neutral-400 mt-1">Publish only genuine, useful feedback. Rejected reviews stay private.</p>
+                </div>
+                <button type="button" onClick={loadStudentReviews} className="px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-xs font-bold text-white flex items-center gap-2 cursor-pointer"><RefreshCw className={`w-4 h-4 ${reviewLoading ? 'animate-spin' : ''}`} />Refresh</button>
+              </div>
+
+              {reviewMessage && <div className="p-3 rounded-xl bg-neutral-950 border border-neutral-800 text-xs text-emerald-300">{reviewMessage}</div>}
+              {reviewLoading ? (
+                <div className="p-12 text-center text-neutral-400"><Loader2 className="w-7 h-7 animate-spin mx-auto mb-2" />Loading reviews…</div>
+              ) : studentReviews.length === 0 ? (
+                <div className="p-12 text-center rounded-2xl bg-neutral-950 border border-neutral-800 text-neutral-400"><Star className="w-9 h-9 text-neutral-600 mx-auto mb-2" /><p className="font-bold text-white">No student reviews yet</p><p className="text-xs mt-1">New submissions from verified student portals will appear here.</p></div>
+              ) : (
+                <div className="space-y-3">
+                  {studentReviews.map((review) => (
+                    <article key={review.id} className="p-5 rounded-2xl bg-neutral-950 border border-neutral-800 space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                        <div><h5 className="font-bold text-white">{review.display_name}</h5><p className="text-xs text-orange-400">{review.course_title}</p></div>
+                        <div className="flex items-center gap-2">
+                          <div className="flex">{[1,2,3,4,5].map((value) => <Star key={value} className={`w-4 h-4 ${value <= review.rating ? 'fill-amber-400 text-amber-400' : 'text-neutral-700'}`} />)}</div>
+                          <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${review.status === 'published' ? 'bg-emerald-950 text-emerald-300' : review.status === 'rejected' ? 'bg-rose-950 text-rose-300' : 'bg-amber-950 text-amber-300'}`}>{review.status}</span>
+                        </div>
+                      </div>
+                      <p className="text-sm text-neutral-300 leading-relaxed">“{review.review_text}”</p>
+                      <div className="flex items-center justify-between gap-3 pt-2 border-t border-neutral-800">
+                        <span className="text-[10px] text-neutral-500">Submitted {new Date(review.created_at).toLocaleDateString('en-IN')}</span>
+                        <div className="flex gap-2">
+                          <button type="button" onClick={() => moderateReview(review.id, 'rejected')} className="px-3 py-1.5 rounded-lg bg-rose-950 hover:bg-rose-900 text-rose-300 text-xs font-bold border border-rose-900 cursor-pointer">Reject</button>
+                          <button type="button" onClick={() => moderateReview(review.id, 'published')} className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold cursor-pointer">Publish</button>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
                 </div>
               )}
             </div>

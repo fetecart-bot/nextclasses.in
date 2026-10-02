@@ -3,7 +3,7 @@ import {
   X, Play, CheckCircle2, Clock, Calendar, Download, Send, 
   Copy, Check, Award, Tv, ExternalLink, Target, 
   BarChart3, ArrowRight, Loader2, MessageCircle, Settings, BookOpen, Sparkles,
-  Lock, KeyRound, LogOut, Mail, Eye, EyeOff, UserCheck, ShieldCheck, Medal, Mic, Radio
+  Lock, KeyRound, LogOut, Mail, Eye, EyeOff, UserCheck, ShieldCheck, Medal, Mic, Radio, Star
 } from 'lucide-react';
 import StudentBadges from './StudentBadges';
 import { useAuth } from '../context/AuthContext';
@@ -15,6 +15,7 @@ import { generateMailtoUrl } from '../utils/studentRegistry';
 import { COURSE_VIDEO_PLAYLISTS } from '../utils/courseVideos';
 import { getDailyStudyMaterial, downloadDailyStudyMaterial } from '../utils/dailyStudyMaterials';
 import { CourseVoiceDoubtBot } from './CourseVoiceDoubtBot';
+import StudentReviewForm from './StudentReviewForm';
 
 function calculateDaysToExam(targetDateStr: string): number {
   try {
@@ -2211,7 +2212,7 @@ export default function StudentPortalModal({
     }
   }, [user]);
 
-  const [activeTab, setActiveTab] = useState<'lessons' | 'daily' | 'dispatches' | 'mock_tests' | 'badges' | 'prompts' | 'certificate'>('lessons');
+  const [activeTab, setActiveTab] = useState<'lessons' | 'daily' | 'dispatches' | 'mock_tests' | 'badges' | 'prompts' | 'certificate' | 'review'>('lessons');
   const [copiedPromptIndex, setCopiedPromptIndex] = useState<number | null>(null);
   const [downloadNotice, setDownloadNotice] = useState<string | null>(null);
   const [isSendingWhatsApp, setIsSendingWhatsApp] = useState(false);
@@ -2744,6 +2745,18 @@ export default function StudentPortalModal({
           >
             Verified Certificate
           </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('review')}
+            className={`py-3 border-b-2 whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'review'
+                ? 'border-orange-500 text-white'
+                : 'border-transparent text-neutral-400 hover:text-neutral-200'
+            }`}
+          >
+            <Star className="w-3.5 h-3.5 text-amber-400" />
+            Course Review
+          </button>
         </div>
 
         {downloadNotice && (
@@ -3197,6 +3210,15 @@ export default function StudentPortalModal({
                 </div>
               </div>
             </div>
+          )}
+
+          {activeTab === 'review' && user && (
+            <StudentReviewForm
+              identifier={user.username || user.email || ''}
+              password={user.password || ''}
+              courseId={selectedCourseId}
+              courseTitle={currentCurriculum.courseTitle}
+            />
           )}
         </div>
 

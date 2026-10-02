@@ -81,3 +81,28 @@ revoke all on public.delivery_logs from anon, authenticated;
 
 comment on table public.daily_materials is 'Course material generated once per course and day, reviewed by admin before publishing.';
 comment on table public.delivery_logs is 'Email, WhatsApp and portal delivery audit records.';
+
+-- Reviews can only be submitted through the server after student authentication.
+-- Public pages receive only approved rows through /api/reviews.
+create table if not exists public.student_reviews (
+  id uuid primary key default gen_random_uuid(),
+  student_id uuid not null references public.students(id) on delete cascade,
+  course_id text not null,
+  course_title text not null,
+  display_name text not null,
+  rating integer not null check (rating between 1 and 5),
+  review_text text not null check (char_length(review_text) between 20 and 1000),
+  consent_to_publish boolean not null default false,
+  status text not null default 'pending' check (status in ('pending', 'published', 'rejected')),
+  admin_note text,
+  reviewed_at timestamptz,
+  published_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (student_id, course_id)
+);
+
+create index if not exists student_reviews_status_idx on public.student_reviews(status);
+create index if not exists student_reviews_created_at_idx on public.student_reviews(created_at desc);
+alter table public.student_reviews enable row level security;
+revoke all on public.student_reviews from anon, authenticated;
