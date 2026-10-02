@@ -1,3 +1,5 @@
+import { courseKnowledgeBase, mentorModels } from './_courseKnowledge.js';
+
 const LANGUAGE_NAMES: Record<string, string> = {
   ml: 'Malayalam', ta: 'Tamil', hi: 'Hindi', te: 'Telugu', kn: 'Kannada',
   en: 'English', de: 'German', fr: 'French',
@@ -19,16 +21,28 @@ export default async function handler(req: any, res: any) {
   const voicePreference = req.body?.voicePreference === 'male' ? 'male' : 'female';
   if (!courseId || !courseTitle || !question) return res.status(400).json({ error: 'Course and question are required' });
 
-  const instructions = `You are the NextClasses AI academic mentor. The student's enrolled course is shown below, but you must also answer reasonable general educational questions directly and accurately. Teach like a warm, patient mentor and supportive study partner. For a question such as "What is algebra?", give a plain definition, a simple worked example, and one short practice question. Never change or misidentify the enrolled course because of an unrelated question. Never claim to be human. State uncertainty instead of inventing facts. Give a concise answer, a simple example, and one practical exercise. Do not request private family, financial, medical, or identity information. Respond in ${LANGUAGE_NAMES[language] || 'English'}. Return only JSON with string keys writtenAnswer, spokenScript, keyTakeaway. spokenScript must contain no markdown and be under 150 words.`;
+  const instructions = `You are the flagship NextClasses AI academic mentor. The student's enrolled course is shown below, but you must directly answer reasonable doubts across academics, technology, languages, competitive exams, careers and general knowledge. Teach from first principles, then give a concrete example and one useful practice exercise. Use the official NextClasses curriculum knowledge below for questions about our programs. Preserve the student's actual enrolled course and never infer a different enrollment from an unrelated question. Adapt depth to the learner. Never claim to be human. State uncertainty instead of inventing facts. Do not request private family, financial, medical or identity information. Respond in ${LANGUAGE_NAMES[language] || 'English'}.
+
+NEXTCLASSES COURSE KNOWLEDGE:
+${courseKnowledgeBase()}
+
+Return only JSON with string keys writtenAnswer, spokenScript, keyTakeaway. spokenScript must contain no markdown and be under 180 words.`;
   const input = `Course ID: ${courseId}\nCourse title: ${courseTitle}\nStudent question: ${question}`;
   try {
-    const aiResponse = await fetch('https://api.openai.com/v1/responses', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: process.env.OPENAI_MENTOR_MODEL || 'gpt-4o-mini', instructions, input, temperature: 0.45 }),
-    });
-    const aiPayload: any = await aiResponse.json().catch(() => ({}));
-    if (!aiResponse.ok) throw new Error(aiPayload?.error?.message || 'OpenAI mentor request failed');
+    let aiPayload: any = null;
+    let lastError = 'OpenAI mentor request failed';
+    for (const model of mentorModels()) {
+      const aiResponse = await fetch('https://api.openai.com/v1/responses', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model, instructions, input, reasoning: model.startsWith('gpt-5') ? { effort: 'low' } : undefined }),
+      });
+      aiPayload = await aiResponse.json().catch(() => ({}));
+      if (aiResponse.ok) break;
+      lastError = aiPayload?.error?.message || `${model} request failed`;
+      aiPayload = null;
+    }
+    if (!aiPayload) throw new Error(lastError);
     const raw = extractOutputText(aiPayload).replace(/^```json\s*|\s*```$/g, '');
     const parsed = JSON.parse(raw);
 

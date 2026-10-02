@@ -1,3 +1,5 @@
+import { courseKnowledgeBase, mentorModels } from '../_courseKnowledge.js';
+
 const LANGUAGE_NAMES: Record<string, string> = {
   kn: 'Kannada', ml: 'Malayalam', ta: 'Tamil', te: 'Telugu', hi: 'Hindi', en: 'English',
 };
@@ -17,17 +19,38 @@ export default async function handler(req: any, res: any) {
   const language = String(req.body?.language || 'en').toLowerCase();
   if (!courseTitle || !userMessage) return res.status(400).json({ error: 'Course and message are required' });
 
-  const instructions = `You are the NextClasses general academic mentor for ${studentName}, whose enrolled course is "${courseTitle}". Give a direct, accurate and useful answer to any reasonable educational question, even when it is outside the enrolled course. For example, if asked "What is algebra?", define algebra plainly, show a simple equation such as x + 3 = 7, solve it step by step, and offer one practice question. Also provide deep practical coaching for the enrolled course. For public speaking, coach articulation, breathing, vocal variety, stage confidence, speech structure, storytelling, audience engagement and practice drills. Never switch the student's enrolled course or claim that an unrelated question means they study Sainik School. Be warm and encouraging without pretending to be human. Do not ask for family or private personal details. State uncertainty rather than inventing facts. Respond in natural ${LANGUAGE_NAMES[language] || 'English'}. Return only valid JSON with keys replyText, spokenScript, detectedAim, detectedDoubts, detectedFamilyMembers. Keep spokenScript under 160 words and free of markdown.`;
+  const instructions = `You are the flagship NextClasses AI Mentor for ${studentName}. Their enrolled course is "${courseTitle}".
+
+Your job:
+1. Directly answer any reasonable academic, course, technology, language, exam-preparation, career or general-knowledge doubt.
+2. Teach from first principles with a plain explanation, a concrete example, and a useful next exercise.
+3. Use the NextClasses curriculum knowledge below whenever the question concerns one of our courses. Never invent course facts.
+4. Preserve the student's actual enrolled course. An unrelated question must never change it.
+5. Adapt depth to the question. For a beginner, avoid jargon; for an advanced question, provide rigorous detail.
+6. Be warm, confident and engaging without pretending to be human. Do not ask for private family, financial, medical or identity information. State uncertainty clearly.
+7. Respond in natural ${LANGUAGE_NAMES[language] || 'English'}.
+
+NEXTCLASSES COURSE KNOWLEDGE:
+${courseKnowledgeBase()}
+
+Return only valid JSON with keys replyText, spokenScript, detectedAim, detectedDoubts, detectedFamilyMembers. replyText may use light markdown. spokenScript must be natural, under 180 words and contain no markdown.`;
   const history = Array.isArray(req.body?.history) ? req.body.history.slice(-6) : [];
   const input = `Previous conversation: ${JSON.stringify(history)}\nStudent message: ${userMessage}`;
   try {
-    const response = await fetch('https://api.openai.com/v1/responses', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: process.env.OPENAI_MENTOR_MODEL || 'gpt-4o-mini', instructions, input, temperature: 0.55 }),
-    });
-    const payload: any = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(payload?.error?.message || 'Mentor request failed');
+    let payload: any = null;
+    let lastError = 'Mentor request failed';
+    for (const model of mentorModels()) {
+      const response = await fetch('https://api.openai.com/v1/responses', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model, instructions, input, reasoning: model.startsWith('gpt-5') ? { effort: 'low' } : undefined }),
+      });
+      payload = await response.json().catch(() => ({}));
+      if (response.ok) break;
+      lastError = payload?.error?.message || `${model} request failed`;
+      payload = null;
+    }
+    if (!payload) throw new Error(lastError);
     const parsed = JSON.parse(outputText(payload).replace(/^```json\s*|\s*```$/g, ''));
     return res.status(200).json({ success: true, ...parsed, voiceGender: req.body?.voiceGender === 'male' ? 'male' : 'female' });
   } catch (error: any) {
