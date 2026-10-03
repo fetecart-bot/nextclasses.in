@@ -26,10 +26,10 @@ export default function ShareCourseModal({ course, isOpen, onClose }: ShareCours
   const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(whatsappMessage)}`;
 
   const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
-  const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`Master ${course.title} on Nextclasses.in! 🚀 Practical curriculum with video masterclasses:`)}&url=${encodedUrl}`;
+  const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`Master ${course.title} on Nextclasses.in! 🚀 Explore the syllabus and learning support:`)}&url=${encodedUrl}`;
   const telegramUrl = `https://t.me/share/url?url=${encodedUrl}&text=${encodeURIComponent(`🎓 ${course.title} - Nextclasses.in`)}`;
   const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
-  const mailtoUrl = `mailto:?subject=${encodeURIComponent(shareTitle)}&body=${encodeURIComponent(`${shareDescription}\n\nExplore syllabus and video lessons here:\n${shareUrl}`)}`;
+  const mailtoUrl = `mailto:?subject=${encodeURIComponent(shareTitle)}&body=${encodeURIComponent(`${shareDescription}\n\nExplore the syllabus here:\n${shareUrl}`)}`;
 
   const handleCopyLink = async () => {
     try {

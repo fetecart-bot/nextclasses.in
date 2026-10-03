@@ -1,3 +1,5 @@
+import { GRADUATE_EXAM_COURSES } from './graduateExamCourses';
+import { GRADUATE_EXAM_PRACTICE } from './graduateExamPractice';
 import { MockTest } from '../types';
 
 export const MOCK_TESTS_DATA: MockTest[] = [
@@ -602,3 +604,12 @@ export const MOCK_TESTS_DATA: MockTest[] = [
     ]
   }
 ];
+
+for (const course of GRADUATE_EXAM_COURSES) {
+  const questions = GRADUATE_EXAM_PRACTICE[course.id as keyof typeof GRADUATE_EXAM_PRACTICE];
+  MOCK_TESTS_DATA.push({
+    id: `practice-${course.id}`, title: `${course.examName}: Foundation Practice Quiz`, examCode: course.targetExamCode!, category: 'competitive', durationMinutes: 10, totalMarks: questions.length, positiveMarks: 1, negativeMarks: 0,
+    instructions: ['Original foundation practice questions; not a full-length mock exam or official previous-year paper.', 'One mark per correct answer, with no negative marking in this practice quiz.', 'Review the explanation after submission. Check the official examination notice for actual scoring rules.'],
+    questions: questions.map((question) => ({ id: question.id, subject: question.subject, topic: question.subject, questionText: question.question, options: question.options.map((option) => option.slice(3)), correctOptionIndex: question.correctOption.charCodeAt(0) - 65, explanation: question.explanation, difficulty: 'Easy' })),
+  });
+}

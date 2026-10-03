@@ -73,6 +73,7 @@ export interface Course {
   previewVideoUrl?: string;
   videoEmbedUrl?: string;
   demoVideoTitle?: string;
+  officialSyllabusUrl?: string;
 }
 
 export interface AIProduct {

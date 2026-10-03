@@ -147,7 +147,8 @@ export default function CartDrawer({
   if (!isOpen) return null;
 
   const rawTotal = items.reduce((acc, item) => acc + (Number(item.price) || 0), 0);
-  const discountAmount = appliedCoupon ? Math.round((rawTotal * appliedCoupon.percent) / 100) : 0;
+  const discountEligibleTotal = items.filter((item) => !['course-upsc-civil-services', 'course-ssc-cgl', 'course-kerala-psc-degree'].includes(item.id)).reduce((sum, item) => sum + (Number(item.price) || 0), 0);
+  const discountAmount = appliedCoupon ? Math.round((discountEligibleTotal * appliedCoupon.percent) / 100) : 0;
   const finalTotal = Math.max(0, rawTotal - discountAmount);
 
   const completeEnrollmentAndOrder = (
@@ -192,8 +193,8 @@ export default function CartDrawer({
         phone: verifiedAccount.phone,
         username: verifiedAccount.username,
         enrolledCourseIds: items.map((i) => i.id),
-        targetExamCode: roadmaps[0]?.examCode || 'AISSEE',
-        targetExamDate: roadmaps[0]?.targetExamDate || '2027-01-10',
+        targetExamCode: roadmaps[0]?.examCode || items[0]?.targetExamCode || 'OTHER',
+        targetExamDate: roadmaps[0]?.targetExamDate || undefined,
         learningGoal: `Master Curriculum for ${items[0]?.title || 'Sainik School'}`,
         registeredAt: verifiedAccount.registeredAt,
         completedLessons: [1],
@@ -296,7 +297,7 @@ export default function CartDrawer({
     // Compute roadmaps for any competitive exams in the cart
     const roadmaps: ExamScheduleCalculation[] = [];
     items.forEach((item) => {
-      if (item.isCompetitiveExam || item.category === 'competitive_exams') {
+      if ((item.isCompetitiveExam || item.category === 'competitive_exams') && !['course-upsc-civil-services', 'course-ssc-cgl', 'course-kerala-psc-degree'].includes(item.id)) {
         const targetDate = itemTargetDates[item.id] || item.targetExamDate || '2027-05-02';
         const code = item.targetExamCode || 'NEET';
         const name = item.examName || item.title;
@@ -840,7 +841,7 @@ Support: support@nextclasses.in | WhatsApp: +91 82816 44058 | https://www.nextcl
                 </span>
 
                 {items.map((item) => {
-                  const isCompetitive = item.isCompetitiveExam || item.category === 'competitive_exams';
+                  const isCompetitive = (item.isCompetitiveExam || item.category === 'competitive_exams') && !['course-upsc-civil-services', 'course-ssc-cgl', 'course-kerala-psc-degree'].includes(item.id);
                   const targetDate = itemTargetDates[item.id] || item.targetExamDate || '2027-05-02';
                   const daysToExam = isCompetitive ? calculateDaysToExam(targetDate) : 0;
                   const weeksToExam = isCompetitive ? calculateWeeksToExam(daysToExam) : 0;
@@ -961,7 +962,7 @@ Support: support@nextclasses.in | WhatsApp: +91 82816 44058 | https://www.nextcl
                   <p className="text-[11px] text-rose-400">{couponError}</p>
                 )}
 
-                {appliedCoupon && (
+                {appliedCoupon && discountEligibleTotal > 0 && (
                   <div className="flex items-center justify-between text-xs text-emerald-400 bg-emerald-950/40 p-2 rounded border border-emerald-800/60">
                     <span>Coupon "{appliedCoupon.code}" applied ({appliedCoupon.percent}% OFF)</span>
                     <button
@@ -975,6 +976,7 @@ Support: support@nextclasses.in | WhatsApp: +91 82816 44058 | https://www.nextcl
                 )}
               </div>
 
+              {discountEligibleTotal < rawTotal && <p className="text-xs text-neutral-400">UPSC, SSC CGL and Kerala PSC foundation tracks are ₹1,999 each. Additional promo discounts do not apply to these tracks.</p>}
               {/* Checkout Form */}
               <form id="checkout-student-form" onSubmit={handleCheckoutSubmit} className="space-y-4">
                 {paymentError && (
@@ -1159,7 +1161,7 @@ Support: support@nextclasses.in | WhatsApp: +91 82816 44058 | https://www.nextcl
                     <span>Subtotal:</span>
                     <span>₹{rawTotal}</span>
                   </div>
-                  {appliedCoupon && (
+                  {appliedCoupon && discountEligibleTotal > 0 && (
                     <div className="flex justify-between text-emerald-400">
                       <span>Discount ({appliedCoupon.code}):</span>
                       <span>-₹{discountAmount}</span>

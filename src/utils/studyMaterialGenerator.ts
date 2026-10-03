@@ -1,3 +1,4 @@
+import { GRADUATE_EXAM_PRACTICE } from '../data/graduateExamPractice';
 import { Course } from '../types';
 import { COURSES_DATA } from '../data';
 
@@ -514,6 +515,19 @@ function buildCourseStudyMaterialPack(course: Course): StudyMaterialPack {
 }
 
 export function getStudyMaterialPack(courseId: string): StudyMaterialPack {
+  const graduateQuestions = GRADUATE_EXAM_PRACTICE[courseId as keyof typeof GRADUATE_EXAM_PRACTICE];
+  if (graduateQuestions) {
+    const course = COURSES_DATA.find((item) => item.id === courseId)!;
+    const pack = buildCourseStudyMaterialPack(course);
+    pack.sampleQuestions = graduateQuestions;
+    pack.formulaAndTips = [
+      'This foundation pack contains syllabus guidance and original explained practice questions, not official previous-year questions or full mock exams.',
+      `Verify syllabus, dates, eligibility and exam rules at ${course.officialSyllabusUrl}.`,
+      'Complete a topic, explain it in your own words, answer practice questions and keep an error log.',
+      'Ask your course AI mentor for worked examples and further practice. Verify important facts against primary sources.',
+    ];
+    return pack;
+  }
   const dedicatedPack = STUDY_MATERIALS_DATABASE[courseId];
   if (dedicatedPack) return dedicatedPack;
 

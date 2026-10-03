@@ -1237,6 +1237,8 @@ COURSE_VIDEO_PLAYLISTS['course-aissee-sainik'] = COURSE_VIDEO_PLAYLISTS['course-
 export function getCourseVideos(courseOrId: Course | string): PortalVideoLesson[] {
   const courseId = typeof courseOrId === 'string' ? courseOrId : courseOrId.id;
   
+  if (['course-upsc-civil-services', 'course-ssc-cgl', 'course-kerala-psc-degree'].includes(courseId)) return [];
+
   if (COURSE_VIDEO_PLAYLISTS[courseId]) {
     return COURSE_VIDEO_PLAYLISTS[courseId];
   }

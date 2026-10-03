@@ -1,3 +1,4 @@
+import { GRADUATE_EXAM_PRACTICE } from '../src/data/graduateExamPractice.js';
 import { COURSES_DATA } from '../src/data.js';
 import { supabaseRequest } from './_supabase.js';
 
@@ -5,7 +6,7 @@ function category(course: any) {
   const text = `${course.id} ${course.title}`.toLowerCase();
   if (/speaking|communication|articulation/.test(text)) return ['Communication practice', 'Deliver one clear idea using pace, pauses and specific examples.'];
   if (/french|german|language|english/.test(text)) return ['Language fluency practice', 'Build useful sentences, speak them aloud and correct grammar in context.'];
-  if (/neet|jee|keam|aissee|sainik|navodaya/.test(text)) return ['Exam accuracy drill', 'Use timed recall, option elimination and an error log to improve exam performance.'];
+  if (/neet|jee|keam|aissee|sainik|navodaya|upsc|ssc|psc/.test(text)) return ['Exam accuracy drill', 'Use timed recall, option elimination and an error log to improve exam performance.'];
   return ['Applied AI practice', 'Write a structured prompt, verify the output and document one improvement.'];
 }
 
@@ -16,6 +17,12 @@ export default async function handler(req: any, res: any) {
   try {
     const date = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
     const rows = COURSES_DATA.map((course) => {
+      const questions = GRADUATE_EXAM_PRACTICE[course.id as keyof typeof GRADUATE_EXAM_PRACTICE];
+      if (questions) {
+        const day = Math.floor(Date.parse(`${date}T00:00:00Z`) / 86400000);
+        const question = questions[Math.abs(day) % questions.length];
+        return { course_id: course.id, course_title: course.title, material_date: date, title: `${question.subject}: foundation revision`, focus: question.subject, lesson: [question.explanation], practice: [question.question, ...question.options], answers: [question.correctOption, question.explanation], status: 'draft', generated_by: 'Vercel Daily Scheduler' };
+      }
       const [title, focus] = category(course);
       return {
         course_id: course.id, course_title: course.title, material_date: date,

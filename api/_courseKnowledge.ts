@@ -9,6 +9,8 @@ export function courseKnowledgeBase() {
       `ID: ${course.id}`,
       `Title: ${course.title}`,
       `Overview: ${course.subtitle}`,
+      `Price: INR ${course.price}; compare-at INR ${course.originalPrice}`,
+      `Official syllabus/notifications: ${course.officialSyllabusUrl || "Check the exam authority"}`,
       `Level/Language: ${course.level}; ${course.language}`,
       `Highlights: ${course.highlights.slice(0, 5).join('; ')}`,
       `Tools/Subjects: ${[...(course.toolsCovered || []), ...(course.subjects || [])].join('; ')}`,

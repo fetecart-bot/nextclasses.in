@@ -1,3 +1,4 @@
+import { GRADUATE_EXAM_COURSES } from './data/graduateExamCourses';
 import { Course, AIProduct, Testimonial, FAQItem, PortalVideoLesson } from './types';
 
 export const COURSES_DATA: Course[] = [
@@ -2188,6 +2189,7 @@ export const COURSES_DATA: Course[] = [
       credentials: 'M.Sc, B.Ed • 2,000+ JNVST Selections',
     },
   },
+  ...GRADUATE_EXAM_COURSES,
 ];
 export const PRODUCTS_DATA: AIProduct[] = [
   {

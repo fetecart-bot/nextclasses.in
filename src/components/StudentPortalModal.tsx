@@ -1,3 +1,4 @@
+import { GRADUATE_EXAM_COURSES } from '../data/graduateExamCourses';
 import { useState, useEffect, useMemo, FormEvent } from 'react';
 import { 
   X, Play, CheckCircle2, Clock, Calendar, Download, Send, 
@@ -2159,6 +2160,18 @@ const COURSE_CURRICULUMS: Record<string, {
   },
 };
 
+
+for (const course of GRADUATE_EXAM_COURSES) {
+  COURSE_CURRICULUMS[course.id] = {
+    courseTitle: course.title,
+    examCode: course.targetExamCode || 'OTHER',
+    certificateTitle: `${course.examName} Foundation Learning`,
+    videos: [],
+    weeklyPackages: [{ week: 1, title: 'Foundation syllabus and practice pack', releaseDate: 'Available Now', status: 'Available', modules: course.curriculum.map((module) => module.title) }],
+    prompts: course.curriculum.map((module) => ({ title: module.title, text: `Teach me ${module.lessons[0]} for ${course.examName}. Explain from first principles, give a worked example and three practice questions with explained answers. Do not invent exam dates or current affairs.` })),
+  };
+}
+
 export default function StudentPortalModal({ 
   onClose, 
   onLaunchMockTest,
@@ -2212,7 +2225,7 @@ export default function StudentPortalModal({
     }
   }, [user]);
 
-  const [activeTab, setActiveTab] = useState<'lessons' | 'daily' | 'dispatches' | 'mock_tests' | 'badges' | 'prompts' | 'certificate' | 'review'>('lessons');
+  const [activeTab, setActiveTab] = useState<'lessons' | 'daily' | 'dispatches' | 'mock_tests' | 'badges' | 'prompts' | 'certificate' | 'review'>(GRADUATE_EXAM_COURSES.some((course) => course.id === defaultCourse) ? 'daily' : 'lessons');
   const [copiedPromptIndex, setCopiedPromptIndex] = useState<number | null>(null);
   const [downloadNotice, setDownloadNotice] = useState<string | null>(null);
   const [isSendingWhatsApp, setIsSendingWhatsApp] = useState(false);
@@ -2230,6 +2243,7 @@ export default function StudentPortalModal({
     }
   }, [selectedCourseId, effectiveVideos]);
 
+  const isGraduateExam = GRADUATE_EXAM_COURSES.some((course) => course.id === selectedCourseId);
   const targetDate = user?.targetExamDate || (selectedCourseId === 'course-aissee-sainik' ? '2027-01-10' : '2027-05-02');
   const daysLeft = calculateDaysToExam(targetDate);
   const weeksLeft = calculateWeeksToExam(daysLeft);
@@ -2326,6 +2340,7 @@ export default function StudentPortalModal({
 
   // Find matching mock test for this course
   const relevantMockTests = useMemo(() => {
+    if (isGraduateExam) return MOCK_TESTS_DATA.filter((test) => test.examCode === currentCurriculum.examCode);
     if (selectedCourseId === 'course-aissee-sainik-6' || (selectedCourseId.includes('sainik') && user?.standard === 'class-6')) {
       return MOCK_TESTS_DATA.filter((t) => t.examCode === 'AISSEE-6' || t.id.includes('class6') || (t.examCode === 'AISSEE' && !t.id.includes('class9')));
     }
@@ -2342,7 +2357,7 @@ export default function StudentPortalModal({
       return MOCK_TESTS_DATA.filter((t) => t.examCode === 'NEET' || t.id.includes('neet'));
     }
     return MOCK_TESTS_DATA;
-  }, [selectedCourseId, user?.standard]);
+  }, [selectedCourseId, user?.standard, isGraduateExam, currentCurriculum.examCode]);
 
   // UN-AUTHENTICATED STATE: SHOW SECURE LOGIN GATE
   if (!user) {
@@ -2522,7 +2537,7 @@ export default function StudentPortalModal({
                     {user.standard === 'class-9' ? 'Class 9 (400 Marks)' : 'Class 6 (300 Marks)'}
                   </span>
                 )}
-                <span>• Goal: <strong className="text-amber-400">{currentCurriculum.examCode} 2027</strong></span>
+                <span>• Goal: <strong className="text-amber-400">{currentCurriculum.examCode}{!isGraduateExam && ' 2027'}</strong></span>
               </p>
             </div>
           </div>
@@ -2654,7 +2669,7 @@ export default function StudentPortalModal({
             <div className="px-2.5 py-1 rounded-lg bg-[#141d2d] border border-[#263750] text-[11px] text-neutral-300 flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5 text-amber-400" />
               <span>
-                <strong className="text-white">{daysLeft}</strong> days to exam (<strong className="text-amber-400">{weeksLeft}</strong> study drops)
+                {isGraduateExam ? 'Foundation study plan • Check official exam dates' : <><strong className="text-white">{daysLeft}</strong> days to exam (<strong className="text-amber-400">{weeksLeft}</strong> study drops)</>}
               </span>
             </div>
           </div>
@@ -3035,7 +3050,7 @@ export default function StudentPortalModal({
                     <span>Computer Based Test (CBT) Mock Exams — {currentCurriculum.examCode}</span>
                   </h3>
                   <p className="text-xs text-neutral-400">
-                    Timed exam simulations matching official NTA scoring patterns with step-by-step solutions.
+                    {isGraduateExam ? 'Short foundation practice quizzes with explained answers. These are not full-length official exam simulations.' : 'Timed exam simulations matching official NTA scoring patterns with step-by-step solutions.'}
                   </p>
                 </div>
               </div>

@@ -60,6 +60,9 @@ export default function CourseModal({ course, onClose, onAddToCart }: CourseModa
       thumbnail: course.thumbnail,
       format: course.format,
       category: course.category,
+      isCompetitiveExam: course.isCompetitiveExam,
+      targetExamCode: course.targetExamCode,
+      examName: course.examName,
     });
     onClose();
   };
@@ -81,7 +84,7 @@ export default function CourseModal({ course, onClose, onAddToCart }: CourseModa
               • {course.language}
             </span>
             <span className="text-xs text-emerald-400 font-medium hidden md:inline">
-              • {courseVideos.length} Free Preview Videos
+              • {courseVideos.length ? `${courseVideos.length} Free Preview Videos` : 'Foundation study & AI support'}
             </span>
           </div>
 
@@ -203,13 +206,13 @@ export default function CourseModal({ course, onClose, onAddToCart }: CourseModa
                 <span className="text-neutral-500 block">Certification</span>
                 <span className="font-semibold text-emerald-400 mt-0.5 flex items-center gap-1">
                   <Award className="w-3.5 h-3.5 text-emerald-400" />
-                  Official Certificate
+                  {course.officialSyllabusUrl ? 'Foundation Learning' : 'Official Certificate'}
                 </span>
               </div>
             </div>
 
             {/* Curated Multi-Video Masterclasses & Demonstrations */}
-            <div className="pt-2 space-y-4">
+            {activeVideo && <div className="pt-2 space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-2 px-1">
                 <div className="flex items-center gap-2">
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-600/15 text-red-400 border border-red-500/30 text-xs font-bold">
@@ -351,13 +354,14 @@ export default function CourseModal({ course, onClose, onAddToCart }: CourseModa
                   })}
                 </div>
               </div>
-            </div>
+            </div>}
+            {course.officialSyllabusUrl && <p className="text-sm text-neutral-300">Start with your foundation study pack and AI mentor. <a className="text-amber-400 underline" href={course.officialSyllabusUrl} target="_blank" rel="noopener noreferrer">Check official syllabus and notifications</a>. Optional subjects, post-specific Mains and unannounced exam dates are not included.</p>}
           </div>
 
           {/* Tools Covered */}
           <div className="pt-6 space-y-3">
             <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-400">
-              Tools & Technologies Mastered
+              {course.officialSyllabusUrl ? 'Subjects Covered' : 'Tools & Technologies Mastered'}
             </h3>
             <div className="flex flex-wrap gap-2">
               {course.toolsCovered.map((tool) => (
@@ -376,7 +380,7 @@ export default function CourseModal({ course, onClose, onAddToCart }: CourseModa
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-bold text-white tracking-tight">Complete Course Curriculum</h3>
-                <p className="text-xs text-neutral-400">Structured step-by-step from zero foundations to live capstone implementation.</p>
+                <p className="text-xs text-neutral-400">{course.officialSyllabusUrl ? 'Suggested study topics for a self-paced foundation plan.' : 'Structured step-by-step from zero foundations to live capstone implementation.'}</p>
               </div>
               <span className="text-xs font-mono text-neutral-500 hidden sm:inline">
                 {course.curriculum.length} Modules
@@ -456,19 +460,19 @@ export default function CourseModal({ course, onClose, onAddToCart }: CourseModa
               <ul className="space-y-1.5 text-xs text-neutral-300">
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Lifetime access to student dashboard & recordings</span>
+                  <span>{course.officialSyllabusUrl ? 'Student dashboard and course-aware AI mentor' : 'Lifetime access to student dashboard & recordings'}</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>VIP WhatsApp batch group for live doubt clearing</span>
+                  <span>{course.officialSyllabusUrl ? 'AI explanations and guided practice prompts' : 'VIP WhatsApp batch group for live doubt clearing'}</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Downloadable prompt sheets, templates & cheat sheets</span>
+                  <span>{course.officialSyllabusUrl ? 'Downloadable foundation pack and explained practice questions' : 'Downloadable prompt sheets, templates & cheat sheets'}</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Verifiable Certificate of Completion</span>
+                  <span>{course.officialSyllabusUrl ? 'Short foundation quiz; full mock exams and videos are not included' : 'Verifiable Certificate of Completion'}</span>
                 </li>
               </ul>
             </div>
@@ -488,7 +492,7 @@ export default function CourseModal({ course, onClose, onAddToCart }: CourseModa
                 </span>
               )}
             </div>
-            <span className="text-[11px] text-neutral-400">No hidden fees • Full course + Certificate</span>
+            <span className="text-[11px] text-neutral-400">{course.officialSyllabusUrl ? 'Foundation study pack + AI mentor support' : 'No hidden fees • Full course + Certificate'}</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -517,7 +521,7 @@ export default function CourseModal({ course, onClose, onAddToCart }: CourseModa
               onClick={handleEnroll}
               className="px-6 sm:px-8 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-neutral-950 font-bold text-sm hover:opacity-90 transition-all shadow-lg shadow-orange-500/20 cursor-pointer"
             >
-              Enroll & Start Instantly
+              {course.officialSyllabusUrl ? 'Enroll in Foundation Track' : 'Enroll & Start Instantly'}
             </button>
           </div>
         </div>

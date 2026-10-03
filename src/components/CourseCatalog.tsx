@@ -36,7 +36,7 @@ export default function CourseCatalog({
     { id: 'students', label: '🎓 Students & Academics', count: courses.filter(c => c.category === 'students').length },
     { id: 'educators', label: '🍎 Teachers & Educators', count: courses.filter(c => c.category === 'educators').length },
     { id: 'languages', label: '🗣️ Languages & Speaking (English, French, German)', count: courses.filter(c => c.category === 'languages').length },
-    { id: 'competitive_exams', label: '🎯 Competitive Exams (NEET, JEE, KEAM, AISSEE, Navodaya)', count: courses.filter(c => c.category === 'competitive_exams').length },
+    { id: 'competitive_exams', label: '🎯 Competitive Exams (UPSC, SSC CGL, Kerala PSC, School & College Entrance)', count: courses.filter(c => c.category === 'competitive_exams').length },
   ];
 
   const filteredCourses = useMemo(() => {
@@ -150,6 +150,14 @@ export default function CourseCatalog({
           </div>
         </div>
 
+        {(activeCategory === 'all' || activeCategory === 'competitive_exams') && (
+          <aside className="mb-6 p-5 rounded-xl border border-amber-500/30 bg-amber-500/5">
+            <h3 className="text-white font-bold">UPSC, SSC CGL & Kerala PSC graduate exam preparation</h3>
+            <p className="text-sm text-neutral-300 mt-2">Dedicated foundation study plans and AI mentor support. Other state PSC tracks: <strong className="text-amber-400">Coming soon</strong>.</p>
+            <button type="button" onClick={() => { setActiveCategory('competitive_exams'); setSearchQuery(''); setShowAllCourses(true); }} className="mt-3 text-amber-400 text-sm font-bold">Explore exam preparation →</button>
+            <a href="/exam-preparation/" className="block mt-2 text-sm text-neutral-300 underline">Compare the three graduate exam tracks</a>
+          </aside>
+        )}
         {/* Filters and Search Bar */}
         <div className="space-y-4 mb-10">
           
@@ -291,7 +299,7 @@ export default function CourseCatalog({
                         <div className="flex items-center gap-1.5 shrink-0">
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-950/85 backdrop-blur-md text-[10px] font-bold text-red-400 border border-red-500/40 shadow-xs">
                             <Play className="w-2.5 h-2.5 fill-current" />
-                            YouTube Preview
+                            {getCourseVideos(course).length ? 'YouTube Preview' : 'Study & AI Mentor'}
                           </span>
                           <button
                             type="button"
@@ -336,7 +344,7 @@ export default function CourseCatalog({
                     <div className="p-6 space-y-4">
                       
                       {/* Rating & Social Proof */}
-                      <div className="flex items-center justify-between text-xs">
+                      {course.reviewCount > 0 && <div className="flex items-center justify-between text-xs">
                         <div className="flex items-center gap-1 text-amber-400 font-bold">
                           <Star className="w-3.5 h-3.5 fill-amber-400" />
                           <span>{course.rating}</span>
@@ -345,7 +353,7 @@ export default function CourseCatalog({
                         <span className="text-neutral-400 text-[11px]">
                           {course.enrolledCount.toLocaleString()}+ students
                         </span>
-                      </div>
+                      </div>}
 
                       {/* Title & Subtitle */}
                       <div>
@@ -371,7 +379,7 @@ export default function CourseCatalog({
 
                       {/* Key highlights checklist */}
                       <div className="pt-2 space-y-1.5 text-xs text-neutral-300 border-t border-neutral-800/80">
-                        {course.isCompetitiveExam && (
+                        {course.isCompetitiveExam && !course.officialSyllabusUrl && (
                           <div className="flex items-center gap-1.5 text-[11px] font-bold text-amber-400 bg-amber-500/10 px-2 py-1 rounded-lg border border-amber-500/20 mb-1.5">
                             <span>📦 Automated Weekly Delivery: Calculated from Exam Countdown</span>
                           </div>
@@ -417,8 +425,8 @@ export default function CourseCatalog({
                           title="Watch official YouTube demo & view curriculum"
                         >
                           <Play className="w-3 h-3 text-red-500 fill-red-500 shrink-0" />
-                          <span className="hidden xs:inline">Demo & Syllabus</span>
-                          <span className="xs:hidden">Demo</span>
+                          <span className="hidden xs:inline">{course.officialSyllabusUrl ? 'View Syllabus' : 'Demo & Syllabus'}</span>
+                          <span className="xs:hidden">{course.officialSyllabusUrl ? 'Syllabus' : 'Demo'}</span>
                         </button>
                         <button
                           type="button"

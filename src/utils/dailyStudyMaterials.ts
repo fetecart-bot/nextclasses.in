@@ -1,3 +1,4 @@
+import { GRADUATE_EXAM_PRACTICE } from '../data/graduateExamPractice';
 import { COURSES_DATA } from '../data';
 
 export interface DailyStudyMaterial {
@@ -35,7 +36,7 @@ function categoryFor(courseId: string, title: string): keyof typeof TOPICS {
   const text = `${courseId} ${title}`.toLowerCase();
   if (/speaking|articulation|communication/.test(text)) return 'speaking';
   if (/french|german|language|english/.test(text)) return 'language';
-  if (/neet|jee|keam|aissee|sainik|navodaya|exam/.test(text)) return 'exam';
+  if (/neet|jee|keam|aissee|sainik|navodaya|upsc|ssc|psc|exam/.test(text)) return 'exam';
   return 'ai';
 }
 
@@ -44,6 +45,11 @@ export function getDailyStudyMaterial(courseId: string, date = new Date()): Dail
   const courseTitle = course?.title || 'Nextclasses Course';
   const dateKey = date.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
   const dayNumber = Math.floor(Date.parse(`${dateKey}T00:00:00Z`) / 86400000);
+  const graduateQuestions = GRADUATE_EXAM_PRACTICE[courseId as keyof typeof GRADUATE_EXAM_PRACTICE];
+  if (graduateQuestions) {
+    const question = graduateQuestions[Math.abs(dayNumber) % graduateQuestions.length];
+    return { id: `${courseId}-${dateKey}`, date: dateKey, courseId, courseTitle, title: `${question.subject}: foundation revision`, focus: question.subject, lesson: [question.explanation], practice: [question.question, ...question.options, 'Explain your reasoning before viewing the answer. Ask the AI mentor for a further example.'], answers: [question.correctOption, question.explanation], estimatedMinutes: 20 };
+  }
   const topics = TOPICS[categoryFor(courseId, courseTitle)];
   const topic = topics[Math.abs(dayNumber) % topics.length];
   return { id: `${courseId}-${dateKey}`, date: dateKey, courseId, courseTitle, ...topic, estimatedMinutes: 30 };
