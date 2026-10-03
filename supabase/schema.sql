@@ -106,3 +106,13 @@ create index if not exists student_reviews_status_idx on public.student_reviews(
 create index if not exists student_reviews_created_at_idx on public.student_reviews(created_at desc);
 alter table public.student_reviews enable row level security;
 revoke all on public.student_reviews from anon, authenticated;
+
+-- Message IDs only; student questions and phone numbers are not logged here.
+create table if not exists public.whatsapp_bot_messages (
+  message_id text primary key,
+  status text not null check (status in ('processing', 'sent', 'failed')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+alter table public.whatsapp_bot_messages enable row level security;
+revoke all on public.whatsapp_bot_messages from anon, authenticated;
