@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
-import { supabaseRequest } from '../_supabase.js';
-import { courseAssistantAnswer } from '../_socialAssistant.js';
+import { supabaseRequest } from './_supabase.js';
+import { courseAssistantAnswer } from './_socialAssistant.js';
 
 export const config = { api: { bodyParser: false } };
 function equal(a: string, b: string) {

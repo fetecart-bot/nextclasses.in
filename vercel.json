@@ -1,8 +1,15 @@
 {
   "crons": [
-    { "path": "/api/daily-materials-cron", "schedule": "30 0 * * *" }
+    {
+      "path": "/api/daily-materials-cron",
+      "schedule": "30 0 * * *"
+    }
   ],
   "rewrites": [
+    {
+      "source": "/api/meta/webhook",
+      "destination": "/api/whatsapp/webhook?channel=meta"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"

@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import socialWebhook from '../_metaWebhook.js';
 import { supabaseRequest } from '../_supabase.js';
 import { courseAssistantAnswer } from '../_socialAssistant.js';
 
@@ -11,6 +12,7 @@ function same(a: string, b: string) {
 
 
 export default async function handler(req: any, res: any) {
+  if (req.query?.channel === 'meta') return socialWebhook(req, res);
   if (req.method === 'GET') {
     const token = process.env.WHATSAPP_VERIFY_TOKEN || '';
     if (!token) return res.status(503).send('WhatsApp verification is not configured');
