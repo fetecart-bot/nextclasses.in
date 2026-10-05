@@ -1,4 +1,4 @@
-import { Course } from '../types';
+import type { Course } from '../types.js';
 
 export const GRADUATE_EXAM_COURSES: Course[] = [
   {

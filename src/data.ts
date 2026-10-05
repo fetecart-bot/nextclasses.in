@@ -1,5 +1,5 @@
-import { GRADUATE_EXAM_COURSES } from './data/graduateExamCourses';
-import { Course, AIProduct, Testimonial, FAQItem, PortalVideoLesson } from './types';
+import { GRADUATE_EXAM_COURSES } from './data/graduateExamCourses.js';
+import type { Course, AIProduct, Testimonial, FAQItem, PortalVideoLesson } from './types';
 
 export const COURSES_DATA: Course[] = [
   {
