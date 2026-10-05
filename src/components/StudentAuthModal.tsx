@@ -226,12 +226,12 @@ export default function StudentAuthModal({ onClose, onSuccess }: StudentAuthModa
               <div>
                 Need help recovering your credentials?{' '}
                 <a
-                  href="https://wa.me/918281644058?text=Hi%20Nextclasses.in%20Support,%20I%20need%20help%20with%20student%20portal%20login"
+                  href="https://wa.me/918792134951?text=Hi%20Nextclasses.in%20Support,%20I%20need%20help%20with%20student%20portal%20login"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-emerald-400 hover:underline font-mono font-medium"
                 >
-                  WhatsApp: +91 82816 44058
+                  WhatsApp: +91 87921 34951
                 </a>
               </div>
             </div>

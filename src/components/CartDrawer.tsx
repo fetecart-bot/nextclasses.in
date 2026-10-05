@@ -427,7 +427,7 @@ Channels: WhatsApp (+91 ${completedOrderDetails.phone}) + Student Learning Porta
 Guarantee: 100% 7-Day Money-Back Guarantee
 =====================================================
 Thank you for choosing Nextclasses.in!
-Support: support@nextclasses.in | WhatsApp: +91 82816 44058 | https://www.nextclasses.in
+Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextclasses.in
     `.trim();
 
     const element = document.createElement('a');
@@ -443,7 +443,7 @@ Support: support@nextclasses.in | WhatsApp: +91 82816 44058 | https://www.nextcl
 
   const handleSendTestWhatsAppDispatch = async () => {
     setIsSendingWhatsApp(true);
-    const targetPhone = completedOrderDetails?.phone || studentPhone || '8281644058';
+    const targetPhone = completedOrderDetails?.phone || studentPhone || '8792134951';
     const orderId = completedOrderDetails?.orderId || 'NC-ENROLL';
     const studentNameVal = completedOrderDetails?.name || studentName || 'Student';
     const itemsSummary = completedOrderDetails?.items?.map((i) => i.title).join(', ') || 'Nextclasses.in Course';
@@ -467,15 +467,15 @@ Support: support@nextclasses.in | WhatsApp: +91 82816 44058 | https://www.nextcl
       if (data?.mode === 'live') {
         setDownloadNotice(`✓ WhatsApp Cloud API alert dispatched to +${data.recipient}!`);
       } else {
-        // If API is simulated or not live, directly launch WhatsApp to +91 82816 44058
-        setDownloadNotice(`✓ Opening WhatsApp Helpline (+91 82816 44058)...`);
-        window.open(`https://wa.me/918281644058?text=${encodeURIComponent(fallbackDirectMsg)}`, '_blank');
+        // If API is simulated or not live, directly launch WhatsApp to +91 87921 34951
+        setDownloadNotice(`✓ Opening WhatsApp Helpline (+91 87921 34951)...`);
+        window.open(`https://wa.me/918792134951?text=${encodeURIComponent(fallbackDirectMsg)}`, '_blank');
       }
       setTimeout(() => setDownloadNotice(null), 4000);
     } catch {
       setWhatsAppDispatched(true);
-      setDownloadNotice(`✓ Opening WhatsApp (+91 82816 44058)...`);
-      window.open(`https://wa.me/918281644058?text=${encodeURIComponent(fallbackDirectMsg)}`, '_blank');
+      setDownloadNotice(`✓ Opening WhatsApp (+91 87921 34951)...`);
+      window.open(`https://wa.me/918792134951?text=${encodeURIComponent(fallbackDirectMsg)}`, '_blank');
       setTimeout(() => setDownloadNotice(null), 4000);
     } finally {
       setIsSendingWhatsApp(false);
@@ -743,13 +743,13 @@ Support: support@nextclasses.in | WhatsApp: +91 82816 44058 | https://www.nextcl
                 </div>
 
                 <a
-                  href={`https://wa.me/918281644058?text=${encodeURIComponent(`Hi Nextclasses.in Team, I just enrolled with Order #${completedOrderDetails.orderId} (${completedOrderDetails.name}, Phone: +91 ${completedOrderDetails.phone}). Please send my study materials and add me to the batch WhatsApp group!`)}`}
+                  href={`https://wa.me/918792134951?text=${encodeURIComponent(`Hi Nextclasses.in Team, I just enrolled with Order #${completedOrderDetails.orderId} (${completedOrderDetails.name}, Phone: +91 ${completedOrderDetails.phone}). Please send my study materials and add me to the batch WhatsApp group!`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-colors shadow-md shadow-emerald-600/20"
                 >
                   <MessageCircle className="w-4 h-4" />
-                  <span>Join Official WhatsApp Student Community (+91 82816 44058)</span>
+                  <span>Join Official WhatsApp Student Community (+91 87921 34951)</span>
                 </a>
 
                 <button

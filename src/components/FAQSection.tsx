@@ -70,13 +70,13 @@ export default function FAQSection() {
             <p className="text-xs text-neutral-400">Our academic counselors are active on WhatsApp to guide your choice.</p>
           </div>
           <a
-            href="https://wa.me/918281644058?text=Hi%20NextClass%20AI%20Team,%20I%20have%20a%20question%20regarding%20courses%20and%20weekly%20materials"
+            href="https://wa.me/918792134951?text=Hi%20NextClass%20AI%20Team,%20I%20have%20a%20question%20regarding%20courses%20and%20weekly%20materials"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-colors shrink-0 shadow-md shadow-emerald-600/20"
           >
             <MessageCircle className="w-4 h-4" />
-            <span>Chat on WhatsApp (+91 82816 44058)</span>
+            <span>Chat on WhatsApp (+91 87921 34951)</span>
           </a>
         </div>
 

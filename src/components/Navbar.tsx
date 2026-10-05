@@ -132,11 +132,11 @@ export default function Navbar({
             {/* Direct WhatsApp Helpline */}
             <a
               id="navbar-whatsapp-helpline"
-              href="https://wa.me/918281644058?text=Hi%20Nextclasses.in%20Support"
+              href="https://wa.me/918792134951?text=Hi%20Nextclasses.in%20Support"
               target="_blank"
               rel="noopener noreferrer"
               className="hidden lg:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-950/80 border border-emerald-800/80 text-emerald-400 hover:bg-emerald-900 text-xs font-semibold transition-colors"
-              title="Chat with Nextclasses.in Academic Support on WhatsApp (+91 82816 44058)"
+              title="Chat with Nextclasses.in Academic Support on WhatsApp (+91 87921 34951)"
             >
               <MessageCircle className="w-3.5 h-3.5" />
               <span>WhatsApp</span>
@@ -317,14 +317,14 @@ export default function Navbar({
             )}
 
             <a
-              href="https://wa.me/918281644058?text=Hi%20Nextclasses.in%20Support"
+              href="https://wa.me/918792134951?text=Hi%20Nextclasses.in%20Support"
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => setMobileMenuOpen(false)}
               className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-950 border border-emerald-800 text-emerald-400 text-xs font-semibold hover:bg-emerald-900 transition-colors"
             >
               <MessageCircle className="w-4 h-4 text-emerald-400" />
-              <span>WhatsApp Support: +91 82816 44058</span>
+              <span>WhatsApp Support: +91 87921 34951</span>
             </a>
 
             <button

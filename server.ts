@@ -225,7 +225,7 @@ FEES, CERTIFICATES & ADMISSION:
 - Fees are transparent: ₹1,499 for Google AI Studio / Claude; ₹1,799 for DeepSeek R1 / Voice AI.
 - Includes lifetime masterclass video access, complete source code, verifiable certificate, and live weekend doubt clearing.
 - All courses include an official ISO 9001:2015 verified digital certificate with a scannable tamper-proof QR code to showcase on LinkedIn.
-- Instant enrollment: Scan the UPI QR on www.nextclasses.in using Google Pay, PhonePe, Paytm, or BHIM. Send payment confirmation to WhatsApp at 82816 44058 for 5-minute LMS activation.
+- Instant enrollment: Scan the UPI QR on www.nextclasses.in using Google Pay, PhonePe, Paytm, or BHIM. Send payment confirmation to WhatsApp at 87921 34951 for 5-minute LMS activation.
 
 VOICE SYNTHESIS RULES:
 - Speak naturally and warmly in ${currentLang.name}.
@@ -613,7 +613,7 @@ You have real-time, comprehensive, deeply detailed knowledge of all programs:
 4. AISSEE All India Sainik School Entrance: Classes 6 & 9. Mathematics, Intelligence, English, GK/Science, Social Studies.
 5. Languages & Stage Mastery: Spoken English, Stage Confidence, French A1, German A1 Goethe.
 6. AI Masterclasses: Google AI Studio, DeepSeek R1 Local Reasoning & Finance, Claude 3.7 Sonnet, Real-time Voice AI & Telephony.
-7. Admission & Fees: Transparent affordable pricing (₹999 to ₹1,799). Study materials are dispatched weekly for 12 months, and portal video access is lifetime! WhatsApp helpline: +91 82816 44058.
+7. Admission & Fees: Transparent affordable pricing (₹999 to ₹1,799). Study materials are dispatched weekly for 12 months, and portal video access is lifetime! WhatsApp helpline: +91 87921 34951.
 
 Answer the student's inquiry intelligently, warmly, and thoroughly in ${language === 'kn' ? 'Kannada (ಕನ್ನಡ)' : language === 'ml' ? 'Malayalam (മലയാളം)' : language === 'ta' ? 'Tamil (தமிழ்)' : language === 'te' ? 'Telugu (తెలుగు)' : language === 'hi' ? 'Hindi (हिंदी)' : 'English'}. Never give canned or generic feeded responses. Give real, thoughtful guidance with clear markdown formatting.`;
 
@@ -736,7 +736,7 @@ Respond with a JSON object with these exact keys:
       let parsed = parseJsonSafely(responseText, null);
       if (!parsed || !parsed.writtenAnswer) {
         parsed = {
-          writtenAnswer: `### Explanation for ${courseTitle}\n\n**Academic Breakdown on "${question}":**\n- In this chapter, master the fundamental concept and standard formula first.\n- Apply the standard derivation steps and practice the chapterwise problem set.\n- You can also reach our faculty helpline on WhatsApp at **+91 82816 44058** for 1-on-1 personalized clarification.`,
+          writtenAnswer: `### Explanation for ${courseTitle}\n\n**Academic Breakdown on "${question}":**\n- In this chapter, master the fundamental concept and standard formula first.\n- Apply the standard derivation steps and practice the chapterwise problem set.\n- You can also reach our faculty helpline on WhatsApp at **+91 87921 34951** for 1-on-1 personalized clarification.`,
           spokenScript: `Here is the explanation for your question on ${courseTitle}. Master the fundamental concept in your video lesson and verify each step with the practice problems.`,
           keyTakeaway: "Master fundamental rules first, then practice chapterwise problems.",
           suggestedNextQuestions: ["How can I practice this topic with mock tests?", "What are common exam traps in this topic?"],
@@ -858,7 +858,7 @@ Respond with a JSON object with these exact keys:
             `• *Items:* NCERT Mind Maps, 200+ Practice OMR Questions & Mock Test 01\n` +
             `• *Target Completion:* Before Saturday 8:00 PM IST\n\n` +
             `👉 *Access Your Portal:* ${portalDirectLink}\n` +
-            `💬 *Student Support WhatsApp:* +91 82816 44058\n` +
+            `💬 *Student Support WhatsApp:* +91 87921 34951\n` +
             `_Automated message from NextClass AI Learning System._`;
         } else {
           // Default: Enrollment confirmation
@@ -868,7 +868,7 @@ Respond with a JSON object with these exact keys:
             `📚 *Package:* ${itemsSummary || "AI Mastery & Competitive Exam Weekly Dispatch"}\n` +
             `📅 *Dispatch Schedule:* Every Sunday at 6:00 AM IST\n\n` +
             `👉 *Student Portal Login:* ${portalDirectLink}\n` +
-            `💬 *Student Doubt WhatsApp:* +91 82816 44058\n\n` +
+            `💬 *Student Doubt WhatsApp:* +91 87921 34951\n\n` +
             `Keep learning, keep building with NextClass AI!`;
         }
       }
@@ -907,8 +907,8 @@ Respond with a JSON object with these exact keys:
               mode: "live_fallback_simulated",
               warning: metaData?.error?.message || "Meta API returned error; fallback to direct WhatsApp enabled",
               recipient: cleanPhone,
-              whatsappSupportNumber: "8281644058",
-              directWhatsAppUrl: `https://wa.me/918281644058?text=${encodeURIComponent(messageBody)}`,
+              whatsappSupportNumber: "8792134951",
+              directWhatsAppUrl: `https://wa.me/918792134951?text=${encodeURIComponent(messageBody)}`,
               messageBody,
             });
           }
@@ -918,7 +918,7 @@ Respond with a JSON object with these exact keys:
             mode: "live",
             metaMessageId: metaData?.messages?.[0]?.id,
             recipient: cleanPhone,
-            whatsappSupportNumber: "8281644058",
+            whatsappSupportNumber: "8792134951",
             messageBody,
           });
         } catch (fetchErr: any) {
@@ -926,23 +926,23 @@ Respond with a JSON object with these exact keys:
           return res.json({
             success: true,
             mode: "simulated",
-            note: "Network call to Meta failed; direct WhatsApp fallback activated (+91 82816 44058).",
+            note: "Network call to Meta failed; direct WhatsApp fallback activated (+91 87921 34951).",
             recipient: cleanPhone,
-            whatsappSupportNumber: "8281644058",
-            directWhatsAppUrl: `https://wa.me/918281644058?text=${encodeURIComponent(messageBody)}`,
+            whatsappSupportNumber: "8792134951",
+            directWhatsAppUrl: `https://wa.me/918792134951?text=${encodeURIComponent(messageBody)}`,
             messageBody,
           });
         }
       }
 
-      // If keys not yet set in environment or API not configured, respond with direct WhatsApp URL to 8281644058
+      // If keys not yet set in environment or API not configured, respond with direct WhatsApp URL to 8792134951
       return res.json({
         success: true,
         mode: "simulated",
-        note: "Direct WhatsApp fallback active via +91 82816 44058.",
+        note: "Direct WhatsApp fallback active via +91 87921 34951.",
         recipient: cleanPhone,
-        whatsappSupportNumber: "8281644058",
-        directWhatsAppUrl: `https://wa.me/918281644058?text=${encodeURIComponent(messageBody)}`,
+        whatsappSupportNumber: "8792134951",
+        directWhatsAppUrl: `https://wa.me/918792134951?text=${encodeURIComponent(messageBody)}`,
         messageBody,
         dispatchedAt: new Date().toISOString(),
       });
@@ -1007,7 +1007,7 @@ Respond with a JSON object with these exact keys:
 
       // Generates formal HTML email content
       const emailSubject = `Welcome to NextClass AI: Your Student Login ID & Password (${courseTitle})`;
-      const textBody = `Dear ${studentName},\n\nCongratulations! Your enrollment in ${courseTitle} is verified. Your personalized learning account is now active.\n\nYour Student Login Credentials:\n• Username: ${username} (or use your email: ${toEmail})\n• Password: ${password}\n• Payment UTR: ${utrNumber || "Verified"}\n• Student Portal URL: ${effectivePortalUrl}\n\nWhat's Available in Your Portal:\n1. Complete Printable Study Pack (PDF)\n2. High-Yield Mathematics & Reasoning Masterclasses\n3. Timed CBT Computer-Based Mock Tests\n4. Sunday Automated Study Drops\n\nNeed assistance? WhatsApp Student Helpline: +91 82816 44058\nNextClass AI Academy • ${baseUrl}`;
+      const textBody = `Dear ${studentName},\n\nCongratulations! Your enrollment in ${courseTitle} is verified. Your personalized learning account is now active.\n\nYour Student Login Credentials:\n• Username: ${username} (or use your email: ${toEmail})\n• Password: ${password}\n• Payment UTR: ${utrNumber || "Verified"}\n• Student Portal URL: ${effectivePortalUrl}\n\nWhat's Available in Your Portal:\n1. Complete Printable Study Pack (PDF)\n2. High-Yield Mathematics & Reasoning Masterclasses\n3. Timed CBT Computer-Based Mock Tests\n4. Sunday Automated Study Drops\n\nNeed assistance? WhatsApp Student Helpline: +91 87921 34951\nNextClass AI Academy • ${baseUrl}`;
 
       const emailHtml = `
         <!DOCTYPE html>
@@ -1046,7 +1046,7 @@ Respond with a JSON object with these exact keys:
             </ul>
 
             <div style="border-top: 1px solid #334155; padding-top: 16px; margin-top: 24px; font-size: 13px; color: #64748b;">
-              <p style="margin: 4px 0;">Need instant assistance? Contact our Student Mentor Helpline on WhatsApp: <strong>+91 82816 44058</strong></p>
+              <p style="margin: 4px 0;">Need instant assistance? Contact our Student Mentor Helpline on WhatsApp: <strong>+91 87921 34951</strong></p>
               <p style="margin: 4px 0;">NextClass AI Academy • <a href="${baseUrl}" style="color: #f97316; text-decoration: none;">Student Web Portal</a></p>
             </div>
           </div>

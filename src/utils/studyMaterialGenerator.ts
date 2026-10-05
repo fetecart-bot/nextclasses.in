@@ -713,7 +713,7 @@ export function generatePrintableStudyMaterialHtml(courseId: string, studentName
       </div>
       <div style="text-align: right;">
         <strong>Academic Session:</strong> 2026–2027<br>
-        <strong>Official Helpline:</strong> +91 82816 44058
+        <strong>Official Helpline:</strong> +91 87921 34951
       </div>
     </div>
 
@@ -788,7 +788,7 @@ export function generatePrintableStudyMaterialHtml(courseId: string, studentName
     </table>
 
     <div class="footer">
-      Nextclasses.in Academic Council • 24/7 Academic Support on WhatsApp: +91 82816 44058 • https://www.nextclasses.in<br>
+      Nextclasses.in Academic Council • 24/7 Academic Support on WhatsApp: +91 87921 34951 • https://www.nextclasses.in<br>
       © 2026–2027 Nextclasses.in. All rights reserved.
     </div>
   </div>
@@ -865,6 +865,6 @@ export function generateWhatsAppDispatchMessage(
     `• Interactive CBT Online Mock Test Simulator\n\n` +
     `👉 *Open Student Learning Portal:* ${portalUrl}\n` +
     `👉 *Direct Study Pack Download:* ${portalUrl}&course=${encodeURIComponent(effectiveId)}\n\n` +
-    `💬 *Official Academic Helpline:* +91 82816 44058\n\n` +
+    `💬 *Official Academic Helpline:* +91 87921 34951\n\n` +
     `_Best wishes for your exam preparation from Nextclasses.in!_`;
 }

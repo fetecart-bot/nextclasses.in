@@ -6,12 +6,12 @@ interface FloatingWhatsAppButtonProps {
 }
 
 export const FloatingWhatsAppButton: React.FC<FloatingWhatsAppButtonProps> = ({
-  phone = '8281644058',
+  phone = '8792134951',
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const cleanPhone = phone.replace(/[^0-9]/g, '');
-  const formattedPhone = '+91 82816 44058';
+  const formattedPhone = '+91 87921 34951';
 
   const quickPrompts = [
     {

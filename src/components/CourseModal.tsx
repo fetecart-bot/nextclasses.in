@@ -506,11 +506,11 @@ export default function CourseModal({ course, onClose, onAddToCart }: CourseModa
               <span className="hidden sm:inline">Share</span>
             </button>
             <a
-              href={`https://wa.me/918281644058?text=${encodeURIComponent(`Hi Nextclasses.in, I have questions about the "${course.title}" course.`)}`}
+              href={`https://wa.me/918792134951?text=${encodeURIComponent(`Hi Nextclasses.in, I have questions about the "${course.title}" course.`)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="hidden md:inline-flex items-center gap-1.5 px-3 py-3 rounded-xl bg-emerald-950/80 border border-emerald-800 text-emerald-400 hover:bg-emerald-900 text-xs font-semibold transition-colors"
-              title="Chat with Counselor on WhatsApp (+91 82816 44058)"
+              title="Chat with Counselor on WhatsApp (+91 87921 34951)"
             >
               <MessageCircle className="w-3.5 h-3.5" />
               <span>Ask on WhatsApp</span>

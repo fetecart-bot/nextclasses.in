@@ -2296,7 +2296,7 @@ export default function StudentPortalModal({
 
   const handleSendToWhatsApp = async (pkgTitle?: string) => {
     setIsSendingWhatsApp(true);
-    const targetPhone = user?.phone?.replace(/[^0-9]/g, '') || '8281644058';
+    const targetPhone = user?.phone?.replace(/[^0-9]/g, '') || '8792134951';
     const cleanPhone = targetPhone.length === 10 ? `91${targetPhone}` : targetPhone;
     const customMessage = generateWhatsAppDispatchMessage(studentName, selectedCourseId, cleanPhone);
 
@@ -3240,7 +3240,7 @@ export default function StudentPortalModal({
         {/* Footer */}
         <div className="px-5 py-3.5 bg-[#0f172a] border-t border-[#1e293b] flex items-center justify-between">
           <span className="text-xs text-neutral-400">
-            Helpline & WhatsApp Dispatch: <strong className="text-white">+91 82816 44058</strong>
+            Helpline & WhatsApp Dispatch: <strong className="text-white">+91 87921 34951</strong>
           </span>
           <button
             type="button"

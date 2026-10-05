@@ -152,11 +152,11 @@ export default function AboutUsSection({ onOpenPolicyModal, onExploreCourses }: 
                 <div>
                   <span className="text-[10px] text-neutral-500 block">Phone & WhatsApp:</span>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <a href="tel:8281644058" className="text-white hover:text-orange-400 font-mono font-medium">
-                      +91 82816 44058
+                    <a href="tel:8792134951" className="text-white hover:text-orange-400 font-mono font-medium">
+                      +91 87921 34951
                     </a>
                     <a
-                      href="https://wa.me/918281644058?text=Hi%20Nextclasses%20Support"
+                      href="https://wa.me/918792134951?text=Hi%20Nextclasses%20Support"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 text-[10px] font-semibold hover:bg-emerald-900 border border-emerald-800 transition-colors"

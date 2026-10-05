@@ -208,7 +208,7 @@ export default function PolicyModal({
                   <div className="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800 space-y-1 text-xs text-neutral-300">
                     <p><strong className="text-white">Business Entity:</strong> Fetecart Store (Nextclasses.in)</p>
                     <p><strong className="text-white">Official Office:</strong> Pattukulangara, Puduruthi, Thrissur, Kerala, India - 680623</p>
-                    <p><strong className="text-white">Customer Support Phone:</strong> +91 82816 44058</p>
+                    <p><strong className="text-white">Customer Support Phone:</strong> +91 87921 34951</p>
                     <p><strong className="text-white">Official Email:</strong> support@nextclasses.in / fetecart@gmail.com</p>
                     <p><strong className="text-white">Authorized Domain:</strong> www.nextclasses.in</p>
                   </div>
@@ -316,7 +316,7 @@ export default function PolicyModal({
                 <div>
                   <h5 className="font-bold text-white text-sm mb-1.5">3. Non-Delivery or Access Issues</h5>
                   <p className="text-neutral-400">
-                    If you do not receive access credentials or download links within 1 hour of payment, please check your Spam/Junk email folder. Alternatively, you may contact our customer support team immediately at <strong className="text-white">fetecart@gmail.com</strong> or message our WhatsApp helpline at <a href="https://wa.me/918281644058?text=Hi%20NextClass%20Support,%20I%20have%20an%20order%20access%20inquiry" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:underline font-mono font-bold">+91 82816 44058</a> with your Razorpay Payment ID for instant manual provisioning.
+                    If you do not receive access credentials or download links within 1 hour of payment, please check your Spam/Junk email folder. Alternatively, you may contact our customer support team immediately at <strong className="text-white">fetecart@gmail.com</strong> or message our WhatsApp helpline at <a href="https://wa.me/918792134951?text=Hi%20NextClass%20Support,%20I%20have%20an%20order%20access%20inquiry" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:underline font-mono font-bold">+91 87921 34951</a> with your Razorpay Payment ID for instant manual provisioning.
                   </p>
                 </div>
               </div>
@@ -495,8 +495,8 @@ export default function PolicyModal({
                 <Phone className="w-4 h-4 text-orange-400 shrink-0" />
                 <div>
                   <span className="text-[10px] text-neutral-500 block">Phone Support:</span>
-                  <a href="tel:8281644058" className="text-neutral-200 hover:text-white font-mono font-medium">
-                    +91 82816 44058
+                  <a href="tel:8792134951" className="text-neutral-200 hover:text-white font-mono font-medium">
+                    +91 87921 34951
                   </a>
                 </div>
               </div>

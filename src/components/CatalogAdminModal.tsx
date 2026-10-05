@@ -411,7 +411,7 @@ export default function CatalogAdminModal({
     const password = claim.credentialsGenerated?.password || 'NextClass@2027';
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.nextclasses.in';
 
-    const message = `🎉 *NEXTCLASSES.IN - ENROLLMENT VERIFIED*\n\nDear *${claim.studentName}*,\n\nWe have verified your payment of *₹${claim.amount.toLocaleString('en-IN')}* (${claim.paymentMethod}, Ref: ${claim.utrNumber}) in our account for:\n📚 *${claim.courseTitle}*\n\nYour official student portal login credentials:\n🌐 *Student Portal:* ${origin}\n👤 *Username:* ${username}\n🔑 *Password:* ${password}\n\nStudy materials, mock tests, and video lessons are now unlocked! Need help? WhatsApp us at +91 82816 44058.`;
+    const message = `🎉 *NEXTCLASSES.IN - ENROLLMENT VERIFIED*\n\nDear *${claim.studentName}*,\n\nWe have verified your payment of *₹${claim.amount.toLocaleString('en-IN')}* (${claim.paymentMethod}, Ref: ${claim.utrNumber}) in our account for:\n📚 *${claim.courseTitle}*\n\nYour official student portal login credentials:\n🌐 *Student Portal:* ${origin}\n👤 *Username:* ${username}\n🔑 *Password:* ${password}\n\nStudy materials, mock tests, and video lessons are now unlocked! Need help? WhatsApp us at +91 87921 34951.`;
 
     window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
   };
@@ -681,7 +681,7 @@ export default function CatalogAdminModal({
   const handleSendDispatchWhatsApp = () => {
     let cleanPhone = dispatchPhone.replace(/[^0-9]/g, '');
     if (cleanPhone.length === 10) cleanPhone = '91' + cleanPhone;
-    const destPhone = cleanPhone || '918281644058';
+    const destPhone = cleanPhone || '918792134951';
     const waUrl = `https://wa.me/${destPhone}?text=${encodeURIComponent(dispatchFormattedMessage)}`;
     window.open(waUrl, '_blank');
   };
@@ -3132,7 +3132,7 @@ export default function CatalogAdminModal({
                       type="tel"
                       value={dispatchPhone}
                       onChange={(e) => setDispatchPhone(e.target.value)}
-                      placeholder="e.g. 8281644058"
+                      placeholder="e.g. 8792134951"
                       className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-sm text-white focus:outline-none focus:border-orange-500"
                     />
                   </div>

@@ -171,7 +171,7 @@ What's Included with Your Account:
 4. Weekly Sunday Study Drops dispatched straight to your portal & WhatsApp.
 
 Need Help?
-Connect with your Nextclasses.in Mentor on WhatsApp: +91 82816 44058
+Connect with your Nextclasses.in Mentor on WhatsApp: +91 87921 34951
 Email: support@nextclasses.in
 
 Best wishes for your exam preparation!
@@ -375,7 +375,7 @@ export async function registerPaidStudent(details: {
         `• *Password:* \`${account.password}\`\n` +
         `• *Portal Link:* ${getAppPortalUrl()}\n\n` +
         `📚 *Your Study Pack:* Log in to download your printable PDF study materials, formula sheets, and take the timed CBT mock test.\n\n` +
-        `💬 *Tutor Helpline WhatsApp:* +91 82816 44058`;
+        `💬 *Tutor Helpline WhatsApp:* +91 87921 34951`;
 
       await fetch('/api/whatsapp/send', {
         method: 'POST',

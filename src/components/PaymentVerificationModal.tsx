@@ -264,7 +264,7 @@ export const PaymentVerificationModal: React.FC<PaymentVerificationModalProps> =
               {/* Action buttons */}
               <div className="space-y-2.5 pt-1">
                 <a
-                  href={`https://wa.me/918281644058?text=${encodeURIComponent(
+                  href={`https://wa.me/918792134951?text=${encodeURIComponent(
                     `Hi Nextclasses Admin, I have submitted UPI payment verification for ${submittedClaim.courseTitle}.\n• Student: ${submittedClaim.studentName}\n• UTR: ${submittedClaim.utrNumber}\n• Amount: ₹${submittedClaim.amount}\nKindly verify and dispatch my login credentials.`
                   )}`}
                   target="_blank"
@@ -272,7 +272,7 @@ export const PaymentVerificationModal: React.FC<PaymentVerificationModalProps> =
                   className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-950 transition-all cursor-pointer"
                 >
                   <MessageCircle className="w-4 h-4" />
-                  <span>Expedite via WhatsApp (+91 82816 44058)</span>
+                  <span>Expedite via WhatsApp (+91 87921 34951)</span>
                 </a>
 
                 <button

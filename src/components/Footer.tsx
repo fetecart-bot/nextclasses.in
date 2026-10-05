@@ -35,21 +35,21 @@ export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicy
 
             <div className="flex flex-wrap items-center gap-4 text-xs pt-1">
               <a
-                href="https://wa.me/918281644058?text=Hi%20Nextclasses.in%20Support"
+                href="https://wa.me/918792134951?text=Hi%20Nextclasses.in%20Support"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 text-emerald-400 hover:text-emerald-300 transition-colors"
               >
                 <MessageCircle className="w-4 h-4" />
-                <span>WhatsApp: +91 8281644058</span>
+                <span>WhatsApp: +91 8792134951</span>
               </a>
               <span className="text-neutral-700">•</span>
               <a
-                href="tel:8281644058"
+                href="tel:8792134951"
                 className="inline-flex items-center gap-1.5 text-orange-300 hover:text-orange-200 transition-colors font-medium"
               >
                 <Phone className="w-4 h-4 text-orange-400" />
-                <span>Phone: +91 82816 44058</span>
+                <span>Phone: +91 87921 34951</span>
               </a>
               <span className="text-neutral-700">•</span>
               <a
@@ -197,8 +197,8 @@ export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicy
               </div>
               <div className="flex items-center gap-2 text-xs">
                 <Phone className="w-4 h-4 text-orange-400 shrink-0" />
-                <a href="tel:8281644058" className="text-neutral-200 hover:text-white font-mono">
-                  +91 8281644058
+                <a href="tel:8792134951" className="text-neutral-200 hover:text-white font-mono">
+                  +91 8792134951
                 </a>
               </div>
               <div className="pt-1">

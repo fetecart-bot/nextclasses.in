@@ -420,7 +420,7 @@ export const AIChatBot: React.FC<AIChatBotProps> = ({
       const botMessage: Message = {
         id: `b-${Date.now()}`,
         sender: 'bot',
-        text: `At NextClasses.in, our courses include weekly physical study kits dispatched to your doorstep, lifetime video lessons, chapterwise mock tests, and WhatsApp faculty helpline (+91 82816 44058). For your query "${query}", we are happy to guide you!`,
+        text: `At NextClasses.in, our courses include weekly physical study kits dispatched to your doorstep, lifetime video lessons, chapterwise mock tests, and WhatsApp faculty helpline (+91 87921 34951). For your query "${query}", we are happy to guide you!`,
         timestamp: 'Just now',
         action: { type: 'navigate', payload: 'courses', label: 'Browse Courses' },
       };
