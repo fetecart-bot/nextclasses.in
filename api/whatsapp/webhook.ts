@@ -39,6 +39,7 @@ export default async function handler(req: any, res: any) {
   let event: any;
   try { event = JSON.parse(raw.toString('utf8')); } catch { return res.status(400).send('Invalid payload'); }
   if (event.object !== 'whatsapp_business_account') return res.status(200).json({ ignored: true });
+  let stage = 'database-claim';
   try {
     for (const entry of event.entry || []) for (const change of entry.changes || []) {
       const value = change.value || {};
@@ -46,6 +47,7 @@ export default async function handler(req: any, res: any) {
       for (const message of value.messages || []) {
         if (!message.id || !/^\d{7,16}$/.test(String(message.from || ''))) continue;
         // The unique message ID prevents Meta retries from producing duplicate replies.
+        stage = 'database-claim';
         let claimed = await supabaseRequest('whatsapp_bot_messages?on_conflict=message_id', {
           method: 'POST', headers: { Prefer: 'resolution=ignore-duplicates,return=representation' },
           body: JSON.stringify({ message_id: message.id, status: 'processing' }),
@@ -62,6 +64,7 @@ export default async function handler(req: any, res: any) {
           try { reply = await courseAssistantAnswer(String(message.text.body), 'WhatsApp'); }
           catch { reply = 'The AI assistant is temporarily unavailable. Please try again shortly or visit https://www.nextclasses.in for course details.'; }
         }
+        stage = 'whatsapp-send';
         let sent: Response;
         try { sent = await fetch(`https://graph.facebook.com/v22.0/${encodeURIComponent(phoneId)}/messages`, {
           method: 'POST', signal: AbortSignal.timeout(10000),
@@ -73,6 +76,11 @@ export default async function handler(req: any, res: any) {
           });
           throw new Error('WhatsApp delivery failed');
         }
+        if (!sent.ok) {
+          const detail: any = await sent.json().catch(() => ({}));
+          console.error('WhatsApp delivery rejected', { status: sent.status, code: detail.error?.code, subcode: detail.error?.error_subcode });
+        }
+        stage = 'database-result';
         await supabaseRequest(`whatsapp_bot_messages?message_id=eq.${encodeURIComponent(message.id)}`, {
           method: 'PATCH', body: JSON.stringify({ status: sent.ok ? 'sent' : 'failed', updated_at: new Date().toISOString() }),
         });
@@ -81,7 +89,7 @@ export default async function handler(req: any, res: any) {
     }
     return res.status(200).json({ received: true });
   } catch {
-    console.error('WhatsApp processing failed');
+    console.error('WhatsApp processing failed', { stage });
     return res.status(500).send('Processing failed');
   }
 }
