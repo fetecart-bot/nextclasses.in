@@ -78,7 +78,12 @@ export default async function handler(req: any, res: any) {
         }
         if (!sent.ok) {
           const detail: any = await sent.json().catch(() => ({}));
-          console.error('WhatsApp delivery rejected', { status: sent.status, code: detail.error?.code, subcode: detail.error?.error_subcode });
+          console.error('WhatsApp delivery rejected', { status: sent.status, code: detail.error?.code, subcode: detail.error?.error_subcode, reason: String(detail.error?.message || '').slice(0, 300) });
+          if (detail.error?.code === 200) {
+            const check = await fetch('https://graph.facebook.com/v26.0/me/permissions', { headers: { Authorization: `Bearer ${accessToken}` }, signal: AbortSignal.timeout(5000) });
+            const granted: any = await check.json().catch(() => ({}));
+            console.error('WhatsApp token scopes', { status: check.status, scopes: (granted.data || []).map((p: any) => ({ permission: p.permission, status: p.status })) });
+          }
         }
         stage = 'database-result';
         await supabaseRequest(`whatsapp_bot_messages?message_id=eq.${encodeURIComponent(message.id)}`, {
