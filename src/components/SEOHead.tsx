@@ -60,19 +60,13 @@ export default function SEOHead({ course }: { course?: Course | null }) {
         url: canonical,
         image,
         inLanguage: course.language,
-        provider: { '@type': 'EducationalOrganization', name: 'NextClasses.in', url: SITE },
+        provider: { '@id': `${SITE}/#organization` },
         offers: {
           '@type': 'Offer',
           url: canonical,
           price: String(course.price),
           priceCurrency: 'INR',
           availability: 'https://schema.org/InStock',
-        },
-        aggregateRating: {
-          '@type': 'AggregateRating',
-          ratingValue: course.rating,
-          reviewCount: course.reviewCount,
-          bestRating: 5,
         },
       });
       document.head.appendChild(schema);

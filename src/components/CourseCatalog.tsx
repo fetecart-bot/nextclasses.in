@@ -418,16 +418,21 @@ export default function CourseCatalog({
                         >
                           <Share2 className="w-3.5 h-3.5" />
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => onSelectCourse(course)}
+                        <a
+                          href={`/courses/${course.id.replace(/^course-/, '')}/`}
+                          onClick={(event) => {
+                            if (event.button === 0 && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) {
+                              event.preventDefault();
+                              onSelectCourse(course);
+                            }
+                          }}
                           className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-lg bg-neutral-800 text-neutral-200 text-xs font-semibold hover:bg-neutral-700 hover:text-white transition-colors cursor-pointer"
                           title="Watch official YouTube demo & view curriculum"
                         >
                           <Play className="w-3 h-3 text-red-500 fill-red-500 shrink-0" />
                           <span className="hidden xs:inline">{course.officialSyllabusUrl ? 'View Syllabus' : 'Demo & Syllabus'}</span>
                           <span className="xs:hidden">{course.officialSyllabusUrl ? 'Syllabus' : 'Demo'}</span>
-                        </button>
+                        </a>
                         <button
                           type="button"
                           onClick={() => onAddToCart({
@@ -474,6 +479,14 @@ export default function CourseCatalog({
 
       </div>
 
+      <nav aria-label="All course pages" className="max-w-7xl mx-auto px-4 pb-12">
+        <h3 className="text-white font-bold mb-3">Browse all course syllabuses</h3>
+        <ul className="flex flex-wrap gap-x-5 gap-y-3 text-sm text-neutral-300">
+          {courses.map(course => <li key={course.id}>
+            <a className="hover:text-orange-400 underline underline-offset-4" href={`/courses/${course.id.replace(/^course-/, '')}/`}>{course.title}</a>
+          </li>)}
+        </ul>
+      </nav>
       {/* Social Media Share & Copy Link Modal */}
       <ShareCourseModal
         course={sharingCourse}

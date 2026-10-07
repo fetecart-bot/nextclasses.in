@@ -6,11 +6,12 @@ import ShareCourseModal from './ShareCourseModal';
 
 interface CourseModalProps {
   course: Course | null;
+  isCoursePage?: boolean;
   onClose: () => void;
   onAddToCart: (item: CartItem) => void;
 }
 
-export default function CourseModal({ course, onClose, onAddToCart }: CourseModalProps) {
+export default function CourseModal({ course, onClose, onAddToCart, isCoursePage = false }: CourseModalProps) {
   const [activeVideoIndex, setActiveVideoIndex] = useState<number>(0);
   const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
   const [copiedQuickLink, setCopiedQuickLink] = useState<boolean>(false);
@@ -21,6 +22,7 @@ export default function CourseModal({ course, onClose, onAddToCart }: CourseModa
 
   if (!course) return null;
 
+  const CourseHeading = isCoursePage ? 'h1' : 'h2';
   const courseVideos = getCourseVideos(course);
   const activeVideo = courseVideos[activeVideoIndex] || courseVideos[0];
 
@@ -172,9 +174,9 @@ export default function CourseModal({ course, onClose, onAddToCart }: CourseModa
               </div>
             )}
 
-            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight">
+            <CourseHeading className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight">
               {course.title}
-            </h2>
+            </CourseHeading>
             <p className="text-sm sm:text-base text-neutral-300 leading-relaxed">
               {course.subtitle}
             </p>

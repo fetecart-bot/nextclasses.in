@@ -552,6 +552,7 @@ export default function App() {
 
       {/* Main Content Sections */}
       <main id="main-content">
+        {!directCourse && <>
         {/* Hero Section */}
         <Hero
           flagshipCourse={flagshipCourse}
@@ -603,6 +604,7 @@ export default function App() {
 
         {/* Frequently Asked Questions */}
         <FAQSection />
+        </>}
       </main>
 
       {/* Footer */}
@@ -632,6 +634,7 @@ export default function App() {
       {selectedCourseForModal && (
         <CourseModal
           course={selectedCourseForModal}
+          isCoursePage={Boolean(directCourse)}
           onClose={() => {
             setSelectedCourseForModal(null);
             if (directCourse) navigateTo('/');
