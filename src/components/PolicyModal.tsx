@@ -226,7 +226,7 @@ export default function PolicyModal({
                   <span>Pricing Policy & Fee Schedule</span>
                 </h4>
                 <p className="text-xs text-neutral-400 mt-1">
-                  Last updated: January 2025 • Nextclasses.in (operated at www.nextclasses.in)
+                  Last updated: October 2026 • Nextclasses.in (operated at www.nextclasses.in)
                 </p>
               </div>
 
@@ -417,6 +417,12 @@ export default function PolicyModal({
                   <h5 className="font-bold text-white text-sm mb-1.5">4. Payment Security (Razorpay)</h5>
                   <p className="text-neutral-400">
                     Financial transactions are processed via Razorpay Payments (India) Private Limited, an RBI-authorized payment aggregator compliant with PCI-DSS Level 1 security standards. Nextclasses.in does not collect or retain card numbers, CVVs, or Netbanking passwords.
+                  </p>
+                </div>
+                <div>
+                  <h5 className="font-bold text-white text-sm mb-1.5">5. Website Analytics</h5>
+                  <p className="text-neutral-400">
+                    We use Metricool on our public landing page to understand website visits and campaign performance. Your browser sends technical visit information to Metricool when this analytics tag loads. We do not send student credentials, payment details or study content through this tag. The tag is excluded from admin and portal entry URLs, and respects your browser's Do Not Track setting.
                   </p>
                 </div>
               </div>

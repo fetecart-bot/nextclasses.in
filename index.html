@@ -197,6 +197,20 @@
   </head>
   <body>
     <div id="root"></div>
+    <!-- Metricool public landing-page analytics; exclude portal/admin entry URLs. -->
+    <script>
+      if (location.pathname === '/' && !location.search && !location.hash && navigator.doNotTrack !== '1') {
+        const metricoolScript = document.createElement('script');
+        metricoolScript.async = true;
+        metricoolScript.src = 'https://tracker.metricool.com/resources/be.js';
+        metricoolScript.onload = function () {
+          if (!location.search && !location.hash && window.beTracker) {
+            window.beTracker.t({ hash: '2904109154c533467551e50a91bbffc7' });
+          }
+        };
+        document.head.appendChild(metricoolScript);
+      }
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
