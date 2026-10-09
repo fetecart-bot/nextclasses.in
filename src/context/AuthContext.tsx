@@ -12,7 +12,7 @@ interface AuthContextType {
   closeAuthModal: () => void;
   clearJustLoggedIn: () => void;
   login: (data: { name: string; email: string; phone: string; targetExamCode?: string; targetExamDate?: string; courseId?: string }) => void;
-  loginWithCredentials: (usernameOrEmail: string, passwordInput: string, courseIdOrStandard?: string) => Promise<{ success: boolean; message?: string; user?: StudentUser }>;
+  loginWithCredentials: (usernameOrEmail: string, passwordInput: string, courseIdOrStandard?: string, options?: { serverOnly?: boolean }) => Promise<{ success: boolean; message?: string; user?: StudentUser }>;
   loginWithAccount: (account: StudentUser) => void;
   setStudentStandard: (standard: 'class-6' | 'class-9') => void;
   updateStudentProfile: (updates: Partial<StudentUser>) => void;
@@ -100,7 +100,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loginWithCredentials = async (
     usernameOrEmail: string, 
     passwordInput: string,
-    courseIdOrStandard?: string
+    courseIdOrStandard?: string,
+    options?: { serverOnly?: boolean }
   ) => {
     // The server is authoritative. Mobile browsers may still hold an older
     // locally cached account from before an admin corrected the course.
@@ -110,7 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await response.json();
       if (response.ok && data.account) verified = data.account;
     } catch { /* use the offline registry only when the server is unavailable */ }
-    if (!verified) verified = verifyStudentCredentials(usernameOrEmail, passwordInput);
+    if (!verified && !options?.serverOnly) verified = verifyStudentCredentials(usernameOrEmail, passwordInput);
     if (!verified) {
       return {
         success: false,

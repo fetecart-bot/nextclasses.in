@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "in.nextclasses.student",
+      "sha256_cert_fingerprints": [
+        "03:1B:54:27:14:FC:C7:4E:AD:33:6B:9A:2E:AB:23:42:BF:8F:8F:1C:E6:F3:58:A7:2C:B1:4C:9F:0A:1A:62:C3"
+      ]
+    }
+  }
+]
