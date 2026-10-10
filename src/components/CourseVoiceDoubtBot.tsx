@@ -221,10 +221,10 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
       setIsRecordingAudio(true);
       setIsListening(true);
       setLiveStatus('listening');
-      setLiveTranscript('Listening… speak now. Recording will stop automatically.');
+      setLiveTranscript('Listening… speak your full question, then tap Stop & Send. Maximum 45 seconds.');
       window.setTimeout(() => {
         if (mediaRecorder.state === 'recording') mediaRecorder.stop();
-      }, 9000);
+      }, 45000);
     } catch (err) {
       console.warn('Microphone recording error:', err);
       setIsRecordingAudio(false);
@@ -350,6 +350,13 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
     enableVoice();
     latestDoubtTranscriptRef.current = '';
 
+    // Mobile recognition services can end after a brief pause. Record the full
+    // question instead, with an explicit stop control and server transcription.
+    if (navigator.onLine && navigator.mediaDevices?.getUserMedia && typeof MediaRecorder !== 'undefined') {
+      startAudioRecording();
+      return;
+    }
+
     const SpeechRecognition =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
@@ -391,7 +398,7 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
         setLiveTranscript(transcript);
         latestDoubtTranscriptRef.current = transcript;
 
-        // Auto-submit after 2.0s of silence
+        // Allow a longer thinking pause on browsers using the recognition fallback
         if (silenceTimerRef.current) {
           clearTimeout(silenceTimerRef.current);
         }
@@ -404,7 +411,7 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
             latestDoubtTranscriptRef.current = '';
             handleAskDoubt(finalQ);
           }
-        }, 2000);
+        }, 6000);
       };
 
       recognition.onerror = (event: any) => {
