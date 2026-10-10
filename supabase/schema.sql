@@ -19,8 +19,13 @@ create table if not exists public.enrollments (
   course_title text not null,
   payment_amount numeric(12,2),
   enrolled_at timestamptz not null default now(),
+  created_at timestamptz not null default now(),
   unique(student_id, course_id)
 );
+
+-- Older installations only had enrolled_at. Login orders corrected assignments
+-- by created_at; keep this additive upgrade for existing projects.
+alter table public.enrollments add column if not exists created_at timestamptz not null default now();
 
 create table if not exists public.daily_materials (
   id uuid primary key default gen_random_uuid(),

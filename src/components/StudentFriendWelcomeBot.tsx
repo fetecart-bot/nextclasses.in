@@ -84,6 +84,7 @@ export const StudentFriendWelcomeBot: React.FC<StudentFriendWelcomeBotProps> = (
   const [isThinking, setIsThinking] = useState<boolean>(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState<boolean>(false);
   const [isPreparingAudio, setIsPreparingAudio] = useState<boolean>(false);
+  const [voiceNotice, setVoiceNotice] = useState('');
   const [isMuted, setIsMuted] = useState<boolean>(false);
 
   // Extracted student info
@@ -331,12 +332,13 @@ I'm ready to coach you step by step!`,
       const requestId = ++audioRequestRef.current;
       const audio = currentAudioRef.current || new Audio();
       currentAudioRef.current = audio;
+      setVoiceNotice('');
       setIsPreparingAudio(true);
       setIsPlayingAudio(false);
       audio.oncanplay = () => {
         if (requestId !== audioRequestRef.current) return;
         setIsPreparingAudio(false);
-        audio.play().catch(() => browserSpeechFallback(text, langCode, targetVoiceGender));
+        audio.play().catch(() => { setIsPlayingAudio(false); setVoiceNotice('Tap Listen again to start the natural AI voice.'); });
       };
       audio.onplay = () => {
         if (requestId !== audioRequestRef.current) return;
@@ -351,13 +353,15 @@ I'm ready to coach you step by step!`,
       audio.onerror = () => {
         if (requestId !== audioRequestRef.current) return;
         setIsPreparingAudio(false);
-        browserSpeechFallback(text, langCode, targetVoiceGender);
+        setIsPlayingAudio(false);
+        setVoiceNotice('Natural AI voice is temporarily unavailable. Please read the answer and try again.');
       };
       audio.src = audioUrl;
       audio.load();
     } catch {
       setIsPreparingAudio(false);
-      browserSpeechFallback(text, langCode, targetVoiceGender);
+      setIsPlayingAudio(false);
+        setVoiceNotice('Natural AI voice is temporarily unavailable. Please read the answer and try again.');
     }
   };
 
@@ -931,6 +935,7 @@ I'm ready to coach you step by step!`,
           )}
 
           <div ref={messagesEndRef} />
+            {voiceNotice && <p role="status" className="text-sm text-orange-200 p-3">{voiceNotice}</p>}
         </div>
 
         {/* Quick Conversation Suggestion Chips */}

@@ -1,4 +1,5 @@
 import { courseKnowledgeBase, mentorModels } from './_courseKnowledge.js';
+import { reportMentorAnswer } from './_mentorReport.js';
 
 const LANGUAGE_NAMES: Record<string, string> = {
   ml: 'Malayalam', ta: 'Tamil', hi: 'Hindi', te: 'Telugu', kn: 'Kannada',
@@ -12,6 +13,7 @@ function extractOutputText(payload: any) {
 
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  if (req.body?.action === 'report') return reportMentorAnswer(req, res);
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return res.status(503).json({ error: 'OpenAI mentor is not configured' });
   const courseId = String(req.body?.courseId || '').trim();
@@ -35,7 +37,7 @@ Return only JSON with string keys writtenAnswer, spokenScript, keyTakeaway. spok
       const aiResponse = await fetch('https://api.openai.com/v1/responses', {
         method: 'POST',
         headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model, instructions, input, reasoning: model.startsWith('gpt-5') ? { effort: 'low' } : undefined }),
+        body: JSON.stringify({ model, store: false, instructions, input, reasoning: model.startsWith('gpt-5') ? { effort: 'low' } : undefined }),
       });
       aiPayload = await aiResponse.json().catch(() => ({}));
       if (aiResponse.ok) break;

@@ -80,7 +80,8 @@ export default async function handler(req: any, res: any) {
       const courseId = String(req.body?.courseId || '');
       if (!identifier || !password || !courseId) return res.status(400).json({ error: 'Login and course are required' });
       const encoded = encodeURIComponent(identifier);
-      const students = await supabaseRequest(`students?or=(username.eq.${encoded},email.eq.${encoded})&active=eq.true&limit=1`);
+    const usernamePattern = encodeURIComponent(identifier.replace(/([\\%_*])/g, '\\$1'));
+      const students = await supabaseRequest(`students?or=(username.ilike.${usernamePattern},email.eq.${encoded})&active=eq.true&limit=1`);
       const student = students?.[0];
       if (!student || student.password_hash !== passwordHash(password)) return res.status(401).json({ error: 'Invalid student credentials' });
       const enrollments = await supabaseRequest(`enrollments?student_id=eq.${student.id}&course_id=eq.${encodeURIComponent(courseId)}&limit=1`);

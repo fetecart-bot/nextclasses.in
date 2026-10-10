@@ -13,13 +13,12 @@ export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return res.status(503).json({ error: 'OpenAI mentor is not configured' });
-  const studentName = String(req.body?.studentName || 'Student').slice(0, 100);
   const courseTitle = String(req.body?.courseTitle || '').slice(0, 300);
   const userMessage = String(req.body?.userMessage || '').slice(0, 2000);
   const language = String(req.body?.language || 'en').toLowerCase();
   if (!courseTitle || !userMessage) return res.status(400).json({ error: 'Course and message are required' });
 
-  const instructions = `You are the flagship NextClasses AI Mentor for ${studentName}. Their enrolled course is "${courseTitle}".
+  const instructions = `You are the flagship NextClasses AI Mentor. The learner's enrolled course is "${courseTitle}".
 
 Your job:
 1. Directly answer any reasonable academic, course, technology, language, exam-preparation, career or general-knowledge doubt.
@@ -43,7 +42,7 @@ Return only valid JSON with keys replyText, spokenScript, detectedAim, detectedD
       const response = await fetch('https://api.openai.com/v1/responses', {
         method: 'POST',
         headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model, instructions, input, reasoning: model.startsWith('gpt-5') ? { effort: 'low' } : undefined }),
+        body: JSON.stringify({ model, store: false, instructions, input, reasoning: model.startsWith('gpt-5') ? { effort: 'low' } : undefined }),
       });
       payload = await response.json().catch(() => ({}));
       if (response.ok) break;

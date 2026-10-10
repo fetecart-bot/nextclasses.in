@@ -40,7 +40,8 @@ export default async function handler(req: any, res: any) {
       if (!consent) return res.status(400).json({ error: 'Permission to publish is required' });
 
       const encoded = encodeURIComponent(identifier);
-      const students = await supabaseRequest(`students?or=(username.eq.${encoded},email.eq.${encoded})&active=eq.true&select=id,name,password_hash&limit=1`);
+    const usernamePattern = encodeURIComponent(identifier.replace(/([\\%_*])/g, '\\$1'));
+      const students = await supabaseRequest(`students?or=(username.ilike.${usernamePattern},email.eq.${encoded})&active=eq.true&select=id,name,password_hash&limit=1`);
       const student = students?.[0];
       if (!student || student.password_hash !== passwordHash(password)) return res.status(401).json({ error: 'Student login could not be verified' });
 

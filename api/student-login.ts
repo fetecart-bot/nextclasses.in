@@ -11,9 +11,15 @@ export default async function handler(req: any, res: any) {
     // Supabase is authoritative after an administrator corrects a course.
     try {
       const encoded = encodeURIComponent(identifier);
-      const students = await supabaseRequest(`students?or=(username.eq.${encoded},email.eq.${encoded})&active=eq.true&limit=1`);
+      // Generated usernames contain mixed case. Match case-insensitively while
+      // escaping LIKE wildcards so underscores remain literal characters.
+      const usernamePattern = encodeURIComponent(identifier.replace(/([\\%_*])/g, '\\$1'));
+      const students = await supabaseRequest(`students?or=(username.ilike.${usernamePattern},email.eq.${encoded})&limit=1`);
       const student = students?.[0];
-      if (student && student.password_hash === passwordHash(password)) {
+      if (student && (!student.active || student.password_hash !== passwordHash(password))) {
+        return res.status(401).json({ error: 'Invalid Username/Email or Password.' });
+      }
+      if (student) {
         const enrollments = await supabaseRequest(`enrollments?student_id=eq.${encodeURIComponent(student.id)}&select=course_id,course_title&order=created_at.desc`);
         if (requestedCourseId) {
           const requestedIndex = enrollments.findIndex((item: any) => item.course_id === requestedCourseId);
@@ -41,7 +47,8 @@ export default async function handler(req: any, res: any) {
     for (const payment of payments) {
       const account = credentialsFor(payment);
       const phone = account.phone.replace(/[^0-9]/g, '');
-      if ((account.username.toLowerCase() === identifier || account.email === identifier || (phone.length >= 10 && phone.endsWith(identifier.replace(/[^0-9]/g, '')))) && account.password === password) {
+      const identifierPhone = identifier.replace(/[^0-9]/g, '');
+      if ((account.username.toLowerCase() === identifier || account.email === identifier || (identifierPhone.length >= 10 && phone.length >= 10 && phone.endsWith(identifierPhone))) && account.password === password) {
         return res.status(200).json({ account });
       }
     }

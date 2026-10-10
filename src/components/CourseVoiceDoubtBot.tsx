@@ -19,6 +19,7 @@ import {
   Bookmark,
 } from 'lucide-react';
 import { answerFromOfflinePack, historyKey, saveOfflineCoursePack } from '../utils/offlineMentor';
+import { useAuth } from '../context/AuthContext';
 
 export interface CourseVoiceDoubtBotProps {
   isOpen: boolean;
@@ -64,6 +65,31 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
   initialLanguage = 'ml',
   studentGender = 'male',
 }) => {
+  const { user } = useAuth();
+  const [reportChoice, setReportChoice] = useState<DoubtExchange | null>(null);
+  const [reportBusy, setReportBusy] = useState(false);
+  const [reportNotice, setReportNotice] = useState('');
+  const [reportedIds, setReportedIds] = useState<string[]>([]);
+  async function submitReport() {
+    if (!reportChoice || reportBusy) return;
+    setReportBusy(true);
+    setReportNotice('');
+    try {
+      const response = await fetch('/api/course-doubt', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'report', identifier: user?.username || user?.email,
+          password: user?.password, courseId: course.id, exchangeId: reportChoice.id,
+          question: reportChoice.question, answer: reportChoice.writtenAnswer }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Report could not be sent.');
+      setReportedIds(ids => [...ids, reportChoice.id]);
+      setReportChoice(null);
+      setReportNotice('Report sent to NextClasses for review.');
+    } catch (error) {
+      setReportNotice(error instanceof Error ? error.message : 'Report could not be sent. Please try again.');
+    } finally { setReportBusy(false); }
+  }
   const [selectedLanguage, setSelectedLanguage] = useState<string>(initialLanguage);
   const [isListening, setIsListening] = useState<boolean>(false);
   const [isThinking, setIsThinking] = useState<boolean>(false);
@@ -71,7 +97,6 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
   const [inputText, setInputText] = useState<string>('');
   const [liveTranscript, setLiveTranscript] = useState<string>('');
   const [liveStatus, setLiveStatus] = useState<string>('idle'); // idle | listening | processing | speaking | error
-  const [isLiveWsConnected, setIsLiveWsConnected] = useState<boolean>(false);
   const [history, setHistory] = useState<DoubtExchange[]>([]);
   const [activeTab, setActiveTab] = useState<'voice' | 'text'>('voice');
   const [isOnline, setIsOnline] = useState(() => navigator.onLine);
@@ -81,7 +106,6 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
-  const wsRef = useRef<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const latestDoubtTranscriptRef = useRef<string>('');
   const silenceTimerRef = useRef<any>(null);
@@ -290,70 +314,6 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
     scrollToBottom();
   }, [history, liveTranscript, isThinking]);
 
-  // Establish real-time Live WebSocket connection on modal open
-  useEffect(() => {
-    if (!isOpen) {
-      if (wsRef.current) {
-        wsRef.current.close();
-        wsRef.current = null;
-      }
-      setIsLiveWsConnected(false);
-      return;
-    }
-
-    try {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${window.location.host}/api/live-doubt?courseTitle=${encodeURIComponent(course.title)}&courseId=${encodeURIComponent(course.id)}&lang=${selectedLanguage}`;
-      
-      const ws = new WebSocket(wsUrl);
-      wsRef.current = ws;
-
-      ws.onopen = () => {
-        setIsLiveWsConnected(true);
-      };
-
-      ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          if (data.type === 'ready') {
-            setIsLiveWsConnected(true);
-          } else if (data.type === 'audio' && data.audio) {
-            // Play raw audio chunk from Gemini 3.8 Live if supported
-            playLiveAudioChunk(data.audio);
-          } else if (data.type === 'interrupted') {
-            stopAudioPlayback();
-          }
-        } catch (e) {
-          // ignore
-        }
-      };
-
-      ws.onerror = () => {
-        setIsLiveWsConnected(false);
-      };
-
-      ws.onclose = () => {
-        setIsLiveWsConnected(false);
-      };
-
-      return () => {
-        ws.close();
-      };
-    } catch (err) {
-      setIsLiveWsConnected(false);
-    }
-  }, [isOpen, course.id, selectedLanguage]);
-
-  // Audio chunk playback for Live API
-  const playLiveAudioChunk = (base64Pcm: string) => {
-    try {
-      // In web environment, we also have our dedicated high-quality TTS stream endpoint
-      // which produces crisp native Indian language audio (Malayalam, Tamil, Hindi, etc.)
-    } catch (e) {
-      // ignore
-    }
-  };
-
   // Browser speech recognition (STT) setup
   const startSpeechRecognition = () => {
     stopAudioPlayback();
@@ -517,13 +477,18 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
       if (data.audioUrl) {
         playAudio(data.audioUrl);
       } else {
-        speakWithBrowser(data.spokenScript || data.writtenAnswer);
+        setLiveStatus('idle');
+        setReportNotice('Your answer is ready. Natural voice is temporarily unavailable; please read the answer or try again.');
       }
     } catch (err: any) {
       console.error('Failed to ask doubt:', err);
       setIsThinking(false);
       setLiveStatus('error');
       
+      if (navigator.onLine) {
+        setReportNotice('The online mentor could not respond. Please try again shortly.');
+        return;
+      }
       const offlineAnswer = answerFromOfflinePack(course.id, questionText.trim());
       const fallbackExchange: DoubtExchange = {
         id: `doubt-fb-${Date.now()}`,
@@ -593,6 +558,17 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
     }
     setIsPlayingAudio(false);
   };
+
+  useEffect(() => {
+    if (!isOpen) return;
+    return () => {
+      recognitionRef.current?.abort?.();
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+      if (mediaRecorderRef.current?.state === 'recording') mediaRecorderRef.current.stop();
+      audioPlayerRef.current?.pause();
+      window.speechSynthesis?.cancel();
+    };
+  }, [isOpen, course.id]);
 
   if (!isOpen) return null;
 
@@ -800,6 +776,9 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
                       <div className="text-xs sm:text-sm text-neutral-300 leading-relaxed whitespace-pre-line prose prose-invert max-w-none">
                         {exchange.writtenAnswer}
                       </div>
+                      <button type="button" disabled={reportedIds.includes(exchange.id)} onClick={() => { setReportChoice(exchange); setReportNotice(''); }} className="text-xs text-neutral-400 underline disabled:opacity-50">
+                        {reportedIds.includes(exchange.id) ? 'Reported for review' : 'Report this AI answer'}
+                      </button>
 
                       {/* Key takeaway highlight pill */}
                       {exchange.keyTakeaway && (
@@ -820,12 +799,21 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
                 <div className="flex justify-start">
                   <div className="rounded-2xl rounded-tl-sm bg-neutral-900 border border-neutral-800 p-4 text-neutral-400 text-xs flex items-center gap-3">
                     <Loader2 className="w-4 h-4 text-orange-400 animate-spin" />
-                    <span>Gemini 3.8 is analyzing your doubt and formulating spoken + written answer in {selectedLanguage.toUpperCase()}...</span>
+                    <span>Your AI mentor is preparing an explanation in {selectedLanguage.toUpperCase()}…</span>
                   </div>
                 </div>
               )}
 
               <div ref={messagesEndRef} />
+              {reportChoice && <section className="rounded-xl border border-orange-500/40 bg-neutral-900 p-4" aria-label="Report AI answer">
+                <p className="text-sm">Report this answer to NextClasses?</p>
+                <p className="text-xs text-neutral-400 mt-2">Your question, this answer and an account reference will be sent privately to our support team for review.</p>
+                <div className="flex gap-3 mt-3">
+                  <button type="button" disabled={reportBusy} onClick={submitReport} className="rounded-lg bg-orange-500 px-3 py-2 text-black text-sm disabled:opacity-50">{reportBusy ? 'Sending…' : 'Send report'}</button>
+                  <button type="button" disabled={reportBusy} onClick={() => setReportChoice(null)} className="text-sm">Cancel</button>
+                </div>
+              </section>}
+              {reportNotice && <p role="status" className="text-xs text-orange-200 p-3">{reportNotice}</p>}
             </div>
           )}
         </div>
@@ -928,7 +916,7 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
           </div>
 
           <div className="flex items-center justify-between text-[11px] text-neutral-500 px-1">
-            <span>Powered by Gemini 3.8 Live API • Multilingual Audio + Written Synthesis</span>
+            <span>Powered by OpenAI • AI-generated voice • Multilingual course support</span>
             <span className="hidden sm:inline">Ask in Malayalam, Tamil, Telugu, Hindi, or English</span>
           </div>
         </div>
