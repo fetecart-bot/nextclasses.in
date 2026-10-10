@@ -1,9 +1,11 @@
+import { requireStudentCourse } from '../_studentAccess.js';
 export default async function handler(req: any, res: any) {
-  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  if (!await requireStudentCourse(req, res)) return;
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return res.status(503).json({ error: 'OpenAI voice is not configured' });
-  const text = String(req.query?.text || '').replace(/[*#_~`]/g, '').trim().slice(0, 1800);
-  const voiceGender = String(req.query?.voice || 'female');
+  const text = String(req.body?.text || '').replace(/[*#_~`]/g, '').trim().slice(0, 1800);
+  const voiceGender = String(req.body?.voice || 'female');
   if (!text) return res.status(400).json({ error: 'Text is required' });
   try {
     const response = await fetch('https://api.openai.com/v1/audio/speech', {
@@ -22,7 +24,7 @@ export default async function handler(req: any, res: any) {
       throw new Error(payload?.error?.message || 'Speech generation failed');
     }
     res.setHeader('Content-Type', 'audio/mpeg');
-    res.setHeader('Cache-Control', 'private, max-age=3600');
+    res.setHeader('Cache-Control', 'no-store');
     return res.status(200).send(Buffer.from(await response.arrayBuffer()));
   } catch (error: any) {
     return res.status(502).json({ error: error?.message || 'Voice is temporarily unavailable' });

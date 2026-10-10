@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { credentialsFor, recentCapturedPayments } from './_razorpay.js';
+import { credentialsFor, capturedPayment } from './_razorpay.js';
 import { saveStudentAndEnrollment } from './_supabase.js';
 
 export default async function handler(req: any, res: any) {
@@ -18,9 +18,9 @@ export default async function handler(req: any, res: any) {
     return res.status(400).json({ error: 'Choose the correct course before generating credentials' });
   }
   try {
-    const payment = (await recentCapturedPayments()).find((item: any) => item.id === paymentId);
+    const payment = await capturedPayment(paymentId);
     if (!payment) return res.status(404).json({ error: 'Captured Razorpay payment not found' });
-    const account = { ...credentialsFor(payment), courseId, courseTitle, enrolledCourseIds: [courseId] };
+    const account = { ...credentialsFor(payment), courseId, courseTitle, enrolledCourseIds: [courseId], courseTitles: { [courseId]: courseTitle } };
     // Persist the admin correction before reporting success. Login on another
     // device reads this enrollment, not the administrator's browser storage.
     await saveStudentAndEnrollment(account, payment);

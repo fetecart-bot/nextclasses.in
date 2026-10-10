@@ -1,3 +1,4 @@
+import { courseGuideReply } from '../lib/courseGuide';
 import React, { useState, useRef, useEffect } from 'react';
 import {
   Bot,
@@ -55,7 +56,7 @@ export const AIChatBot: React.FC<AIChatBotProps> = ({
     {
       id: 'm-1',
       sender: 'bot',
-      text: "Hello! 👋 I'm **Aura**, your real-time NextClasses Academic Advisor & Counselor. Ask me anything about our NEET (UG) 2027 weekly physical study dispatches, KEAM & IIT JEE syllabus, Sainik School entrance, AI masterclasses, or fees! You can also tap the 🎙️ mic to speak directly with me in real time.",
+      text: "Hello! I can help you find NextClasses courses, fees, enrolment and student login information. For academic doubts, enrolled students can use the OpenAI mentor in their portal. Please do not share passwords or payment details here.",
       timestamp: 'Just now',
     },
   ];
@@ -63,7 +64,7 @@ export const AIChatBot: React.FC<AIChatBotProps> = ({
   const [messages, setMessages] = useState<Message[]>(initialMessages);
 
   const quickQuestions = [
-    'How do NEET weekly dispatches work?',
+    'How do I access my study materials?',
     'Does KEAM course include Chemistry?',
     'Tell me about Sainik School Class 6 & 9 Kit',
     'Which AI course is best for beginners?',
@@ -113,35 +114,9 @@ export const AIChatBot: React.FC<AIChatBotProps> = ({
     setCurrentlyPlayingId(null);
   };
 
-  const fallbackServerTTS = (cleanText: string, messageId?: string) => {
-    try {
-      const audioUrl = `/api/voice-receptionist/tts?text=${encodeURIComponent(cleanText.slice(0, 350))}&lang=en`;
-      const audio = new Audio(audioUrl);
-      currentAudioRef.current = audio;
-      setIsSpeaking(true);
-      if (messageId) setCurrentlyPlayingId(messageId);
-
-      audio.onended = () => {
-        setIsSpeaking(false);
-        setCurrentlyPlayingId(null);
-        currentAudioRef.current = null;
-      };
-      audio.onerror = (e) => {
-        console.warn('Server TTS playback error:', e);
-        setIsSpeaking(false);
-        setCurrentlyPlayingId(null);
-        currentAudioRef.current = null;
-      };
-      audio.play().catch((err) => {
-        console.warn('Audio auto-play policy prevented playback:', err);
-        setIsSpeaking(false);
-        setCurrentlyPlayingId(null);
-      });
-    } catch (e) {
-      console.warn('Fallback server TTS error:', e);
-      setIsSpeaking(false);
-      setCurrentlyPlayingId(null);
-    }
+  const fallbackServerTTS = (_text: string, _messageId?: string) => {
+    setIsSpeaking(false);
+    setCurrentlyPlayingId(null);
   };
 
   const speakText = (text: string, messageId?: string) => {
@@ -207,61 +182,9 @@ export const AIChatBot: React.FC<AIChatBotProps> = ({
   };
 
   const startAudioRecording = async () => {
-    stopAudioPlayback();
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      audioChunksRef.current = [];
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
-      };
-
-      mediaRecorder.onstop = async () => {
-        stream.getTracks().forEach((t) => t.stop());
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        if (audioBlob.size < 500) return;
-
-        setIsTyping(true);
-        try {
-          const reader = new FileReader();
-          reader.readAsDataURL(audioBlob);
-          reader.onloadend = async () => {
-            const base64Data = (reader.result as string).split(',')[1];
-            const res = await fetch('/api/voice-transcribe', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                audioBase64: base64Data,
-                mimeType: 'audio/webm',
-                language: 'en',
-              }),
-            });
-            const data = await res.json();
-            if (data?.transcript?.trim()) {
-              setInput(data.transcript);
-              handleSend(data.transcript.trim());
-            } else {
-              setIsTyping(false);
-            }
-          };
-        } catch (err) {
-          console.error('Audio transcription error:', err);
-          setIsTyping(false);
-        }
-      };
-
-      mediaRecorder.start();
-      setIsRecordingAudio(true);
-      setIsListening(true);
-    } catch (err) {
-      console.warn('Microphone error:', err);
-      setIsRecordingAudio(false);
-      setIsListening(false);
-    }
+    setIsRecordingAudio(false);
+    setIsListening(false);
+    setMessages(prev => [...prev, { id: `voice-${Date.now()}`, sender: 'bot', text: 'Voice recognition is unavailable in this browser. Please type your enquiry below, or contact WhatsApp +91 8792134951.', timestamp: 'Just now' }]);
   };
 
   const stopAudioRecording = () => {
@@ -379,18 +302,7 @@ export const AIChatBot: React.FC<AIChatBotProps> = ({
     setIsTyping(true);
 
     try {
-      // Real-time call to Gemini 3.8 Flash counselor endpoint
-      const response = await fetch('/api/counselor/ask', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success || !data.reply) {
-        throw new Error(data?.error || 'Failed to get counselor response');
-      }
+      const data = { reply: courseGuideReply(query) };
 
       // Check if action buttons are relevant
       const qLower = query.toLowerCase();
@@ -420,7 +332,7 @@ export const AIChatBot: React.FC<AIChatBotProps> = ({
       const botMessage: Message = {
         id: `b-${Date.now()}`,
         sender: 'bot',
-        text: `At NextClasses.in, our courses include weekly physical study kits dispatched to your doorstep, lifetime video lessons, chapterwise mock tests, and WhatsApp faculty helpline (+91 87921 34951). For your query "${query}", we are happy to guide you!`,
+        text: 'Please browse the course catalogue or contact WhatsApp +91 8792134951 for help with your enquiry.',
         timestamp: 'Just now',
         action: { type: 'navigate', payload: 'courses', label: 'Browse Courses' },
       };
@@ -466,13 +378,13 @@ export const AIChatBot: React.FC<AIChatBotProps> = ({
               </div>
               <div>
                 <h4 className="font-extrabold text-sm leading-tight text-neutral-950 flex items-center gap-1.5">
-                  Aura AI Advisor
+                  NextClasses Course Guide
                   <span className="text-[10px] bg-neutral-950/20 px-1.5 py-0.5 rounded-full font-bold">
                     Real-Time
                   </span>
                 </h4>
                 <p className="text-[11px] font-medium text-neutral-900/90">
-                  {isListening ? '🎙️ Listening to you...' : isSpeaking ? '🔊 Speaking...' : 'Online • Powered by Gemini 3.8'}
+                  {isListening ? '🎙️ Listening to you...' : isSpeaking ? '🔊 Speaking...' : 'Course information • Device voice'}
                 </p>
               </div>
             </div>
@@ -666,7 +578,7 @@ export const AIChatBot: React.FC<AIChatBotProps> = ({
           type="button"
           onClick={() => setIsOpen(!isOpen)}
           className="group relative flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-orange-600 via-amber-600 to-orange-500 hover:from-orange-500 hover:to-amber-500 text-neutral-950 font-bold shadow-xl shadow-orange-950/60 hover:shadow-orange-500/30 transition-all duration-200 cursor-pointer border border-amber-400/40"
-          aria-label="Open AI Academic Advisor"
+          aria-label="Open Course Guide"
         >
           <span className="relative flex h-3 w-3">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
@@ -674,7 +586,7 @@ export const AIChatBot: React.FC<AIChatBotProps> = ({
           </span>
           <Bot className="w-5 h-5 text-neutral-950" />
           <span className="text-xs font-black tracking-tight text-neutral-950">
-            Ask AI Advisor
+            Ask About Courses
           </span>
         </button>
       </div>

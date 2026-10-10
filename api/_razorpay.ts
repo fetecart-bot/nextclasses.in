@@ -54,3 +54,15 @@ export async function paymentWithOrderNotes(payment: any) {
   if (order.amount !== payment.amount || order.currency !== payment.currency || order.status !== 'paid') throw new Error('Payment and order do not match');
   return { ...payment, notes: order.notes };
 }
+
+export async function capturedPayment(paymentId: string) {
+  if (!/^pay_[a-zA-Z0-9]+$/.test(paymentId)) return null;
+  const keyId = process.env.RAZORPAY_KEY_ID || process.env.VITE_RAZORPAY_KEY_ID;
+  const secret = process.env.RAZORPAY_KEY_SECRET;
+  if (!keyId || !secret) throw new Error('Razorpay server keys are not configured');
+  const response = await fetch(`https://api.razorpay.com/v1/payments/${encodeURIComponent(paymentId)}`, { headers: { Authorization: `Basic ${Buffer.from(`${keyId}:${secret}`).toString('base64')}` }, signal: AbortSignal.timeout(20000) });
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error('Razorpay payment lookup failed');
+  const payment: any = await response.json();
+  return payment.status === 'captured' ? payment : null;
+}

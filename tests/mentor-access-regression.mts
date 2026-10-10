@@ -17,3 +17,10 @@ assert.equal((await request({...base,courseId:'course-aissee-sainik-6'})).status
 const valid=await request(base);assert.equal(valid.status,200);assert.equal(valid.data.transcript,'What is articulation?');assert.equal(speechCalls,1);
 assert.equal((await request({...base,audioBase64:'x'.repeat(1500001)})).status,400);assert.equal(speechCalls,1);
 console.log('PASS: anonymous blocked, wrong course blocked, mobile mp4 transcription, oversized recording blocked');
+
+const tts=(await import('../api/voice-receptionist/tts.ts')).default;
+let ttsStatus=0;
+const ttsResponse:any={status(c:number){ttsStatus=c;return this},json(){return this}};
+await tts({method:'GET',query:{text:'test'}},ttsResponse);assert.equal(ttsStatus,405);
+await tts({method:'POST',body:{text:'test'}},ttsResponse);assert.equal(ttsStatus,401);
+console.log('PASS: natural voice requires signed-in course access; query URL speech disabled');

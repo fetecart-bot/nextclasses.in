@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import { sendEnrollmentEmail } from './_enrollmentEmail.js';
 import { credentialsFor, paymentWithOrderNotes } from './_razorpay.js';
-import { saveStudentAndEnrollment } from './_supabase.js';
+import { saveStudentAndEnrollment, supabaseRequest } from './_supabase.js';
 
 export const config = { api: { bodyParser: false } };
 
@@ -28,9 +28,6 @@ export default async function handler(req: any, res: any) {
   if (!payment?.id || payment.status !== 'captured') return res.status(400).json({ error: 'Invalid captured payment' });
   try { payment = await paymentWithOrderNotes(payment); } catch { return res.status(503).json({ error: 'Order verification pending. Retry delivery.' }); }
   const account = credentialsFor(payment);
-  const portal = 'https://www.nextclasses.in/?portal=true';
-  const message = `Hi ${account.name}, your Nextclasses payment is confirmed. Login: ${account.username} Password: ${account.password} Portal: ${portal}`;
-
   let student: any;
   try {
     student = await saveStudentAndEnrollment(account, payment, { preserveExisting: true });
@@ -41,14 +38,27 @@ export default async function handler(req: any, res: any) {
 
   try { await sendEnrollmentEmail(account, payment, student); } catch { return res.status(503).json({ error: 'Email delivery pending. Retry delivery.' }); }
 
+  // Proactive WhatsApp delivery requires an approved utility template. Do not
+  // send credentials as an unchecked freeform message outside its session.
   const token = process.env.WHATSAPP_API_KEY;
   const phoneId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  const template = process.env.WHATSAPP_ENROLLMENT_TEMPLATE;
   const phone = account.phone.replace(/[^0-9]/g, '');
-  if (token && phoneId && phone) {
-    await fetch(`https://graph.facebook.com/v22.0/${phoneId}/messages`, {
-      method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messaging_product: 'whatsapp', to: phone, type: 'text', text: { body: message } }),
-    });
+  const reference = `enrollment-notice:${payment.id}`;
+  const prior = await supabaseRequest(`delivery_logs?student_id=eq.${encodeURIComponent(student.id)}&channel=eq.whatsapp&status=eq.sent&provider_reference=eq.${encodeURIComponent(reference)}&limit=1`);
+  if (!prior?.length) {
+    let status = 'skipped';
+    if (token && phoneId && template && phone && student.active) {
+      const response = await fetch(`https://graph.facebook.com/v22.0/${phoneId}/messages`, {
+        method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messaging_product: 'whatsapp', to: phone, type: 'template',
+          template: { name: template, language: { code: process.env.WHATSAPP_ENROLLMENT_TEMPLATE_LANGUAGE || 'en' } } }),
+        signal: AbortSignal.timeout(20000),
+      }).catch(() => null);
+      status = response?.ok ? 'sent' : 'failed';
+    }
+    await supabaseRequest('delivery_logs', { method: 'POST', headers: { Prefer: 'return=minimal' },
+      body: JSON.stringify({ student_id: student.id, channel: 'whatsapp', status, provider_reference: reference }) }).catch(() => {});
   }
   return res.status(200).json({ success: true });
 }

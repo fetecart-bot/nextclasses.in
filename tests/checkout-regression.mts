@@ -23,3 +23,24 @@ const before=calls;assert.equal((await run({action:'verify-checkout',paymentId:'
 const payment={id:'pay_test',amount:399800,created_at:1700000000,email:'test@example.com',notes:{courseId:ids[0],courseIds:JSON.stringify(ids)}};
 const account=credentialsFor(payment);assert.deepEqual(account.enrolledCourseIds,ids);await saveStudentAndEnrollment(account,payment);assert.equal(saved.length,2);assert.deepEqual(saved.map((row:any)=>row.course_id),ids);
 console.log('PASS: authoritative prices, coupon exclusions, bad course/coupon/duplicates, forged signature, all courses saved atomically');
+
+const captured={...payment,status:'captured',currency:'INR',order_id:'order_test'};
+const stored={id:'student-test',username:account.username,active:true,password_hash:(await import('../api/_supabase.ts')).passwordHash(account.password)};
+let writes=0;
+globalThis.fetch=async(input:any,init:any={})=>{
+ const url=String(input);
+ if(url.endsWith('/payments/pay_test')) return Response.json(captured);
+ if(url.endsWith('/orders/order_test')) return Response.json({id:'order_test',status:'paid',amount:399800,notes:{...payment.notes,checkoutVersion:'2'},currency:'INR'});
+ if(url.includes('/students?payment_id=')) return Response.json([stored]);
+ if(url.includes('/enrollments?') && !url.includes('on_conflict')) return Response.json(ids.map(course_id=>({course_id,course_title:course_id})));
+ if(url.includes('/delivery_logs?')) return Response.json([{status:'sent'}]);
+ if(init.method==='POST') writes++;
+ throw new Error('Unexpected request '+url);
+};
+const signature=crypto.createHmac('sha256','test-secret').update('order_test|pay_test').digest('hex');
+const verified=await run({action:'verify-checkout',paymentId:'pay_test',orderId:'order_test',signature});
+assert.equal(verified.status,200);assert.deepEqual(verified.data.account.enrolledCourseIds,ids);assert.equal(verified.data.emailSent,true);assert.equal(writes,0);
+stored.active=false;
+assert.equal((await run({action:'verify-checkout',paymentId:'pay_test',orderId:'order_test',signature})).status,409);
+assert.equal(writes,0);
+console.log('PASS: legitimate signed checkout restores all purchased courses, preserves corrected account, avoids duplicate email, blocks inactive login');

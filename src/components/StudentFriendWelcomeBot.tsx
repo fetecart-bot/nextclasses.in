@@ -326,10 +326,20 @@ I'm ready to coach you step by step!`,
     setIsPlayingAudio(false);
   };
 
-  const fallbackServerTTS = (text: string, langCode: string, targetVoiceGender: 'male' | 'female') => {
+  const fallbackServerTTS = async (text: string, langCode: string, targetVoiceGender: 'male' | 'female') => {
     try {
-      const audioUrl = `/api/voice-receptionist/tts?text=${encodeURIComponent(text.slice(0, 1200))}&lang=${langCode}&voice=${targetVoiceGender}`;
       const requestId = ++audioRequestRef.current;
+      setIsPreparingAudio(true);
+      setVoiceNotice('');
+      const response = await fetch('/api/voice-receptionist/tts', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: text.slice(0, 1200), language: langCode, voice: targetVoiceGender,
+          identifier: student.username || student.email, password: student.password, courseId }),
+      });
+      if (!response.ok) throw new Error('Natural voice unavailable');
+      const audioBytes = await response.blob();
+      if (requestId !== audioRequestRef.current) return;
+      const audioUrl = URL.createObjectURL(audioBytes);
       const audio = currentAudioRef.current || new Audio();
       currentAudioRef.current = audio;
       setVoiceNotice('');
@@ -349,8 +359,10 @@ I'm ready to coach you step by step!`,
         if (requestId !== audioRequestRef.current) return;
         setIsPreparingAudio(false);
         setIsPlayingAudio(false);
+        URL.revokeObjectURL(audioUrl);
       };
       audio.onerror = () => {
+        URL.revokeObjectURL(audioUrl);
         if (requestId !== audioRequestRef.current) return;
         setIsPreparingAudio(false);
         setIsPlayingAudio(false);
