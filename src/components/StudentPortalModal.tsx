@@ -2639,7 +2639,7 @@ export default function StudentPortalModal({
             <div className="px-2.5 py-1 rounded-lg bg-[#141d2d] border border-[#263750] text-[11px] text-neutral-300 flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5 text-amber-400" />
               <span>
-                {!isExamCourse ? 'Learn at your own pace' : !targetDate || isGraduateExam ? 'Study plan • Check official exam dates' : <><strong className="text-white">{daysLeft}</strong>{translateUI("days to exam (")}<strong className="text-amber-400">{weeksLeft}</strong>{translateUI("study drops)")}</>}
+                {!isExamCourse ? translateUI('Learn at your own pace') : !targetDate || isGraduateExam ? translateUI('Study plan • Check official exam dates') : <><strong className="text-white">{daysLeft}</strong>{translateUI("days to exam (")}<strong className="text-amber-400">{weeksLeft}</strong>{translateUI("study drops)")}</>}
               </span>
             </div>
           </div>
@@ -2668,7 +2668,7 @@ export default function StudentPortalModal({
           >
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
             <span>{translateUI("Today’s Study Material")}</span>
-            <span className="px-1.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px]">{translateUI("New Today")}</span>
+            <span className="px-1.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px]">{translateUI("Published lessons")}</span>
           </button>
           <button
             type="button"
@@ -2789,7 +2789,7 @@ export default function StudentPortalModal({
                   <div className="p-5 rounded-2xl bg-gradient-to-br from-orange-950/50 to-[#111827] border border-orange-500/30">
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                       <div>
-                        <div className="text-[11px] font-bold uppercase tracking-wider text-orange-400">{materialIndex === 0 ? 'Latest published lesson' : 'Previous lesson'} • {material.date}</div>
+                        <div className="text-[11px] font-bold uppercase tracking-wider text-orange-400">{translateUI(materialIndex === 0 ? 'Latest published lesson' : 'Previous lesson')} • {material.date}</div>
                         <h3 className="text-xl font-black text-white mt-1">{material.title}</h3>
                         <p className="text-sm text-neutral-300 mt-1">{material.focus}</p>
                       </div>
@@ -2802,7 +2802,7 @@ export default function StudentPortalModal({
                     <section className="p-5 rounded-2xl bg-[#111827] border border-[#233047]"><h4 className="font-extrabold text-white mb-3 flex items-center gap-2"><Target className="w-4 h-4 text-orange-400" />{translateUI("Practice activity")}</h4><ol className="space-y-3 text-sm text-neutral-300 list-decimal pl-5">{material.practice.map((item) => <li key={item}>{item}</li>)}</ol></section>
                   </div>
                   <details className="p-5 rounded-2xl bg-[#0f172a] border border-[#233047]"><summary className="font-bold text-amber-300 cursor-pointer">{translateUI("Open answer and self-check guide after completing the activity")}</summary><ol className="mt-4 space-y-2 text-sm text-neutral-300 list-decimal pl-5">{material.answers.map((item) => <li key={item}>{item}</li>)}</ol></details>
-                  {material.id && <button type="button" disabled={completedMaterialIds.includes(material.id)} onClick={() => syncCloudMaterials('completed', material.id)} className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-950 disabled:text-emerald-400 text-white text-sm font-extrabold flex items-center justify-center gap-2"><CheckCircle2 className="w-4 h-4" />{completedMaterialIds.includes(material.id) ? 'Completed' : 'Mark as Completed'}</button>}
+                  {material.id && <button type="button" disabled={completedMaterialIds.includes(material.id)} onClick={() => syncCloudMaterials('completed', material.id)} className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-950 disabled:text-emerald-400 text-white text-sm font-extrabold flex items-center justify-center gap-2"><CheckCircle2 className="w-4 h-4" />{translateUI(completedMaterialIds.includes(material.id) ? 'Completed' : 'Mark as Completed')}</button>}
                   {materialIndex < visibleDailyMaterials.length - 1 && <div className="border-t border-neutral-800" />}
                 </div>
               ))}

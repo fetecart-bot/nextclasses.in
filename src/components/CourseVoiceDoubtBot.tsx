@@ -96,6 +96,7 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
     } finally { setReportBusy(false); }
   }
   const [selectedLanguage, setSelectedLanguage] = useState<string>(initialLanguage);
+  useEffect(() => { if (isOpen) setSelectedLanguage(initialLanguage); }, [isOpen, initialLanguage]);
   const [isListening, setIsListening] = useState<boolean>(false);
   const [isThinking, setIsThinking] = useState<boolean>(false);
   const [voiceEnabled, setVoiceEnabled] = useState(false);

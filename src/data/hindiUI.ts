@@ -682,3 +682,5 @@ Object.assign(HINDI_UI, {
   'Latest published lesson':'नवीनतम प्रकाशित पाठ', 'Previous lesson':'पिछला पाठ', 'Completed':'पूरा हुआ', 'Mark as Completed':'पूरा होने का निशान लगाएँ',
   'We could not load your published lessons. Please try again.':'प्रकाशित पाठ लोड नहीं हो सके। कृपया फिर कोशिश करें।'
 });
+
+Object.assign(HINDI_UI, { 'Published lessons':'प्रकाशित पाठ', 'Learn at your own pace':'अपनी गति से सीखें', 'Study plan • Check official exam dates':'अध्ययन योजना • आधिकारिक परीक्षा तारीख जाँचें', 'Contact NextClasses on WhatsApp':'NextClasses से WhatsApp पर संपर्क करें' });
