@@ -61,8 +61,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ identifier: restored.username || restored.email, password: restored.password }),
     })
-      .then(async (response) => ({ ok: response.ok, data: await response.json().catch(() => ({})) }))
-      .then(({ ok, data }) => {
+      .then(async (response) => ({ ok: response.ok, status: response.status, data: await response.json().catch(() => ({})) }))
+      .then(({ ok, status, data }) => {
+        if (!cancelled && (status === 401 || status === 403)) { setUser(null); return; }
         if (!cancelled && ok && data.account?.enrolledCourseIds?.length) {
           setUser((current) => current ? { ...current, ...data.account, password: current.password } : current);
         }
@@ -110,8 +111,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await fetch('/api/student-login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ identifier: usernameOrEmail, password: passwordInput, courseId: courseIdOrStandard }) });
       const data = await response.json();
       if (response.ok && data.account) verified = data.account;
-    } catch { /* use the offline registry only when the server is unavailable */ }
-    if (!verified && !options?.serverOnly) verified = verifyStudentCredentials(usernameOrEmail, passwordInput);
+    } catch {
+      return { success: false, message: 'Sign-in is temporarily unavailable. Please reconnect and try again.' };
+    }
     if (!verified) {
       return {
         success: false,
@@ -138,7 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (courseChoice && !courseChoice.startsWith('class-') && !updatedEnrolled.includes(courseChoice)) {
       updatedEnrolled.unshift(courseChoice);
     }
-    if (!updatedEnrolled.includes(specificSainikCourseId) && (courseChoice.includes('sainik') || !verified.courseId)) {
+    if (!updatedEnrolled.includes(specificSainikCourseId) && courseChoice === 'course-aissee-sainik') {
       updatedEnrolled.unshift(specificSainikCourseId);
     }
 
@@ -175,7 +177,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const setStudentStandard = (standard: 'class-6' | 'class-9') => {
     if (!user) return;
     const specificCourseId = standard === 'class-9' ? 'course-aissee-sainik-9' : 'course-aissee-sainik-6';
-    const updatedCourses = [specificCourseId, ...user.enrolledCourseIds.filter((c) => c !== 'course-aissee-sainik-6' && c !== 'course-aissee-sainik-9')];
+    if (!user.enrolledCourseIds.includes(specificCourseId)) return;
+    const updatedCourses = [specificCourseId, ...user.enrolledCourseIds.filter(c => c !== specificCourseId)];
     setUser({
       ...user,
       standard,

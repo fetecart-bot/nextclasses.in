@@ -1,5 +1,5 @@
 import { credentialsFor, recentCapturedPayments } from './_razorpay.js';
-import { passwordHash, supabaseRequest } from './_supabase.js';
+import { passwordHash, supabaseRequest, saveStudentAndEnrollment } from './_supabase.js';
 
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -49,6 +49,8 @@ export default async function handler(req: any, res: any) {
       const phone = account.phone.replace(/[^0-9]/g, '');
       const identifierPhone = identifier.replace(/[^0-9]/g, '');
       if ((account.username.toLowerCase() === identifier || account.email === identifier || (identifierPhone.length >= 10 && phone.length >= 10 && phone.endsWith(identifierPhone))) && account.password === password) {
+        if (account.courseId === 'course-unassigned') return res.status(409).json({ error: 'Your payment is verified, but the course assignment needs support review.' });
+        await saveStudentAndEnrollment(account, payment);
         return res.status(200).json({ account });
       }
     }

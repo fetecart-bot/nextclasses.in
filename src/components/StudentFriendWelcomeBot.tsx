@@ -400,7 +400,10 @@ I'm ready to coach you step by step!`,
         stream.getTracks().forEach((track) => track.stop());
 
         if (audioChunksRef.current.length === 0) return;
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        setIsRecordingAudio(false);
+        setIsListening(false);
+        const recordedType = mediaRecorder.mimeType || 'audio/webm';
+        const audioBlob = new Blob(audioChunksRef.current, { type: recordedType });
         
         // Convert Blob to base64
         const reader = new FileReader();
@@ -409,16 +412,19 @@ I'm ready to coach you step by step!`,
           try {
             const base64Data = (reader.result as string).split(',')[1];
             setIsThinking(true);
-            const res = await fetch('/api/voice-transcribe', {
+            const res = await fetch('/api/course-doubt', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
+                action: 'transcribe',
+                identifier: student.username || student.email, password: student.password, courseId,
                 audioBase64: base64Data,
-                mimeType: 'audio/webm',
+                mimeType: recordedType,
                 language: selectedLanguage,
               }),
             });
             const data = await res.json();
+            if (!res.ok) { setIsThinking(false); setVoiceNotice(data.error || 'Please type your question.'); return; }
             if (data?.transcript?.trim()) {
               setInputText(data.transcript);
               handleSendMessage(data.transcript);
@@ -574,6 +580,7 @@ I'm ready to coach you step by step!`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          identifier: student.username || student.email, password: student.password, courseId,
           studentName: student.name,
           courseTitle,
           gender: studentGender,
@@ -625,29 +632,9 @@ I'm ready to coach you step by step!`,
         speakText(botReply.spokenScript || botReply.text, selectedLanguage, voiceGender);
       }
     } catch (err: any) {
-      console.warn('Server chat error, using rich local companion logic:', err);
-      // Fallback friendly friend response
-      const fallbackReply = generateFallbackFriendReply(
-        textToSend,
-        selectedLanguage,
-        studentFirstName,
-        studentGender
-      );
-
-      const botReply: ChatMessage = {
-        id: `bot-${Date.now()}`,
-        sender: 'bot',
-        text: fallbackReply.written,
-        spokenScript: fallbackReply.spoken,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      };
-
-      setMessages((prev) => [...prev, botReply]);
+      console.warn('Mentor chat request failed:', err);
       setIsThinking(false);
-
-      if (!isMuted) {
-        speakText(botReply.spokenScript || botReply.text, selectedLanguage, voiceGender);
-      }
+      setVoiceNotice('The online mentor is temporarily unavailable. Please try again shortly or use your downloaded course pack.');
     }
   };
 

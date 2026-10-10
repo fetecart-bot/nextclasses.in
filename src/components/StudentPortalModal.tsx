@@ -2193,15 +2193,7 @@ export default function StudentPortalModal({
       const first = user.enrolledCourseIds[0];
       if (COURSE_CURRICULUMS[first]) return first;
     }
-    if (user?.targetExamCode === 'AISSEE-9') {
-      return 'course-aissee-sainik-9';
-    }
-    if (user?.targetExamCode === 'AISSEE-6' || user?.targetExamCode === 'AISSEE') {
-      return 'course-aissee-sainik-6';
-    }
-    if (user?.targetExamCode === 'NEET' || user?.enrolledCourseIds?.includes('course-neet-ug')) {
-      return 'course-neet-ug';
-    }
+    if (user) return '';
     return initialCourseId && COURSE_CURRICULUMS[initialCourseId] ? initialCourseId : 'course-aissee-sainik-6';
   }, [user, initialCourseId]);
 
@@ -2211,9 +2203,7 @@ export default function StudentPortalModal({
   useEffect(() => {
     if (user?.enrolledCourseIds && user.enrolledCourseIds.length > 0) {
       const first = user.enrolledCourseIds[0];
-      if (COURSE_CURRICULUMS[first]) {
-        setSelectedCourseId(first);
-      }
+      setSelectedCourseId(COURSE_CURRICULUMS[first] ? first : '');
     }
   }, [user]);
 
@@ -2232,7 +2222,7 @@ export default function StudentPortalModal({
   const [isVoiceMentorOpen, setIsVoiceMentorOpen] = useState(false);
 
   // Active curriculum based on selected course
-  const currentCurriculum = COURSE_CURRICULUMS[selectedCourseId] || COURSE_CURRICULUMS['course-aissee-sainik'];
+  const currentCurriculum = COURSE_CURRICULUMS[selectedCourseId] || COURSE_CURRICULUMS['course-public-speaking-articulation'];
   const effectiveVideos = COURSE_VIDEO_PLAYLISTS[selectedCourseId] || currentCurriculum.videos;
   const [activeVideoId, setActiveVideoId] = useState<string>(() => effectiveVideos[0]?.id || 'sainik-vid-1');
 
@@ -2244,7 +2234,8 @@ export default function StudentPortalModal({
   }, [selectedCourseId, effectiveVideos]);
 
   const isGraduateExam = GRADUATE_EXAM_COURSES.some((course) => course.id === selectedCourseId);
-  const targetDate = user?.targetExamDate || (selectedCourseId === 'course-aissee-sainik' ? '2027-01-10' : '2027-05-02');
+  const isExamCourse = /sainik|navodaya|rms|neet|jee|keam/.test(selectedCourseId) || isGraduateExam;
+  const targetDate = isExamCourse ? (user?.targetExamDate || '') : ''; 
   const daysLeft = calculateDaysToExam(targetDate);
   const weeksLeft = calculateWeeksToExam(daysLeft);
 
@@ -2358,6 +2349,10 @@ export default function StudentPortalModal({
     }
     return MOCK_TESTS_DATA;
   }, [selectedCourseId, user?.standard, isGraduateExam, currentCurriculum.examCode]);
+
+  if (user && (!selectedCourseId || !COURSE_CURRICULUMS[selectedCourseId] || !user.enrolledCourseIds.includes(selectedCourseId))) {
+    return <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4"><section className="rounded-2xl bg-neutral-900 p-6 text-white max-w-md"><h2 className="font-bold text-lg">Course assignment needs review</h2><p className="mt-3">We could not verify an available course for this account. Please contact NextClasses so we can correct the assignment.</p><a className="block mt-4 text-orange-400" href="https://wa.me/918792134951">Contact support</a><button onClick={onClose} className="block mt-4">Close portal</button></section></div>;
+  }
 
   // UN-AUTHENTICATED STATE: SHOW SECURE LOGIN GATE
   if (!user) {
@@ -2537,7 +2532,7 @@ export default function StudentPortalModal({
                     {user.standard === 'class-9' ? 'Class 9 (400 Marks)' : 'Class 6 (300 Marks)'}
                   </span>
                 )}
-                <span>• Goal: <strong className="text-amber-400">{currentCurriculum.examCode}{!isGraduateExam && ' 2027'}</strong></span>
+                <span>• Goal: <strong className="text-amber-400">{currentCurriculum.examCode}</strong></span>
               </p>
             </div>
           </div>
@@ -2604,7 +2599,7 @@ export default function StudentPortalModal({
         <div className="px-5 py-2.5 bg-[#0b1220] border-b border-[#1a2336] flex flex-wrap items-center justify-between gap-2.5">
           <div className="flex items-center gap-2 text-xs flex-wrap">
             <BookOpen className="w-4 h-4 text-orange-400 shrink-0" />
-            <span className="font-semibold text-neutral-300">Active Exam Course:</span>
+            <span className="font-semibold text-neutral-300">Active Course:</span>
             <select
               value={selectedCourseId}
               onChange={(e) => {
@@ -2634,6 +2629,7 @@ export default function StudentPortalModal({
                 <button
                   type="button"
                   id="portal-toggle-class6-btn"
+                  disabled={!user.enrolledCourseIds.includes('course-aissee-sainik-6')}
                   onClick={() => {
                     setSelectedCourseId('course-aissee-sainik-6');
                     setStudentStandard('class-6');
@@ -2649,6 +2645,7 @@ export default function StudentPortalModal({
                 <button
                   type="button"
                   id="portal-toggle-class9-btn"
+                  disabled={!user.enrolledCourseIds.includes('course-aissee-sainik-9')}
                   onClick={() => {
                     setSelectedCourseId('course-aissee-sainik-9');
                     setStudentStandard('class-9');
@@ -2669,7 +2666,7 @@ export default function StudentPortalModal({
             <div className="px-2.5 py-1 rounded-lg bg-[#141d2d] border border-[#263750] text-[11px] text-neutral-300 flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5 text-amber-400" />
               <span>
-                {isGraduateExam ? 'Foundation study plan • Check official exam dates' : <><strong className="text-white">{daysLeft}</strong> days to exam (<strong className="text-amber-400">{weeksLeft}</strong> study drops)</>}
+                {!isExamCourse ? 'Learn at your own pace' : !targetDate || isGraduateExam ? 'Study plan • Check official exam dates' : <><strong className="text-white">{daysLeft}</strong> days to exam (<strong className="text-amber-400">{weeksLeft}</strong> study drops)</>}
               </span>
             </div>
           </div>
@@ -2791,7 +2788,7 @@ export default function StudentPortalModal({
             </div>
             <h4 className="text-sm sm:text-base font-black text-white">{currentCurriculum.courseTitle}</h4>
             <p className="text-xs text-neutral-300">
-              Syllabus breakdown, high-yield arithmetic, reasoning tricks, full printable PDF kit & CBT mock tests.
+              Course study guide, worked examples and practice activities for your enrolled course.
             </p>
           </div>
 

@@ -32,6 +32,7 @@ export default async function handler(req: any, res: any) {
     await saveStudentAndEnrollment(account, payment);
   } catch (error) {
     console.error('Supabase enrollment sync failed', error);
+    return res.status(503).json({ error: 'Enrollment could not be saved. Retry delivery.' });
   }
 
   if (account.email && process.env.SMTP_USER && process.env.SMTP_PASS) {

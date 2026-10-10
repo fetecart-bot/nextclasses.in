@@ -97,11 +97,14 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
   const [inputText, setInputText] = useState<string>('');
   const [liveTranscript, setLiveTranscript] = useState<string>('');
   const [liveStatus, setLiveStatus] = useState<string>('idle'); // idle | listening | processing | speaking | error
+  const storageKey = historyKey(`${user?.id || 'guest'}:${course.id}`);
+  const [loadedHistoryKey, setLoadedHistoryKey] = useState('');
   const [history, setHistory] = useState<DoubtExchange[]>([]);
   const [activeTab, setActiveTab] = useState<'voice' | 'text'>('voice');
   const [isOnline, setIsOnline] = useState(() => navigator.onLine);
   const [offlineReady, setOfflineReady] = useState(false);
 
+  const requestBusyRef = useRef(false);
   const recognitionRef = useRef<any>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -115,9 +118,10 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
     if (!isOpen) return;
     setOfflineReady(!!saveOfflineCoursePack(course.id));
     try {
-      const saved = localStorage.getItem(historyKey(course.id));
-      if (saved) setHistory(JSON.parse(saved));
-    } catch {}
+      const saved = localStorage.getItem(storageKey);
+      setHistory(saved ? JSON.parse(saved) : []);
+    } catch { setHistory([]); }
+    setLoadedHistoryKey(storageKey);
     const online = () => setIsOnline(true);
     const offline = () => setIsOnline(false);
     window.addEventListener('online', online);
@@ -126,14 +130,14 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
       window.removeEventListener('online', online);
       window.removeEventListener('offline', offline);
     };
-  }, [isOpen, course.id]);
+  }, [isOpen, course.id, storageKey]);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || loadedHistoryKey !== storageKey) return;
     try {
-      localStorage.setItem(historyKey(course.id), JSON.stringify(history.slice(-20).map(({ audioUrl, ...item }) => item)));
+      localStorage.setItem(storageKey, JSON.stringify(history.slice(-20).map(({ audioUrl, ...item }) => item)));
     } catch {}
-  }, [history, course.id, isOpen]);
+  }, [history, storageKey, loadedHistoryKey, isOpen]);
 
   // Audio Recording Fallback with server transcription
   const startAudioRecording = async () => {
@@ -152,7 +156,10 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
 
       mediaRecorder.onstop = async () => {
         stream.getTracks().forEach((track) => track.stop());
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        setIsRecordingAudio(false);
+        setIsListening(false);
+        const recordedType = mediaRecorder.mimeType || 'audio/webm';
+        const audioBlob = new Blob(audioChunksRef.current, { type: recordedType });
         if (audioBlob.size < 500) return;
 
         setIsThinking(true);
@@ -161,24 +168,32 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
           const reader = new FileReader();
           reader.readAsDataURL(audioBlob);
           reader.onloadend = async () => {
+            try {
             const base64Data = (reader.result as string).split(',')[1];
-            const res = await fetch('/api/voice-transcribe', {
+            const res = await fetch('/api/course-doubt', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
+                action: 'transcribe',
+                identifier: user?.username || user?.email, password: user?.password, courseId: course.id,
                 audioBase64: base64Data,
-                mimeType: 'audio/webm',
+                mimeType: recordedType,
                 language: selectedLanguage,
           voicePreference: studentGender === 'female' ? 'male' : 'female',
               }),
             });
             const data = await res.json();
+            if (!res.ok) { setIsThinking(false); setLiveStatus('error'); setReportNotice(data.error || 'Please type your question.'); return; }
             if (data?.transcript?.trim()) {
               setLiveTranscript(data.transcript);
               handleAskDoubt(data.transcript.trim());
             } else {
               setIsThinking(false);
               setLiveStatus('idle');
+            }
+            } catch {
+              setIsThinking(false);
+              setLiveStatus('error'); setReportNotice('Voice recognition failed. Please type your question.');
             }
           };
         } catch (err) {
@@ -428,7 +443,9 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
 
   // Core doubt solver caller
   const handleAskDoubt = async (questionText: string) => {
-    if (!questionText.trim()) return;
+    if (!questionText.trim() || requestBusyRef.current) return;
+    requestBusyRef.current = true;
+    setReportNotice('');
 
     setIsThinking(true);
     setLiveStatus('processing');
@@ -442,6 +459,7 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          identifier: user?.username || user?.email, password: user?.password,
           courseId: course.id,
           courseTitle: course.title,
           question: questionText.trim(),
@@ -501,7 +519,7 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
       };
       setHistory((prev) => [...prev, fallbackExchange]);
       speakWithBrowser(fallbackExchange.spokenScript);
-    }
+    } finally { requestBusyRef.current = false; } 
   };
 
   const speakWithBrowser = (text: string) => {
@@ -654,6 +672,7 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
 
         {/* Body: Conversation Stream + Visualizer */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 min-h-[260px] max-h-[50vh]">
+          {isThinking && history.length === 0 && <p role="status" className="text-orange-200">Your mentor is preparing your answer…</p>}
           {history.length === 0 ? (
             <div className="py-6 sm:py-8 flex flex-col items-center justify-center text-center space-y-4">
               {/* Interactive Orb Animation */}

@@ -1,3 +1,4 @@
+import { requireStudentCourse } from './_studentAccess.js';
 import { courseKnowledgeBase, mentorModels } from './_courseKnowledge.js';
 import { reportMentorAnswer } from './_mentorReport.js';
 
@@ -14,10 +15,31 @@ function extractOutputText(payload: any) {
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   if (req.body?.action === 'report') return reportMentorAnswer(req, res);
+  const access = await requireStudentCourse(req, res);
+  if (!access) return;
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return res.status(503).json({ error: 'OpenAI mentor is not configured' });
+  if (req.body?.action === 'transcribe') {
+    const encodedAudio = String(req.body?.audioBase64 || '');
+    const mimeType = String(req.body?.mimeType || '').split(';')[0];
+    const extensions: Record<string, string> = { 'audio/webm': 'webm', 'audio/mp4': 'mp4', 'audio/ogg': 'ogg', 'audio/wav': 'wav' };
+    if (!extensions[mimeType] || !encodedAudio || encodedAudio.length > 1500000) return res.status(400).json({ error: 'Please record a short supported audio clip.' });
+    try {
+      const bytes = Buffer.from(encodedAudio, 'base64');
+      if (bytes.length < 500) return res.status(400).json({ error: 'No speech recorded. Please try again.' });
+      const form = new FormData();
+      form.append('file', new Blob([bytes], { type: mimeType }), `question.${extensions[mimeType]}`);
+      form.append('model', 'gpt-4o-mini-transcribe');
+      const language = String(req.body?.language || 'en');
+      if (LANGUAGE_NAMES[language]) form.append('language', language);
+      const response = await fetch('https://api.openai.com/v1/audio/transcriptions', { method: 'POST', headers: { Authorization: `Bearer ${apiKey}` }, body: form, signal: AbortSignal.timeout(25000) });
+      const data: any = await response.json();
+      if (!response.ok) throw new Error('Transcription unavailable');
+      return res.status(200).json({ transcript: String(data.text || '').slice(0, 2000) });
+    } catch { return res.status(502).json({ error: 'Voice recognition is temporarily unavailable. Please type your question.' }); }
+  }
   const courseId = String(req.body?.courseId || '').trim();
-  const courseTitle = String(req.body?.courseTitle || '').trim();
+  const courseTitle = access.courseTitle;
   const question = String(req.body?.question || '').trim().slice(0, 2000);
   const language = String(req.body?.language || 'en').toLowerCase();
   const voicePreference = req.body?.voicePreference === 'male' ? 'male' : 'female';

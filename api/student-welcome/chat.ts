@@ -1,3 +1,4 @@
+import { requireStudentCourse } from '../_studentAccess.js';
 import { courseKnowledgeBase, mentorModels } from '../_courseKnowledge.js';
 
 const LANGUAGE_NAMES: Record<string, string> = {
@@ -11,9 +12,11 @@ function outputText(payload: any) {
 
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  const access = await requireStudentCourse(req, res);
+  if (!access) return;
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return res.status(503).json({ error: 'OpenAI mentor is not configured' });
-  const courseTitle = String(req.body?.courseTitle || '').slice(0, 300);
+  const courseTitle = access.courseTitle;
   const userMessage = String(req.body?.userMessage || '').slice(0, 2000);
   const language = String(req.body?.language || 'en').toLowerCase();
   if (!courseTitle || !userMessage) return res.status(400).json({ error: 'Course and message are required' });
