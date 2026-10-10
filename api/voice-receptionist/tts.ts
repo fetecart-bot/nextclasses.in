@@ -15,7 +15,7 @@ export default async function handler(req: any, res: any) {
         model: 'gpt-4o-mini-tts',
         voice: voiceGender === 'male' ? 'cedar' : 'marin',
         input: text,
-        instructions: 'Speak naturally, warmly and clearly like a patient professional mentor. Use a relaxed conversational pace and authentic pronunciation.',
+        instructions: `Speak in the language of the text with fluent native Indian-language pronunciation, warm conversational intonation and gentle pauses. Be encouraging and expressive like a patient mentor. Avoid robotic rhythm, literal English pronunciation of native words and a stiff newsreader delivery.`,
         response_format: 'mp3',
       }),
     });

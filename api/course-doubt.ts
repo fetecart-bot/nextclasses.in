@@ -50,7 +50,7 @@ export default async function handler(req: any, res: any) {
 NEXTCLASSES COURSE KNOWLEDGE:
 ${courseKnowledgeBase()}
 
-Return only JSON with string keys writtenAnswer, spokenScript, keyTakeaway. spokenScript must contain no markdown and be under 180 words.`;
+Return only JSON with string keys writtenAnswer, spokenScript, keyTakeaway. spokenScript must contain no markdown and be under 180 words. Write it for listening: short conversational sentences, one idea per sentence, natural pauses, and an encouraging Indian mentor tone. In Indian languages use everyday native phrasing rather than stiff literal translation; keep familiar technical terms only where useful and explain them simply.`;
   const input = `Course ID: ${courseId}\nCourse title: ${courseTitle}\nStudent question: ${question}`;
   try {
     let aiPayload: any = null;
@@ -79,7 +79,7 @@ Return only JSON with string keys writtenAnswer, spokenScript, keyTakeaway. spok
           model: 'gpt-4o-mini-tts',
           voice: voicePreference === 'male' ? 'cedar' : 'marin',
           input: String(parsed.spokenScript || parsed.writtenAnswer).slice(0, 1800),
-          instructions: 'Speak warmly, clearly, and encouragingly like a professional course mentor. Use a natural conversational pace.',
+          instructions: `Speak in ${LANGUAGE_NAMES[language] || 'English'} with fluent native pronunciation and a warm, encouraging Indian mentor delivery. Use relaxed conversational phrasing, varied intonation, short pauses between ideas, and clear pronunciation of numbers and technical terms. Avoid an exaggerated accent, robotic rhythm, rushed speech or a formal newsreader tone.`,
           response_format: 'mp3',
         }),
       });

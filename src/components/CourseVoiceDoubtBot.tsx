@@ -58,6 +58,8 @@ const SUPPORTED_LANGUAGES = [
   { code: 'fr', name: 'French', native: 'Français', flag: '🇫🇷' },
 ];
 
+const SILENT_VOICE_UNLOCK = 'data:audio/wav;base64,UklGRmQGAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YUAGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+
 export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
   isOpen,
   onClose,
@@ -93,6 +95,9 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
   const [selectedLanguage, setSelectedLanguage] = useState<string>(initialLanguage);
   const [isListening, setIsListening] = useState<boolean>(false);
   const [isThinking, setIsThinking] = useState<boolean>(false);
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
+  const voiceEnabledRef = useRef(false);
+  const audioGenerationRef = useRef(0);
   const [isPreparingAudio, setIsPreparingAudio] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState<boolean>(false);
   const [inputText, setInputText] = useState<string>('');
@@ -106,6 +111,7 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
   const [offlineReady, setOfflineReady] = useState(false);
 
   const requestBusyRef = useRef(false);
+  const mentorSessionRef = useRef(0);
   const recognitionRef = useRef<any>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -333,6 +339,7 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
   // Browser speech recognition (STT) setup
   const startSpeechRecognition = () => {
     stopAudioPlayback();
+    enableVoice();
     latestDoubtTranscriptRef.current = '';
 
     const SpeechRecognition =
@@ -446,11 +453,13 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
   const handleAskDoubt = async (questionText: string) => {
     if (!questionText.trim() || requestBusyRef.current) return;
     requestBusyRef.current = true;
+    const mentorSession = mentorSessionRef.current;
     setReportNotice('');
 
     setIsThinking(true);
     setLiveStatus('processing');
     stopAudioPlayback();
+    enableVoice();
 
     try {
       if (!navigator.onLine) throw new Error('offline');
@@ -475,6 +484,7 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
         throw new Error(data?.error || 'Could not resolve doubt');
       }
 
+      if (mentorSessionRef.current !== mentorSession) return;
       const newExchange: DoubtExchange = {
         id: `doubt-${Date.now()}`,
         question: questionText.trim(),
@@ -540,23 +550,52 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
     window.speechSynthesis.speak(utterance);
   };
 
+  // Reuse the element unlocked by a tap; creating one after an API response
+  // loses mobile Safari's per-element playback permission.
+  const enableVoice = () => {
+    if (voiceEnabledRef.current) return;
+    const audio = audioPlayerRef.current || new Audio();
+    audioPlayerRef.current = audio;
+    const generation = ++audioGenerationRef.current;
+    audio.onplay = null; audio.onended = null; audio.onerror = null;
+    audio.src = SILENT_VOICE_UNLOCK;
+    audio.play().then(() => {
+      if (audioGenerationRef.current !== generation) return;
+      voiceEnabledRef.current = true;
+      setVoiceEnabled(true);
+      setReportNotice('');
+    }).catch(() => {
+      if (audioGenerationRef.current !== generation) return;
+      setReportNotice('Tap Enable spoken answers to allow your browser to play the mentor voice.');
+    });
+  };
+
   const playAudio = (url: string) => {
     stopAudioPlayback();
-    const audio = new Audio(url);
+    const audio = audioPlayerRef.current || new Audio();
     audioPlayerRef.current = audio;
+    const generation = ++audioGenerationRef.current;
+    const current = () => audioGenerationRef.current === generation;
     setIsPreparingAudio(true);
-    const current = () => audioPlayerRef.current === audio;
-    audio.onplay = () => { if (current()) { setIsPreparingAudio(false); setIsPlayingAudio(true); setLiveStatus('speaking'); } };
+    audio.onplay = () => { if (current()) { voiceEnabledRef.current = true; setVoiceEnabled(true); setIsPreparingAudio(false); setIsPlayingAudio(true); setLiveStatus('speaking'); } };
     audio.onended = () => { if (current()) { setIsPlayingAudio(false); setLiveStatus('idle'); } };
     audio.onerror = () => { if (current()) { setIsPreparingAudio(false); setIsPlayingAudio(false); setLiveStatus('idle'); setReportNotice('Natural voice could not load. Please try Play Voice again.'); } };
-    audio.play().catch(() => { if (current()) { setIsPreparingAudio(false); setIsPlayingAudio(false); setLiveStatus('idle'); setReportNotice('Your browser paused automatic audio. Tap Play Voice to listen.'); } });
+    audio.src = url;
+    audio.play().catch((error) => { if (current()) {
+      setIsPreparingAudio(false); setIsPlayingAudio(false); setLiveStatus('idle');
+      if (error?.name === 'NotAllowedError') { voiceEnabledRef.current = false; setVoiceEnabled(false); }
+      setReportNotice('Tap Play Voice for this answer, or Enable spoken answers for the next questions.');
+    } });
   };
 
   const stopAudioPlayback = () => {
+    audioGenerationRef.current += 1;
     if (audioPlayerRef.current) {
+      audioPlayerRef.current.onplay = null;
+      audioPlayerRef.current.onended = null;
+      audioPlayerRef.current.onerror = null;
       audioPlayerRef.current.pause();
       audioPlayerRef.current.currentTime = 0;
-      audioPlayerRef.current = null;
     }
     setIsPreparingAudio(false);
     setIsPlayingAudio(false);
@@ -568,7 +607,12 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
       recognitionRef.current?.abort?.();
       if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
       if (mediaRecorderRef.current?.state === 'recording') mediaRecorderRef.current.stop();
+      mentorSessionRef.current += 1;
+      audioGenerationRef.current += 1;
       audioPlayerRef.current?.pause();
+      audioPlayerRef.current = null;
+      voiceEnabledRef.current = false;
+      setVoiceEnabled(false);
       window.speechSynthesis?.cancel();
     };
   }, [isOpen, course.id]);
@@ -856,6 +900,10 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
           </div>
         )}
 
+        <div className="px-4 py-2 bg-neutral-900 border-t border-neutral-800 text-xs">
+          {voiceEnabled ? <span className="text-emerald-400">Spoken answers enabled for this session</span> :
+            <button type="button" onClick={enableVoice} className="text-orange-400 font-semibold underline">Enable spoken answers</button>}
+        </div>
         {/* Input Bar & Controls */}
         <div className="p-4 bg-neutral-900 border-t border-neutral-800 space-y-3">
           <div className="flex items-center gap-2">
