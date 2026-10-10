@@ -1,3 +1,4 @@
+import { useLanguage } from '../context/LanguageContext';
 import { useState, useEffect } from 'react';
 import { Sparkles, Tag, ArrowRight, X, Clock } from 'lucide-react';
 
@@ -6,6 +7,8 @@ interface AnnouncementBannerProps {
 }
 
 export default function AnnouncementBanner({ onPromoApply }: AnnouncementBannerProps) {
+  const { t: translateUI } = useLanguage();
+
   const [isVisible, setIsVisible] = useState(true);
   const [copied, setCopied] = useState(false);
   const [timeLeft, setTimeLeft] = useState({ hours: 14, minutes: 32, seconds: 45 });
@@ -44,17 +47,13 @@ export default function AnnouncementBanner({ onPromoApply }: AnnouncementBannerP
         {/* Left message */}
         <div className="flex items-center gap-2 flex-wrap justify-center sm:justify-start">
           <span className="inline-flex items-center gap-1 bg-white/20 px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider backdrop-blur-xs">
-            <Sparkles className="w-3 h-3 text-amber-200" />
-            Launch Special
-          </span>
-          <span className="font-semibold text-white">
-            Flat 40% OFF all AI Courses & Digital Products with code
-          </span>
+            <Sparkles className="w-3 h-3 text-amber-200" />{translateUI("Launch Special")}</span>
+          <span className="font-semibold text-white">{translateUI("Flat 40% OFF all AI Courses & Digital Products with code")}</span>
           <button
             type="button"
             onClick={handleCopyCode}
             className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white text-neutral-900 font-mono font-bold hover:bg-amber-100 transition-colors cursor-pointer"
-            title="Click to copy coupon code"
+            title={translateUI("Click to copy coupon code")}
           >
             <Tag className="w-3 h-3 text-orange-600" />
             AIFUTURE
@@ -68,7 +67,7 @@ export default function AnnouncementBanner({ onPromoApply }: AnnouncementBannerP
         <div className="flex items-center gap-4 text-[11px]">
           <div className="flex items-center gap-1.5 font-mono text-amber-100 bg-black/20 px-2 py-0.5 rounded">
             <Clock className="w-3 h-3" />
-            <span>Offer ends in: </span>
+            <span>{translateUI("Offer ends in:")}</span>
             <span className="font-bold text-white">
               {String(timeLeft.hours).padStart(2, '0')}:{String(timeLeft.minutes).padStart(2, '0')}:{String(timeLeft.seconds).padStart(2, '0')}
             </span>
@@ -78,7 +77,7 @@ export default function AnnouncementBanner({ onPromoApply }: AnnouncementBannerP
             type="button"
             onClick={() => setIsVisible(false)}
             className="p-1 hover:bg-white/20 rounded transition-colors text-white/80 hover:text-white"
-            aria-label="Dismiss banner"
+            aria-label={translateUI("Dismiss banner")}
           >
             <X className="w-3.5 h-3.5" />
           </button>

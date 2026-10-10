@@ -1,3 +1,4 @@
+import { useLanguage } from '../context/LanguageContext';
 import { useState, useEffect } from 'react';
 import { X, Clock, CheckCircle2, AlertCircle, Bookmark, ChevronLeft, ChevronRight, Award, FileText, Download, RotateCcw, Sparkles } from 'lucide-react';
 import { MOCK_TESTS_DATA } from '../data/mockTestsData';
@@ -16,6 +17,8 @@ export default function InteractiveMockTestModal({
   onSaveResult,
   onOpenStudentPortal,
 }: InteractiveMockTestModalProps) {
+  const { t: translateUI } = useLanguage();
+
   const [selectedTestId, setSelectedTestId] = useState<string>(
     initialTestId || MOCK_TESTS_DATA[0].id
   );
@@ -157,9 +160,7 @@ export default function InteractiveMockTestModal({
                   {currentTest.category === 'competitive' ? 'Official NTA Pattern' : 'AI Platform Benchmark'}
                 </span>
               </div>
-              <p className="text-[11px] text-neutral-400">
-                Total Marks: {currentTest.totalMarks} • +{currentTest.positiveMarks} Correct / -{currentTest.negativeMarks} Incorrect
-              </p>
+              <p className="text-[11px] text-neutral-400">{translateUI("Total Marks:")}{currentTest.totalMarks} • +{currentTest.positiveMarks}{translateUI("Correct / -")}{currentTest.negativeMarks}{translateUI("Incorrect")}</p>
             </div>
           </div>
 
@@ -178,7 +179,7 @@ export default function InteractiveMockTestModal({
               type="button"
               onClick={onClose}
               className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors cursor-pointer"
-              aria-label="Close test"
+              aria-label={translateUI("Close test")}
             >
               <X className="w-5 h-5" />
             </button>
@@ -187,7 +188,7 @@ export default function InteractiveMockTestModal({
 
         {/* Test Selector Tabs */}
         <div className="px-5 py-2 bg-neutral-900/50 border-b border-neutral-800 flex items-center gap-2 overflow-x-auto text-xs">
-          <span className="text-neutral-500 font-medium text-[11px] uppercase tracking-wider shrink-0">Switch Paper:</span>
+          <span className="text-neutral-500 font-medium text-[11px] uppercase tracking-wider shrink-0">{translateUI("Switch Paper:")}</span>
           {MOCK_TESTS_DATA.map((t) => (
             <button
               key={t.id}
@@ -199,8 +200,7 @@ export default function InteractiveMockTestModal({
                   : 'bg-neutral-800/80 text-neutral-300 hover:bg-neutral-700'
               }`}
             >
-              {t.examCode} Sprint
-            </button>
+              {t.examCode}{translateUI("Sprint")}</button>
           ))}
         </div>
 
@@ -215,8 +215,7 @@ export default function InteractiveMockTestModal({
                 {/* Question Info Bar */}
                 <div className="flex items-center justify-between pb-3 border-b border-neutral-800 text-xs">
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-white">
-                      Question {currentQuestionIndex + 1} of {currentTest.questions.length}
+                    <span className="font-bold text-white">{translateUI("Question")}{currentQuestionIndex + 1}{translateUI("of")}{currentTest.questions.length}
                     </span>
                     <span className="text-neutral-500">•</span>
                     <span className="text-neutral-400">{currentQ.subject}</span>
@@ -288,9 +287,7 @@ export default function InteractiveMockTestModal({
                     onClick={() => handleClearResponse(currentQ.id)}
                     disabled={selectedAnswers[currentQ.id] === undefined}
                     className="px-3 py-1.5 rounded-lg text-xs text-neutral-400 hover:text-white disabled:opacity-40 cursor-pointer"
-                  >
-                    Clear Response
-                  </button>
+                  >{translateUI("Clear Response")}</button>
 
                   <div className="flex items-center gap-2">
                     <button
@@ -300,7 +297,7 @@ export default function InteractiveMockTestModal({
                       className="px-3 py-2 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-xs font-medium text-white disabled:opacity-30 flex items-center gap-1 cursor-pointer"
                     >
                       <ChevronLeft className="w-4 h-4" />
-                      <span>Previous</span>
+                      <span>{translateUI("Previous")}</span>
                     </button>
 
                     {currentQuestionIndex < currentTest.questions.length - 1 ? (
@@ -309,7 +306,7 @@ export default function InteractiveMockTestModal({
                         onClick={() => setCurrentQuestionIndex((prev) => prev + 1)}
                         className="px-4 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold text-white flex items-center gap-1 cursor-pointer"
                       >
-                        <span>Next Question</span>
+                        <span>{translateUI("Next Question")}</span>
                         <ChevronRight className="w-4 h-4" />
                       </button>
                     ) : (
@@ -317,9 +314,7 @@ export default function InteractiveMockTestModal({
                         type="button"
                         onClick={handleSubmitTest}
                         className="px-4 py-2 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 text-neutral-950 font-bold text-xs hover:opacity-95 cursor-pointer shadow-md shadow-orange-500/20"
-                      >
-                        Submit Test Now
-                      </button>
+                      >{translateUI("Submit Test Now")}</button>
                     )}
                   </div>
                 </div>
@@ -328,8 +323,8 @@ export default function InteractiveMockTestModal({
               {/* Right Col: Question Palette */}
               <div className="space-y-4 p-4 rounded-xl bg-neutral-900/50 border border-neutral-800">
                 <div className="space-y-1">
-                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">Question Palette</h4>
-                  <p className="text-[11px] text-neutral-400">Click any box to jump directly:</p>
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">{translateUI("Question Palette")}</h4>
+                  <p className="text-[11px] text-neutral-400">{translateUI("Click any box to jump directly:")}</p>
                 </div>
 
                 {/* Grid of numbers */}
@@ -365,15 +360,15 @@ export default function InteractiveMockTestModal({
                 <div className="pt-3 border-t border-neutral-800 space-y-1.5 text-[11px] text-neutral-400">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded bg-emerald-600 shrink-0" />
-                    <span>Answered ({answeredCount})</span>
+                    <span>{translateUI("Answered (")}{answeredCount})</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded bg-purple-900 border border-purple-500 shrink-0" />
-                    <span>Marked for Review ({Object.values(markedForReview).filter(Boolean).length})</span>
+                    <span>{translateUI("Marked for Review (")}{Object.values(markedForReview).filter(Boolean).length})</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded bg-neutral-800 shrink-0" />
-                    <span>Unattempted ({currentTest.questions.length - answeredCount})</span>
+                    <span>{translateUI("Unattempted (")}{currentTest.questions.length - answeredCount})</span>
                   </div>
                 </div>
 
@@ -382,9 +377,7 @@ export default function InteractiveMockTestModal({
                   type="button"
                   onClick={handleSubmitTest}
                   className="w-full mt-4 py-2.5 rounded-lg bg-orange-500 hover:bg-orange-400 text-neutral-950 font-bold text-xs transition-colors cursor-pointer"
-                >
-                  Finish & Submit Test
-                </button>
+                >{translateUI("Finish & Submit Test")}</button>
               </div>
 
             </div>
@@ -400,40 +393,37 @@ export default function InteractiveMockTestModal({
                   </div>
 
                   <div>
-                    <span className="text-xs uppercase font-bold tracking-widest text-orange-400">
-                      Diagnostic Performance Analysis
-                    </span>
+                    <span className="text-xs uppercase font-bold tracking-widest text-orange-400">{translateUI("Diagnostic Performance Analysis")}</span>
                     <h2 className="text-xl sm:text-2xl font-black text-white mt-1">
                       {testResult.testTitle}
                     </h2>
-                    <p className="text-xs text-neutral-400 mt-1">Submitted at {testResult.submittedAt}</p>
+                    <p className="text-xs text-neutral-400 mt-1">{translateUI("Submitted at")}{testResult.submittedAt}</p>
                   </div>
 
                   {/* High Level Stats Grid */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto pt-2">
                     <div className="p-3 rounded-xl bg-neutral-950 border border-neutral-800">
-                      <span className="text-[11px] text-neutral-400 block">Total Score</span>
+                      <span className="text-[11px] text-neutral-400 block">{translateUI("Total Score")}</span>
                       <span className="text-2xl font-black text-amber-400">
                         {testResult.score} <span className="text-xs text-neutral-500">/ {testResult.totalMarks}</span>
                       </span>
                     </div>
 
                     <div className="p-3 rounded-xl bg-neutral-950 border border-neutral-800">
-                      <span className="text-[11px] text-neutral-400 block">Accuracy</span>
+                      <span className="text-[11px] text-neutral-400 block">{translateUI("Accuracy")}</span>
                       <span className="text-2xl font-black text-emerald-400">
                         {testResult.accuracyPercentage}%
                       </span>
                     </div>
 
                     <div className="p-3 rounded-xl bg-neutral-950 border border-neutral-800">
-                      <span className="text-[11px] text-neutral-400 block">Estimated Percentile</span>
+                      <span className="text-[11px] text-neutral-400 block">{translateUI("Estimated Percentile")}</span>
                       <span className="text-2xl font-black text-orange-400">
-                        {testResult.percentileEstimate} %ile
-                      </span>
+                        {testResult.percentileEstimate}{translateUI("%ile")}</span>
                     </div>
 
                     <div className="p-3 rounded-xl bg-neutral-950 border border-neutral-800">
-                      <span className="text-[11px] text-neutral-400 block">Correct / Attempted</span>
+                      <span className="text-[11px] text-neutral-400 block">{translateUI("Correct / Attempted")}</span>
                       <span className="text-2xl font-black text-white">
                         {testResult.correctAnswers} <span className="text-xs text-neutral-500">/ {testResult.correctAnswers + testResult.incorrectAnswers}</span>
                       </span>
@@ -447,7 +437,7 @@ export default function InteractiveMockTestModal({
                       className="px-4 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
-                      <span>Retake Mock Test</span>
+                      <span>{translateUI("Retake Mock Test")}</span>
                     </button>
 
                     <a
@@ -456,7 +446,7 @@ export default function InteractiveMockTestModal({
                       className="px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-400 text-neutral-950 font-bold text-xs flex items-center gap-1.5 shadow-md shadow-orange-500/20"
                     >
                       <Download className="w-3.5 h-3.5" />
-                      <span>Download Solution Report</span>
+                      <span>{translateUI("Download Solution Report")}</span>
                     </a>
                   </div>
                 </div>
@@ -466,11 +456,9 @@ export default function InteractiveMockTestModal({
                   <div className="flex items-center justify-between">
                     <h3 className="text-sm font-bold text-white flex items-center gap-2">
                       <FileText className="w-4 h-4 text-orange-400" />
-                      <span>Line-by-Line Answer Explanations & Error Analysis</span>
+                      <span>{translateUI("Line-by-Line Answer Explanations & Error Analysis")}</span>
                     </h3>
-                    <span className="text-xs text-neutral-400">
-                      NCERT & Standard Academic Verified
-                    </span>
+                    <span className="text-xs text-neutral-400">{translateUI("NCERT & Standard Academic Verified")}</span>
                   </div>
 
                   <div className="space-y-4">
@@ -491,22 +479,17 @@ export default function InteractiveMockTestModal({
                           }`}
                         >
                           <div className="flex items-center justify-between text-xs">
-                            <span className="font-bold text-white">
-                              Question {idx + 1} • {q.subject}
+                            <span className="font-bold text-white">{translateUI("Question")}{idx + 1} • {q.subject}
                             </span>
                             <div className="flex items-center gap-2">
                               {isCorrect ? (
                                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-700">
-                                  +{currentTest.positiveMarks} Correct
-                                </span>
+                                  +{currentTest.positiveMarks}{translateUI("Correct")}</span>
                               ) : isUnattempted ? (
-                                <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-neutral-800 text-neutral-400">
-                                  Unattempted (0 Marks)
-                                </span>
+                                <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-neutral-800 text-neutral-400">{translateUI("Unattempted (0 Marks)")}</span>
                               ) : (
                                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950 text-rose-300 border border-rose-700">
-                                  -{currentTest.negativeMarks} Negative
-                                </span>
+                                  -{currentTest.negativeMarks}{translateUI("Negative")}</span>
                               )}
                             </div>
                           </div>
@@ -535,10 +518,10 @@ export default function InteractiveMockTestModal({
                                 >
                                   <span>{String.fromCharCode(65 + oIdx)}. {opt}</span>
                                   {isCorrectOption && (
-                                    <span className="text-[10px] text-emerald-400 font-bold ml-2">Correct</span>
+                                    <span className="text-[10px] text-emerald-400 font-bold ml-2">{translateUI("Correct")}</span>
                                   )}
                                   {isStudentPick && !isCorrectOption && (
-                                    <span className="text-[10px] text-rose-400 font-bold ml-2">Your Answer</span>
+                                    <span className="text-[10px] text-rose-400 font-bold ml-2">{translateUI("Your Answer")}</span>
                                   )}
                                 </div>
                               );
@@ -549,7 +532,7 @@ export default function InteractiveMockTestModal({
                           <div className="p-3 rounded-lg bg-neutral-950 border border-neutral-800/80 text-xs text-neutral-300 space-y-1">
                             <span className="text-orange-400 font-bold text-[11px] block flex items-center gap-1">
                               <Sparkles className="w-3 h-3" />
-                              <span>NCERT / Core Conceptual Reason:</span>
+                              <span>{translateUI("NCERT / Core Conceptual Reason:")}</span>
                             </span>
                             <p className="text-neutral-400 leading-relaxed">{q.explanation}</p>
                           </div>
@@ -566,24 +549,20 @@ export default function InteractiveMockTestModal({
 
         {/* Modal Footer */}
         <div className="px-5 py-3 bg-neutral-900 border-t border-neutral-800 flex items-center justify-between text-xs text-neutral-400">
-          <span>Weekly mock test scores are saved automatically to your NextClass Student Profile.</span>
+          <span>{translateUI("Weekly mock test scores are saved automatically to your NextClass Student Profile.")}</span>
           <div className="flex items-center gap-2">
             {onOpenStudentPortal && testResult && (
               <button
                 type="button"
                 onClick={onOpenStudentPortal}
                 className="px-3 py-1.5 rounded-lg bg-orange-500/20 text-orange-400 border border-orange-500/40 font-bold text-xs hover:bg-orange-500/30 cursor-pointer"
-              >
-                View in Student Portal
-              </button>
+              >{translateUI("View in Student Portal")}</button>
             )}
             <button
               type="button"
               onClick={onClose}
               className="px-4 py-1.5 rounded-lg bg-white text-neutral-950 font-bold text-xs hover:bg-neutral-200 cursor-pointer"
-            >
-              Done
-            </button>
+            >{translateUI("Done")}</button>
           </div>
         </div>
 

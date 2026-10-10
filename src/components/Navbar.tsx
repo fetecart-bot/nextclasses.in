@@ -1,3 +1,4 @@
+import LanguageSwitch from './LanguageSwitch';
 import { useState } from 'react';
 import { ShoppingBag, BookOpen, Menu, X, Sparkles, UserCheck, MessageSquare, MessageCircle, LogIn, User, LogOut, Target, Languages } from 'lucide-react';
 import { CartItem } from '../types';
@@ -23,6 +24,8 @@ export default function Navbar({
   onOpenMockTest,
   onOpenLanguageSelector,
 }: NavbarProps) {
+  const { t: translateUI } = useLanguage();
+
   const { user, logout } = useAuth();
   const { currentLanguage, t } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -49,6 +52,7 @@ export default function Navbar({
       id="main-navigation"
       className="sticky top-0 z-40 bg-neutral-950/95 backdrop-blur-md border-b border-neutral-800 text-white"
     >
+      <div className="flex justify-end px-4 py-1 border-b border-neutral-800"><LanguageSwitch /></div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           
@@ -68,14 +72,13 @@ export default function Navbar({
                   .in
                 </span>
               </div>
-              <p className="text-[11px] text-neutral-400 font-medium mt-0.5">
-                Practical AI & Competitive Exam Masterclasses
-              </p>
+              <p className="text-[11px] text-neutral-400 font-medium mt-0.5">{translateUI("Practical AI & Competitive Exam Masterclasses")}</p>
             </div>
           </button>
 
           {/* Desktop Nav Links */}
           <nav id="desktop-nav" className="hidden lg:flex items-center gap-7 text-sm font-medium">
+
             {navLinks.map((link) => (
               <button
                 key={link.href}
@@ -83,7 +86,7 @@ export default function Navbar({
                 onClick={() => handleLinkClick(link.href)}
                 className="text-neutral-300 hover:text-white transition-colors cursor-pointer"
               >
-                {link.label}
+                {translateUI(link.label)}
               </button>
             ))}
           </nav>
@@ -96,7 +99,7 @@ export default function Navbar({
               type="button"
               onClick={onOpenLanguageSelector}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-500/10 border border-orange-500/30 text-orange-400 hover:bg-orange-500/20 text-xs font-bold transition-colors cursor-pointer"
-              title="Translate courses into major Indian languages"
+              title={translateUI("Translate courses into major Indian languages")}
             >
               <Languages className="w-3.5 h-3.5" />
               <span>{currentLanguage.code === 'en' ? 'Translate' : currentLanguage.nativeName}</span>
@@ -111,7 +114,7 @@ export default function Navbar({
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 border border-neutral-700 hover:border-orange-500/50 text-neutral-200 text-xs font-semibold hover:text-white transition-colors cursor-pointer"
             >
               <Target className="w-3.5 h-3.5 text-orange-400" />
-              <span>Mock Tests (CBT)</span>
+              <span>{translateUI("Mock Tests (CBT)")}</span>
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             </button>
 
@@ -125,7 +128,7 @@ export default function Navbar({
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 border border-neutral-700 text-neutral-200 text-xs font-semibold hover:border-neutral-500 hover:text-white transition-colors cursor-pointer"
               >
                 <UserCheck className="w-3.5 h-3.5 text-amber-400" />
-                <span>My Portal</span>
+                <span>{translateUI("My Portal")}</span>
               </button>
             )}
 
@@ -136,7 +139,7 @@ export default function Navbar({
               target="_blank"
               rel="noopener noreferrer"
               className="hidden lg:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-950/80 border border-emerald-800/80 text-emerald-400 hover:bg-emerald-900 text-xs font-semibold transition-colors"
-              title="Chat with Nextclasses.in Academic Support on WhatsApp (+91 87921 34951)"
+              title={translateUI("Chat with Nextclasses.in Academic Support on WhatsApp (+91 87921 34951)")}
             >
               <MessageCircle className="w-3.5 h-3.5" />
               <span>WhatsApp</span>
@@ -171,7 +174,7 @@ export default function Navbar({
                       className="w-full px-3 py-1.5 text-left hover:bg-neutral-800 flex items-center gap-2"
                     >
                       <User className="w-3.5 h-3.5 text-orange-400" />
-                      <span>My Learning Portal</span>
+                      <span>{translateUI("My Learning Portal")}</span>
                     </button>
                     <button
                       type="button"
@@ -182,7 +185,7 @@ export default function Navbar({
                       className="w-full px-3 py-1.5 text-left hover:bg-neutral-800 flex items-center gap-2 text-rose-400"
                     >
                       <LogOut className="w-3.5 h-3.5" />
-                      <span>Sign Out</span>
+                      <span>{translateUI("Sign Out")}</span>
                     </button>
                   </div>
                 )}
@@ -194,7 +197,7 @@ export default function Navbar({
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 border border-neutral-700 hover:border-neutral-500 text-white text-xs font-semibold transition-colors cursor-pointer"
               >
                 <LogIn className="w-3.5 h-3.5 text-neutral-400" />
-                <span>Sign In</span>
+                <span>{translateUI("Sign In")}</span>
               </button>
             )}
 
@@ -206,7 +209,7 @@ export default function Navbar({
               className="relative inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 text-neutral-950 font-bold text-xs hover:opacity-95 transition-all shadow-md shadow-orange-500/10 cursor-pointer"
             >
               <ShoppingBag className="w-3.5 h-3.5 text-neutral-950" />
-              <span>Cart</span>
+              <span>{translateUI("Cart")}</span>
               {totalCartCount > 0 ? (
                 <span className="px-1.5 py-0.2 bg-neutral-950 text-white rounded-full text-[10px] font-extrabold">
                   {totalCartCount} (₹{cartTotalAmount})
@@ -223,7 +226,7 @@ export default function Navbar({
               type="button"
               onClick={onOpenCart}
               className="relative p-2 rounded-lg bg-neutral-900 border border-neutral-800 text-white"
-              aria-label="Open Shopping Cart"
+              aria-label={translateUI("Open Shopping Cart")}
             >
               <ShoppingBag className="w-5 h-5 text-amber-400" />
               {totalCartCount > 0 && (
@@ -237,7 +240,7 @@ export default function Navbar({
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-lg text-neutral-300 hover:text-white hover:bg-neutral-800 transition-colors"
-              aria-label="Toggle Menu"
+              aria-label={translateUI("Toggle Menu")}
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -257,7 +260,7 @@ export default function Navbar({
                 onClick={() => handleLinkClick(link.href)}
                 className="w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-200 hover:text-white hover:bg-neutral-800 transition-colors"
               >
-                {link.label}
+                {translateUI(link.label)}
               </button>
             ))}
           </div>
@@ -273,7 +276,7 @@ export default function Navbar({
               className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-orange-500/15 border border-orange-500/30 text-orange-400 text-xs font-bold hover:bg-orange-500/25 transition-colors cursor-pointer"
             >
               <Languages className="w-4 h-4" />
-              <span>Translate Courses: {currentLanguage.nativeName} ({currentLanguage.name}) {currentLanguage.flag}</span>
+              <span>{translateUI("Translate Courses:")}{currentLanguage.nativeName} ({currentLanguage.name}) {currentLanguage.flag}</span>
             </button>
 
             <button
@@ -285,7 +288,7 @@ export default function Navbar({
               className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-neutral-800 text-neutral-200 text-xs font-semibold hover:bg-neutral-700 transition-colors"
             >
               <Target className="w-4 h-4 text-orange-400" />
-              <span>Interactive Mock Tests (CBT)</span>
+              <span>{translateUI("Interactive Mock Tests (CBT)")}</span>
             </button>
 
             {user && (
@@ -298,7 +301,7 @@ export default function Navbar({
                 className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-neutral-800 text-neutral-200 text-xs font-semibold hover:bg-neutral-700 transition-colors"
               >
                 <UserCheck className="w-4 h-4 text-amber-400" />
-                <span>My Portal ({user.name})</span>
+                <span>{translateUI("My Portal (")}{user.name})</span>
               </button>
             )}
 
@@ -312,7 +315,7 @@ export default function Navbar({
                 className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-neutral-800 text-white text-xs font-semibold hover:bg-neutral-700 transition-colors"
               >
                 <LogIn className="w-4 h-4 text-neutral-400" />
-                <span>Student Login / Register</span>
+                <span>{translateUI("Student Login / Register")}</span>
               </button>
             )}
 
@@ -324,7 +327,7 @@ export default function Navbar({
               className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-950 border border-emerald-800 text-emerald-400 text-xs font-semibold hover:bg-emerald-900 transition-colors"
             >
               <MessageCircle className="w-4 h-4 text-emerald-400" />
-              <span>WhatsApp Support: +91 87921 34951</span>
+              <span>{translateUI("WhatsApp Support: +91 87921 34951")}</span>
             </a>
 
             <button
@@ -336,7 +339,7 @@ export default function Navbar({
               className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 text-neutral-950 text-xs font-bold shadow-md"
             >
               <ShoppingBag className="w-4 h-4" />
-              <span>Checkout Cart {totalCartCount > 0 ? `(${totalCartCount} items • ₹${cartTotalAmount})` : '(Empty)'}</span>
+              <span>{translateUI("Checkout Cart")}{totalCartCount > 0 ? `(${totalCartCount} items • ₹${cartTotalAmount})` : '(Empty)'}</span>
             </button>
           </div>
         </div>

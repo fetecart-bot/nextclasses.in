@@ -1,3 +1,4 @@
+import { useLanguage } from '../context/LanguageContext';
 import { useState, useId } from 'react';
 import { X, Copy, Check, Share2, MessageCircle, Linkedin, Twitter, Facebook, Send, Mail, ExternalLink } from 'lucide-react';
 import { Course } from '../types';
@@ -9,6 +10,8 @@ interface ShareCourseModalProps {
 }
 
 export default function ShareCourseModal({ course, isOpen, onClose }: ShareCourseModalProps) {
+  const { t: translateUI } = useLanguage();
+
   const [copied, setCopied] = useState(false);
   const copyInputId = useId();
 
@@ -19,15 +22,15 @@ export default function ShareCourseModal({ course, isOpen, onClose }: ShareCours
   const shareUrl = `${origin}/courses/${course.id.replace(/^course-/, '')}/`;
   const encodedUrl = encodeURIComponent(shareUrl);
 
-  const shareTitle = `Explore "${course.title}" on Nextclasses.in`;
-  const shareDescription = `${course.title} - ${course.subtitle}. Enroll for ₹${course.price} with instant self-paced access and verifiable certificate.`;
+  const shareTitle = `Explore "${translateUI(course.title)}" on Nextclasses.in`;
+  const shareDescription = `${translateUI(course.title)} - ${translateUI(course.subtitle)}. Enroll for ₹${course.price} with instant self-paced access and verifiable certificate.`;
 
-  const whatsappMessage = `🎓 Check out this course on Nextclasses.in:\n\n*${course.title}*\n_${course.subtitle}_\n\n💰 Price: ₹${course.price} (Original: ₹${course.originalPrice})\n⚡ Format: ${course.format}\n\n👉 View Syllabus, Video Lessons & Enroll:\n${shareUrl}`;
+  const whatsappMessage = `🎓 Check out this course on Nextclasses.in:\n\n*${translateUI(course.title)}*\n_${translateUI(course.subtitle)}_\n\n💰 Price: ₹${course.price} (Original: ₹${course.originalPrice})\n⚡ Format: ${course.format}\n\n👉 View Syllabus, Video Lessons & Enroll:\n${shareUrl}`;
   const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(whatsappMessage)}`;
 
   const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
-  const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`Master ${course.title} on Nextclasses.in! 🚀 Explore the syllabus and learning support:`)}&url=${encodedUrl}`;
-  const telegramUrl = `https://t.me/share/url?url=${encodedUrl}&text=${encodeURIComponent(`🎓 ${course.title} - Nextclasses.in`)}`;
+  const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`Master ${translateUI(course.title)} on Nextclasses.in! 🚀 Explore the syllabus and learning support:`)}&url=${encodedUrl}`;
+  const telegramUrl = `https://t.me/share/url?url=${encodedUrl}&text=${encodeURIComponent(`🎓 ${translateUI(course.title)} - Nextclasses.in`)}`;
   const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
   const mailtoUrl = `mailto:?subject=${encodeURIComponent(shareTitle)}&body=${encodeURIComponent(`${shareDescription}\n\nExplore the syllabus here:\n${shareUrl}`)}`;
 
@@ -84,8 +87,8 @@ export default function ShareCourseModal({ course, isOpen, onClose }: ShareCours
               <Share2 className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base sm:text-lg font-bold text-white">Share Course</h3>
-              <p className="text-xs text-neutral-400">Copy link or share directly across social media</p>
+              <h3 className="text-base sm:text-lg font-bold text-white">{translateUI("Share Course")}</h3>
+              <p className="text-xs text-neutral-400">{translateUI("Copy link or share directly across social media")}</p>
             </div>
           </div>
 
@@ -93,7 +96,7 @@ export default function ShareCourseModal({ course, isOpen, onClose }: ShareCours
             type="button"
             onClick={onClose}
             className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors cursor-pointer"
-            aria-label="Close share modal"
+            aria-label={translateUI("Close share modal")}
           >
             <X className="w-5 h-5" />
           </button>
@@ -104,7 +107,7 @@ export default function ShareCourseModal({ course, isOpen, onClose }: ShareCours
           {course.thumbnail && (
             <img
               src={course.thumbnail}
-              alt={course.title}
+              alt={translateUI(course.title)}
               className="w-16 h-12 rounded-lg object-cover border border-neutral-700 shrink-0"
               referrerPolicy="no-referrer"
               onError={(e) => {
@@ -113,7 +116,7 @@ export default function ShareCourseModal({ course, isOpen, onClose }: ShareCours
             />
           )}
           <div className="min-w-0 flex-1">
-            <h4 className="text-xs sm:text-sm font-bold text-white truncate">{course.title}</h4>
+            <h4 className="text-xs sm:text-sm font-bold text-white truncate">{translateUI(course.title)}</h4>
             <div className="flex items-center gap-2 mt-0.5 text-[11px] text-neutral-400">
               <span className="text-emerald-400 font-semibold">₹{course.price}</span>
               <span>•</span>
@@ -126,9 +129,7 @@ export default function ShareCourseModal({ course, isOpen, onClose }: ShareCours
 
         {/* Copy Link Section */}
         <div className="space-y-2">
-          <label htmlFor={copyInputId} className="text-xs font-semibold uppercase tracking-wider text-neutral-400 block">
-            Course Link to Copy & Paste
-          </label>
+          <label htmlFor={copyInputId} className="text-xs font-semibold uppercase tracking-wider text-neutral-400 block">{translateUI("Course Link to Copy & Paste")}</label>
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
               <input
@@ -153,12 +154,12 @@ export default function ShareCourseModal({ course, isOpen, onClose }: ShareCours
               {copied ? (
                 <>
                   <Check className="w-4 h-4" />
-                  <span>Copied!</span>
+                  <span>{translateUI("Copied!")}</span>
                 </>
               ) : (
                 <>
                   <Copy className="w-4 h-4" />
-                  <span>Copy Link</span>
+                  <span>{translateUI("Copy Link")}</span>
                 </>
               )}
             </button>
@@ -167,16 +168,14 @@ export default function ShareCourseModal({ course, isOpen, onClose }: ShareCours
           {copied && (
             <p className="text-[11px] font-medium text-emerald-400 flex items-center gap-1 mt-1">
               <Check className="w-3.5 h-3.5" />
-              <span>Link successfully copied to clipboard. Ready to paste!</span>
+              <span>{translateUI("Link successfully copied to clipboard. Ready to paste!")}</span>
             </p>
           )}
         </div>
 
         {/* Social Media Sharing Grid */}
         <div className="space-y-2 pt-1">
-          <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400 block">
-            Share Directly to Social Apps
-          </span>
+          <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400 block">{translateUI("Share Directly to Social Apps")}</span>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
             {/* WhatsApp */}
@@ -191,7 +190,7 @@ export default function ShareCourseModal({ course, isOpen, onClose }: ShareCours
               </div>
               <div className="truncate text-left">
                 <span className="block text-xs text-white">WhatsApp</span>
-                <span className="block text-[10px] text-emerald-400">Share to Chat/Group</span>
+                <span className="block text-[10px] text-emerald-400">{translateUI("Share to Chat/Group")}</span>
               </div>
             </a>
 
@@ -207,7 +206,7 @@ export default function ShareCourseModal({ course, isOpen, onClose }: ShareCours
               </div>
               <div className="truncate text-left">
                 <span className="block text-xs text-white">LinkedIn</span>
-                <span className="block text-[10px] text-sky-400">Share to Network</span>
+                <span className="block text-[10px] text-sky-400">{translateUI("Share to Network")}</span>
               </div>
             </a>
 
@@ -223,7 +222,7 @@ export default function ShareCourseModal({ course, isOpen, onClose }: ShareCours
               </div>
               <div className="truncate text-left">
                 <span className="block text-xs text-white">X / Twitter</span>
-                <span className="block text-[10px] text-neutral-400">Post Tweet</span>
+                <span className="block text-[10px] text-neutral-400">{translateUI("Post Tweet")}</span>
               </div>
             </a>
 
@@ -239,7 +238,7 @@ export default function ShareCourseModal({ course, isOpen, onClose }: ShareCours
               </div>
               <div className="truncate text-left">
                 <span className="block text-xs text-white">Telegram</span>
-                <span className="block text-[10px] text-blue-400">Send to Channel</span>
+                <span className="block text-[10px] text-blue-400">{translateUI("Send to Channel")}</span>
               </div>
             </a>
 
@@ -255,7 +254,7 @@ export default function ShareCourseModal({ course, isOpen, onClose }: ShareCours
               </div>
               <div className="truncate text-left">
                 <span className="block text-xs text-white">Facebook</span>
-                <span className="block text-[10px] text-indigo-400">Share to Feed</span>
+                <span className="block text-[10px] text-indigo-400">{translateUI("Share to Feed")}</span>
               </div>
             </a>
 
@@ -268,8 +267,8 @@ export default function ShareCourseModal({ course, isOpen, onClose }: ShareCours
                 <Mail className="w-3.5 h-3.5" />
               </div>
               <div className="truncate text-left">
-                <span className="block text-xs text-white">Email</span>
-                <span className="block text-[10px] text-neutral-400">Send via Mail</span>
+                <span className="block text-xs text-white">{translateUI("Email")}</span>
+                <span className="block text-[10px] text-neutral-400">{translateUI("Send via Mail")}</span>
               </div>
             </a>
           </div>
@@ -284,7 +283,7 @@ export default function ShareCourseModal({ course, isOpen, onClose }: ShareCours
               className="w-full py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-white text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
               <ExternalLink className="w-3.5 h-3.5 text-orange-400" />
-              <span>More Share Options on This Device</span>
+              <span>{translateUI("More Share Options on This Device")}</span>
             </button>
           </div>
         )}

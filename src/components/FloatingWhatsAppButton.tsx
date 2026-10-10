@@ -1,3 +1,4 @@
+import { useLanguage } from '../context/LanguageContext';
 import React, { useState } from 'react';
 import { MessageCircle, X, Send, CheckCircle2, ChevronRight } from 'lucide-react';
 
@@ -8,6 +9,8 @@ interface FloatingWhatsAppButtonProps {
 export const FloatingWhatsAppButton: React.FC<FloatingWhatsAppButtonProps> = ({
   phone = '8792134951',
 }) => {
+  const { t: translateUI } = useLanguage();
+
   const [isOpen, setIsOpen] = useState(false);
 
   const cleanPhone = phone.replace(/[^0-9]/g, '');
@@ -58,19 +61,18 @@ export const FloatingWhatsAppButton: React.FC<FloatingWhatsAppButtonProps> = ({
               </div>
               <div>
                 <div className="font-bold text-sm leading-tight flex items-center gap-1.5">
-                  <span>Nextclasses.in WhatsApp</span>
+                  <span>{translateUI("Nextclasses.in WhatsApp")}</span>
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-200" />
                 </div>
                 <div className="text-[11px] text-emerald-100 font-mono font-medium">
-                  {formattedPhone} • Typically replies instantly
-                </div>
+                  {formattedPhone}{translateUI("• Typically replies instantly")}</div>
               </div>
             </div>
             <button
               type="button"
               onClick={() => setIsOpen(false)}
               className="w-7 h-7 rounded-full bg-black/20 hover:bg-black/40 flex items-center justify-center transition-colors cursor-pointer"
-              aria-label="Close WhatsApp card"
+              aria-label={translateUI("Close WhatsApp card")}
             >
               <X className="w-4 h-4 text-white" />
             </button>
@@ -79,19 +81,14 @@ export const FloatingWhatsAppButton: React.FC<FloatingWhatsAppButtonProps> = ({
           {/* Body */}
           <div className="p-4 space-y-3 bg-[#0b141a] text-neutral-200">
             <div className="p-3 rounded-xl bg-[#111b21] border border-[#202c33] text-xs leading-relaxed space-y-1">
-              <p className="text-[#e9edef] font-medium">
-                👋 Welcome to <strong className="text-emerald-400">Nextclasses.in</strong>!
+              <p className="text-[#e9edef] font-medium">{translateUI("👋 Welcome to")}<strong className="text-emerald-400">Nextclasses.in</strong>!
               </p>
-              <p className="text-[#8696a0] text-[11px]">
-                If automated WhatsApp notifications are delayed or you prefer direct human support, tap below to chat with our counselors right away.
-              </p>
+              <p className="text-[#8696a0] text-[11px]">{translateUI("If automated WhatsApp notifications are delayed or you prefer direct human support, tap below to chat with our counselors right away.")}</p>
             </div>
 
             {/* Quick action buttons */}
             <div className="space-y-1.5">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 px-1">
-                Frequently Asked Inquiries
-              </span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 px-1">{translateUI("Frequently Asked Inquiries")}</span>
               {quickPrompts.map((item) => (
                 <button
                   key={item.title}
@@ -119,7 +116,7 @@ export const FloatingWhatsAppButton: React.FC<FloatingWhatsAppButtonProps> = ({
               className="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-bold text-xs flex items-center justify-center gap-2 transition-colors shadow-lg shadow-emerald-500/20 cursor-pointer"
             >
               <Send className="w-3.5 h-3.5" />
-              <span>Start WhatsApp Chat ({formattedPhone})</span>
+              <span>{translateUI("Start WhatsApp Chat (")}{formattedPhone})</span>
             </button>
           </div>
         </div>
@@ -132,16 +129,14 @@ export const FloatingWhatsAppButton: React.FC<FloatingWhatsAppButtonProps> = ({
           type="button"
           onClick={() => setIsOpen(!isOpen)}
           className="group relative flex items-center gap-2.5 px-4 py-3 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow-xl shadow-emerald-950/60 hover:shadow-emerald-600/30 transition-all duration-200 cursor-pointer border border-emerald-400/30"
-          aria-label="Contact on WhatsApp"
+          aria-label={translateUI("Contact on WhatsApp")}
         >
           <span className="relative flex h-3 w-3">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75" />
             <span className="relative inline-flex rounded-full h-3 w-3 bg-white" />
           </span>
           <MessageCircle className="w-5 h-5 text-white" />
-          <span className="text-xs font-bold tracking-tight">
-            WhatsApp Support
-          </span>
+          <span className="text-xs font-bold tracking-tight">{translateUI("WhatsApp Support")}</span>
         </button>
       </div>
     </div>

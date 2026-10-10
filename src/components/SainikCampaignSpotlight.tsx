@@ -1,3 +1,4 @@
+import { useLanguage } from '../context/LanguageContext';
 import { ArrowRight, BookOpenCheck, CalendarClock, ShieldCheck } from 'lucide-react';
 import { Course } from '../types';
 
@@ -21,6 +22,8 @@ const TRACKS = [
 ] as const;
 
 export default function SainikCampaignSpotlight({ courses }: SainikCampaignSpotlightProps) {
+  const { t: translateUI } = useLanguage();
+
   const availableTracks = TRACKS.map((track) => ({
     ...track,
     course: courses.find((course) => course.id === track.id),
@@ -36,15 +39,9 @@ export default function SainikCampaignSpotlight({ courses }: SainikCampaignSpotl
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto mb-8 max-w-3xl text-center">
           <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-amber-300">
-            <ShieldCheck className="h-4 w-4" />
-            Admissions preparation 2027
-          </div>
-          <h2 id="sainik-campaign-heading" className="text-3xl font-black tracking-tight text-white sm:text-4xl">
-            Sainik School entrance preparation for Class 6 and Class 9
-          </h2>
-          <p className="mt-3 text-sm leading-6 text-neutral-300 sm:text-base">
-            Choose the student’s entrance level to see the correct AISSEE syllabus, weekly study plan, mock tests and enrolment details.
-          </p>
+            <ShieldCheck className="h-4 w-4" />{translateUI("Admissions preparation 2027")}</div>
+          <h2 id="sainik-campaign-heading" className="text-3xl font-black tracking-tight text-white sm:text-4xl">{translateUI("Sainik School entrance preparation for Class 6 and Class 9")}</h2>
+          <p className="mt-3 text-sm leading-6 text-neutral-300 sm:text-base">{translateUI("Choose the student’s entrance level to see the correct AISSEE syllabus, weekly study plan, mock tests and enrolment details.")}</p>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
@@ -56,8 +53,8 @@ export default function SainikCampaignSpotlight({ courses }: SainikCampaignSpotl
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-xs font-bold uppercase tracking-widest text-amber-400">AISSEE 2027</p>
-                    <h3 className="mt-1 text-2xl font-extrabold text-white">{track.label}</h3>
-                    <p className="mt-1 text-sm text-neutral-400">{track.audience}</p>
+                    <h3 className="mt-1 text-2xl font-extrabold text-white">{translateUI(track.label)}</h3>
+                    <p className="mt-1 text-sm text-neutral-400">{translateUI(track.audience)}</p>
                   </div>
                   <div className="rounded-2xl bg-amber-400/10 p-3 text-amber-300">
                     <BookOpenCheck className="h-6 w-6" />
@@ -66,13 +63,11 @@ export default function SainikCampaignSpotlight({ courses }: SainikCampaignSpotl
 
                 <div className="mt-5 grid grid-cols-2 gap-3 text-xs">
                   <div className="rounded-xl border border-neutral-800 bg-neutral-950 p-3 text-neutral-300">
-                    <span className="mb-1 flex items-center gap-1.5 font-bold text-white"><ShieldCheck className="h-3.5 w-3.5 text-emerald-400" /> Exam pattern</span>
-                    {track.pattern}
+                    <span className="mb-1 flex items-center gap-1.5 font-bold text-white"><ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />{translateUI("Exam pattern")}</span>
+                    {translateUI(track.pattern)}
                   </div>
                   <div className="rounded-xl border border-neutral-800 bg-neutral-950 p-3 text-neutral-300">
-                    <span className="mb-1 flex items-center gap-1.5 font-bold text-white"><CalendarClock className="h-3.5 w-3.5 text-emerald-400" /> Study support</span>
-                    Weekly plan and mocks
-                  </div>
+                    <span className="mb-1 flex items-center gap-1.5 font-bold text-white"><CalendarClock className="h-3.5 w-3.5 text-emerald-400" />{translateUI("Study support")}</span>{translateUI("Weekly plan and mocks")}</div>
                 </div>
 
                 <div className="mt-5 flex items-center justify-between gap-3">
@@ -83,9 +78,7 @@ export default function SainikCampaignSpotlight({ courses }: SainikCampaignSpotl
                   <a
                     href={`/courses/${slug}/`}
                     className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-400 px-4 py-2.5 text-sm font-extrabold text-neutral-950 shadow-lg shadow-orange-500/15 transition hover:brightness-105"
-                  >
-                    View syllabus & enrol
-                    <ArrowRight className="h-4 w-4" />
+                  >{translateUI("View syllabus & enrol")}<ArrowRight className="h-4 w-4" />
                   </a>
                 </div>
               </article>
@@ -93,9 +86,7 @@ export default function SainikCampaignSpotlight({ courses }: SainikCampaignSpotl
           })}
         </div>
 
-        <p className="mt-5 text-center text-xs text-neutral-500">
-          Unsure which level applies? Use the WhatsApp academic support link shown on the course page before enrolling.
-        </p>
+        <p className="mt-5 text-center text-xs text-neutral-500">{translateUI("Unsure which level applies? Use the WhatsApp academic support link shown on the course page before enrolling.")}</p>
       </div>
     </section>
   );

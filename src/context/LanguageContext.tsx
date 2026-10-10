@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { INDIAN_LANGUAGES, SupportedLanguage, UI_TRANSLATIONS, COURSE_TRANSLATIONS } from '../data/translations';
+import { COURSES_DATA } from '../data';
+import { HINDI_UI } from '../data/hindiUI';
 import { Course } from '../types';
 
 interface LanguageContextType {
@@ -18,7 +20,9 @@ const STORAGE_KEY = 'nextclass_selected_language';
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentCode, setCurrentCode] = useState<string>(() => {
     try {
-      return localStorage.getItem(STORAGE_KEY) || 'en';
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved && INDIAN_LANGUAGES.some(lang => lang.code === saved)) return saved;
+      return navigator.language?.toLowerCase().startsWith('hi') ? 'hi' : 'en';
     } catch {
       return 'en';
     }
@@ -28,7 +32,10 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const currentLanguage =
     INDIAN_LANGUAGES.find((lang) => lang.code === currentCode) || INDIAN_LANGUAGES[0];
 
+  useEffect(() => { document.documentElement.lang = currentCode; }, [currentCode]);
+
   const setLanguageByCode = (code: string) => {
+    if (!INDIAN_LANGUAGES.some(lang => lang.code === code)) return;
     setIsTranslating(true);
     setCurrentCode(code);
     try {
@@ -48,6 +55,12 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const dict = UI_TRANSLATIONS[key];
     if (dict && dict[currentLanguage.code]) {
       return dict[currentLanguage.code];
+    }
+    if (currentLanguage.code === 'hi') {
+      if (HINDI_UI[key]) return HINDI_UI[key];
+      const course = COURSES_DATA.find(course => course.title === key || course.subtitle === key);
+      const translated = course && COURSE_TRANSLATIONS[course.id]?.hi;
+      if (translated) return course.title === key ? translated.title : translated.subtitle;
     }
     return fallback || dict?.en || key;
   };

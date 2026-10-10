@@ -1,3 +1,4 @@
+import { useLanguage } from '../context/LanguageContext';
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Mic,
@@ -66,6 +67,8 @@ export const StudentFriendWelcomeBot: React.FC<StudentFriendWelcomeBotProps> = (
   courseId = 'course-aissee-sainik',
   onContinueToDashboard,
 }) => {
+  const { t: translateUI } = useLanguage();
+
   const { updateStudentProfile } = useAuth();
 
   // Selected language for friend conversation - Kannada is first class
@@ -757,15 +760,14 @@ I'm ready to coach you step by step!`,
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="font-extrabold text-sm sm:text-base text-white flex items-center gap-1.5">
-                  <span>Welcome Friend Bot</span>
-                  <span className="text-orange-400">for {studentFirstName}</span>
+                  <span>{translateUI("Welcome Friend Bot")}</span>
+                  <span className="text-orange-400">{translateUI("for")}{studentFirstName}</span>
                 </h3>
                 <span className="px-2 py-0.5 rounded-full bg-orange-500/20 border border-orange-500/40 text-[10px] font-bold text-orange-300">
                   {studentGender === 'female' ? '🎙️ Male Voice Companion' : '🎙️ Female Voice Companion'}
                 </span>
               </div>
-              <p className="text-[11px] text-neutral-300 line-clamp-1">
-                Enrolled: <strong className="text-amber-300">{courseTitle}</strong>
+              <p className="text-[11px] text-neutral-300 line-clamp-1">{translateUI("Enrolled:")}<strong className="text-amber-300">{courseTitle}</strong>
               </p>
             </div>
           </div>
@@ -796,7 +798,7 @@ I'm ready to coach you step by step!`,
                 speakText(initial.spoken, selectedLanguage, voiceGender);
               }}
               className="p-2 rounded-xl bg-neutral-800 border border-neutral-700 text-neutral-300 hover:text-white hover:bg-neutral-700 transition-colors cursor-pointer"
-              title="Replay welcome speech"
+              title={translateUI("Replay welcome speech")}
             >
               <RotateCcw className="w-4 h-4" />
             </button>
@@ -809,7 +811,7 @@ I'm ready to coach you step by step!`,
                 onClose();
               }}
               className="p-2 rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors cursor-pointer"
-              aria-label="Close"
+              aria-label={translateUI("Close")}
             >
               <X className="w-5 h-5" />
             </button>
@@ -821,7 +823,7 @@ I'm ready to coach you step by step!`,
           
           {/* Language Selector */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
-            <span className="text-[11px] text-neutral-400 font-medium shrink-0">Language:</span>
+            <span className="text-[11px] text-neutral-400 font-medium shrink-0">{translateUI("Language:")}</span>
             {WELCOME_LANGUAGES.map((lang) => (
               <button
                 key={lang.code}
@@ -844,7 +846,7 @@ I'm ready to coach you step by step!`,
 
           {/* Student Gender & Voice Rule Indicator / Switcher */}
           <div className="flex items-center gap-1.5 self-start sm:self-auto">
-            <span className="text-[11px] text-neutral-400">I am:</span>
+            <span className="text-[11px] text-neutral-400">{translateUI("I am:")}</span>
             <button
               type="button"
               onClick={() => {
@@ -854,10 +856,10 @@ I'm ready to coach you step by step!`,
                 updateStudentProfile({ gender: newGender });
               }}
               className="px-2.5 py-1 rounded-lg bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 text-xs font-semibold text-neutral-200 flex items-center gap-1.5 cursor-pointer transition-colors"
-              title="Click to switch gender & companion voice"
+              title={translateUI("Click to switch gender & companion voice")}
             >
               <span>{studentGender === 'female' ? '👧 Girl / Female' : '👦 Boy / Male'}</span>
-              <span className="text-neutral-400 font-normal">→ Voice:</span>
+              <span className="text-neutral-400 font-normal">{translateUI("→ Voice:")}</span>
               <span className="text-amber-300 font-bold">{studentGender === 'female' ? '👨 Male' : '👩 Female'}</span>
             </button>
           </div>
@@ -891,7 +893,7 @@ I'm ready to coach you step by step!`,
                     <div className="mt-2.5 pt-2 border-t border-neutral-800 flex items-center justify-between text-[11px] text-neutral-400">
                       <span className="flex items-center gap-1">
                         <Smile className="w-3 h-3 text-orange-400" />
-                        <span>Just like a friend</span>
+                        <span>{translateUI("Just like a friend")}</span>
                       </span>
                       {msg.spokenScript && (
                         <button
@@ -928,7 +930,7 @@ I'm ready to coach you step by step!`,
               </div>
               <div className="p-3 rounded-2xl bg-neutral-900 border border-neutral-800 text-neutral-400 text-xs flex items-center gap-2">
                 <Loader2 className="w-4 h-4 animate-spin text-orange-400" />
-                <span>Your friend is thinking and listening...</span>
+                <span>{translateUI("Your friend is thinking and listening...")}</span>
               </div>
             </div>
           )}
@@ -939,9 +941,7 @@ I'm ready to coach you step by step!`,
 
         {/* Quick Conversation Suggestion Chips */}
         <div className="px-4 py-2 bg-neutral-900/60 border-t border-neutral-800/80 overflow-x-auto scrollbar-none flex items-center gap-1.5 shrink-0">
-          <span className="text-[10px] text-neutral-500 font-semibold uppercase tracking-wider shrink-0 mr-1">
-            Quick Share:
-          </span>
+          <span className="text-[10px] text-neutral-500 font-semibold uppercase tracking-wider shrink-0 mr-1">{translateUI("Quick Share:")}</span>
           {quickChips.map((chip, idx) => (
             <button
               key={idx}
@@ -976,9 +976,7 @@ I'm ready to coach you step by step!`,
                 type="button"
                 onClick={stopSpeechRecognition}
                 className="px-2.5 py-0.5 rounded-lg bg-rose-500 hover:bg-rose-600 text-white font-bold text-[10px] sm:text-[11px] transition-colors cursor-pointer"
-              >
-                Done / Send
-              </button>
+              >{translateUI("Done / Send")}</button>
             </div>
           )}
 
@@ -1025,7 +1023,7 @@ I'm ready to coach you step by step!`,
               className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-neutral-950 font-bold text-xs sm:text-sm hover:opacity-95 transition-opacity disabled:opacity-40 flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
             >
               <Send className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Send</span>
+              <span className="hidden sm:inline">{translateUI("Send")}</span>
             </button>
           </form>
 
@@ -1034,13 +1032,11 @@ I'm ready to coach you step by step!`,
             <div className="text-[11px] text-neutral-400 flex items-center gap-2">
               {studentAim && (
                 <span className="text-emerald-400 flex items-center gap-1 font-semibold">
-                  <CheckCircle2 className="w-3 h-3" /> Aim Saved
-                </span>
+                  <CheckCircle2 className="w-3 h-3" />{translateUI("Aim Saved")}</span>
               )}
               {familyMembers && (
                 <span className="text-amber-300 flex items-center gap-1 font-semibold">
-                  <Heart className="w-3 h-3" /> Family Noted
-                </span>
+                  <Heart className="w-3 h-3" />{translateUI("Family Noted")}</span>
               )}
             </div>
 
@@ -1056,7 +1052,7 @@ I'm ready to coach you step by step!`,
               }}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-400 text-neutral-950 font-bold text-xs transition-colors cursor-pointer shadow-md"
             >
-              <span>Start Learning in Dashboard</span>
+              <span>{translateUI("Start Learning in Dashboard")}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>

@@ -1,3 +1,4 @@
+import { useLanguage } from '../context/LanguageContext';
 import { useState, useMemo } from 'react';
 import { 
   Calendar, 
@@ -28,6 +29,8 @@ export default function ExamCountdownScheduler({
   onEnrollExam,
   onViewCourseDetails,
 }: ExamCountdownSchedulerProps) {
+  const { t: translateUI } = useLanguage();
+
   const [selectedExamId, setSelectedExamId] = useState<string>('exam-neet-ug');
   const [customDates, setCustomDates] = useState<Record<string, string>>({
     'exam-neet-ug': '2027-05-02',
@@ -94,19 +97,14 @@ export default function ExamCountdownScheduler({
         <div className="text-center max-w-3xl mx-auto space-y-4 mb-14">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs font-semibold">
             <Sparkles className="w-3.5 h-3.5 text-orange-400 animate-pulse" />
-            <span>AI Automated Delivery Engine</span>
+            <span>{translateUI("AI Automated Delivery Engine")}</span>
           </div>
 
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white">
-            Competitive Exam AI Prep &{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-400 to-amber-200">
-              Weekly Material Delivery
-            </span>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white">{translateUI("Competitive Exam AI Prep &")}{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-400 to-amber-200">{translateUI("Weekly Material Delivery")}</span>
           </h2>
 
-          <p className="text-neutral-400 text-sm sm:text-base leading-relaxed">
-            Targeting <strong>NEET, IIT JEE, KEAM, AISSEE (Sainik School), or Navodaya</strong>? Once you enroll, our engine calculates the exact remaining days to your exam and automatically delivers comprehensive study packs every single week right to your student portal and WhatsApp.
-          </p>
+          <p className="text-neutral-400 text-sm sm:text-base leading-relaxed">{translateUI("Targeting")}<strong>NEET, IIT JEE, KEAM, AISSEE (Sainik School), or Navodaya</strong>{translateUI("? Once you enroll, our engine calculates the exact remaining days to your exam and automatically delivers comprehensive study packs every single week right to your student portal and WhatsApp.")}</p>
         </div>
 
         {/* Interactive Exam Selector Tabs */}
@@ -137,8 +135,7 @@ export default function ExamCountdownScheduler({
                 <div className="text-left">
                   <div className="font-bold">{exam.name.split(' (')[0]}</div>
                   <div className="text-[10px] text-amber-400/80 font-normal">
-                    {daysLeft} days • {calculateWeeksToExam(daysLeft)} weeks
-                  </div>
+                    {daysLeft}{translateUI("days •")}{calculateWeeksToExam(daysLeft)}{translateUI("weeks")}</div>
                 </div>
               </button>
             );
@@ -155,12 +152,9 @@ export default function ExamCountdownScheduler({
                 <span className="px-3 py-1 rounded-full text-xs font-bold bg-orange-500/20 text-orange-300 border border-orange-500/30">
                   {currentExam.conductingBody}
                 </span>
-                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-neutral-800 text-neutral-300">
-                  Target: {currentExam.targetClasses}
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-neutral-800 text-neutral-300">{translateUI("Target:")}{currentExam.targetClasses}
                 </span>
-                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-950/60 text-emerald-400 border border-emerald-800/40">
-                  All Indian Languages & English
-                </span>
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-950/60 text-emerald-400 border border-emerald-800/40">{translateUI("All Indian Languages & English")}</span>
               </div>
 
               <div>
@@ -170,7 +164,7 @@ export default function ExamCountdownScheduler({
 
               {/* Subjects Covered */}
               <div className="flex flex-wrap items-center gap-2 pt-1">
-                <span className="text-xs font-semibold text-neutral-400">Core Subjects:</span>
+                <span className="text-xs font-semibold text-neutral-400">{translateUI("Core Subjects:")}</span>
                 {currentExam.subjects.map((sub, i) => (
                   <span
                     key={i}
@@ -186,10 +180,8 @@ export default function ExamCountdownScheduler({
                 <div className="flex items-center gap-2.5">
                   <Calendar className="w-4 h-4 text-orange-400 shrink-0" />
                   <div>
-                    <span className="text-xs font-bold text-white block">Target Exam Date:</span>
-                    <span className="text-[11px] text-neutral-400">
-                      Calculated automatically or set your expected exam session date
-                    </span>
+                    <span className="text-xs font-bold text-white block">{translateUI("Target Exam Date:")}</span>
+                    <span className="text-[11px] text-neutral-400">{translateUI("Calculated automatically or set your expected exam session date")}</span>
                   </div>
                 </div>
 
@@ -197,7 +189,7 @@ export default function ExamCountdownScheduler({
                   <input
                     type="date"
                     id="exam-date-picker"
-                    aria-label="Select Target Exam Date"
+                    aria-label={translateUI("Select Target Exam Date")}
                     value={targetDateStr}
                     onChange={(e) => handleDateChange(e.target.value)}
                     min={new Date().toISOString().split('T')[0]}
@@ -205,11 +197,9 @@ export default function ExamCountdownScheduler({
                   />
                   <button
                     onClick={() => handleDateChange(currentExam.defaultExamDate)}
-                    title="Reset to Official Expected Date"
+                    title={translateUI("Reset to Official Expected Date")}
                     className="text-[11px] text-orange-400 hover:text-orange-300 underline font-medium shrink-0"
-                  >
-                    Reset
-                  </button>
+                  >{translateUI("Reset")}</button>
                 </div>
               </div>
             </div>
@@ -220,11 +210,9 @@ export default function ExamCountdownScheduler({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-xs font-bold text-orange-400 uppercase tracking-wider">
                     <Clock className="w-4 h-4" />
-                    <span>Real-Time Calculation</span>
+                    <span>{translateUI("Real-Time Calculation")}</span>
                   </div>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                    AUTOMATED DISPATCH ACTIVE
-                  </span>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">{translateUI("AUTOMATED DISPATCH ACTIVE")}</span>
                 </div>
 
                 {/* Big Metric Display */}
@@ -233,18 +221,14 @@ export default function ExamCountdownScheduler({
                     <span className="text-3xl sm:text-4xl font-black text-white font-mono block">
                       {schedule.daysRemaining}
                     </span>
-                    <span className="text-[11px] uppercase tracking-wider font-semibold text-neutral-400">
-                      Days to Exam
-                    </span>
+                    <span className="text-[11px] uppercase tracking-wider font-semibold text-neutral-400">{translateUI("Days to Exam")}</span>
                   </div>
 
                   <div className="p-3.5 rounded-xl bg-neutral-900/90 border border-neutral-800 text-center">
                     <span className="text-3xl sm:text-4xl font-black text-amber-400 font-mono block">
                       {schedule.weeksRemaining}
                     </span>
-                    <span className="text-[11px] uppercase tracking-wider font-semibold text-neutral-400">
-                      Weekly Study Packs
-                    </span>
+                    <span className="text-[11px] uppercase tracking-wider font-semibold text-neutral-400">{translateUI("Weekly Study Packs")}</span>
                   </div>
                 </div>
 
@@ -252,11 +236,9 @@ export default function ExamCountdownScheduler({
                 <div className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 text-xs text-orange-300 space-y-1">
                   <div className="flex items-center gap-1.5 font-bold">
                     <Zap className="w-3.5 h-3.5 text-orange-400" />
-                    <span>Every Sunday at 06:00 AM IST</span>
+                    <span>{translateUI("Every Sunday at 06:00 AM IST")}</span>
                   </div>
-                  <p className="text-[11px] text-neutral-300 leading-relaxed">
-                    Fresh unit study notes, 200+ AI questions, and full-length weekly mock test delivered directly to your portal & WhatsApp.
-                  </p>
+                  <p className="text-[11px] text-neutral-300 leading-relaxed">{translateUI("Fresh unit study notes, 200+ AI questions, and full-length weekly mock test delivered directly to your portal & WhatsApp.")}</p>
                 </div>
               </div>
 
@@ -267,7 +249,7 @@ export default function ExamCountdownScheduler({
                   onClick={handleEnrollClick}
                   className="w-full sm:flex-1 py-3 px-5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-neutral-950 font-black text-xs sm:text-sm transition-all shadow-lg shadow-orange-500/20 flex items-center justify-center gap-2 group"
                 >
-                  <span>Enroll & Start Weekly Delivery (₹{matchedCourse.price})</span>
+                  <span>{translateUI("Enroll & Start Weekly Delivery (₹")}{matchedCourse.price})</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                 </button>
 
@@ -275,9 +257,7 @@ export default function ExamCountdownScheduler({
                   id="btn-preview-course"
                   onClick={() => onViewCourseDetails(matchedCourse)}
                   className="w-full sm:w-auto py-3 px-4 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-bold text-xs transition-colors"
-                >
-                  View Full Syllabus
-                </button>
+                >{translateUI("View Full Syllabus")}</button>
               </div>
             </div>
           </div>
@@ -288,12 +268,9 @@ export default function ExamCountdownScheduler({
               <div>
                 <div className="flex items-center gap-2">
                   <Layers className="w-4 h-4 text-orange-400" />
-                  <h4 className="text-lg font-extrabold text-white">
-                    Calculated Weekly Delivery Roadmap ({schedule.weeksRemaining} Weeks Total)
-                  </h4>
+                  <h4 className="text-lg font-extrabold text-white">{translateUI("Calculated Weekly Delivery Roadmap (")}{schedule.weeksRemaining}{translateUI("Weeks Total)")}</h4>
                 </div>
-                <p className="text-xs text-neutral-400 mt-0.5">
-                  Here is the exact schedule of study materials delivered each week based on your {schedule.daysRemaining}-day countdown to {currentExam.name}.
+                <p className="text-xs text-neutral-400 mt-0.5">{translateUI("Here is the exact schedule of study materials delivered each week based on your")}{schedule.daysRemaining}{translateUI("-day countdown to")}{currentExam.name}.
                 </p>
               </div>
 
@@ -306,8 +283,7 @@ export default function ExamCountdownScheduler({
                       ? 'bg-orange-500 text-neutral-950'
                       : 'bg-neutral-800 text-neutral-400 hover:text-white'
                   }`}
-                >
-                  All ({schedule.dispatches.length})
+                >{translateUI("All (")}{schedule.dispatches.length})
                 </button>
                 <button
                   onClick={() => setActiveTabFilter('unlocked')}
@@ -316,9 +292,7 @@ export default function ExamCountdownScheduler({
                       ? 'bg-orange-500 text-neutral-950'
                       : 'bg-neutral-800 text-neutral-400 hover:text-white'
                   }`}
-                >
-                  Immediate (Week 1)
-                </button>
+                >{translateUI("Immediate (Week 1)")}</button>
                 <button
                   onClick={() => setActiveTabFilter('revision')}
                   className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${
@@ -326,9 +300,7 @@ export default function ExamCountdownScheduler({
                       ? 'bg-orange-500 text-neutral-950'
                       : 'bg-neutral-800 text-neutral-400 hover:text-white'
                   }`}
-                >
-                  Final Mocks & Revision
-                </button>
+                >{translateUI("Final Mocks & Revision")}</button>
               </div>
             </div>
 
@@ -390,7 +362,7 @@ export default function ExamCountdownScheduler({
                       <div className="flex items-start gap-2 text-neutral-300">
                         <CheckCircle2 className="w-3.5 h-3.5 text-orange-400 shrink-0 mt-0.5" />
                         <span className="text-[11px] leading-tight">
-                          <strong>{dispatch.materials.questionBankCount}+ MCQs</strong> + {dispatch.materials.mockTestType}
+                          <strong>{dispatch.materials.questionBankCount}{translateUI("+ MCQs")}</strong> + {dispatch.materials.mockTestType}
                         </span>
                       </div>
 
@@ -405,10 +377,8 @@ export default function ExamCountdownScheduler({
                     {/* Unlocked banner on week 1 */}
                     {isUnlocked && (
                       <div className="mt-3 pt-2 border-t border-emerald-900/50 flex items-center justify-between text-[11px] text-emerald-400 font-semibold">
-                        <span>⚡ Instant Access Package</span>
-                        <span className="underline cursor-pointer" onClick={handleEnrollClick}>
-                          Get Pack Now
-                        </span>
+                        <span>{translateUI("⚡ Instant Access Package")}</span>
+                        <span className="underline cursor-pointer" onClick={handleEnrollClick}>{translateUI("Get Pack Now")}</span>
                       </div>
                     )}
                   </div>
@@ -425,9 +395,9 @@ export default function ExamCountdownScheduler({
                   className="px-5 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-xs font-bold text-white transition-colors inline-flex items-center gap-2"
                 >
                   {viewAllWeeks ? (
-                    <>Show Less</>
+                    <>{translateUI("Show Less")}</>
                   ) : (
-                    <>View All {filteredDispatches.length} Weekly Dispatches</>
+                    <>{translateUI("View All")}{filteredDispatches.length}{translateUI("Weekly Dispatches")}</>
                   )}
                   <ChevronRight
                     className={`w-4 h-4 transition-transform ${

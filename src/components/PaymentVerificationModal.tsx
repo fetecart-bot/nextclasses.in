@@ -1,3 +1,4 @@
+import { useLanguage } from '../context/LanguageContext';
 import React, { useState, useEffect, FormEvent } from 'react';
 import { 
   X, 
@@ -46,6 +47,8 @@ export const PaymentVerificationModal: React.FC<PaymentVerificationModalProps> =
   initialPhone = '',
   onClaimSubmitted,
 }) => {
+  const { t: translateUI } = useLanguage();
+
   const [studentName, setStudentName] = useState(initialStudentName);
   const [email, setEmail] = useState(initialEmail);
   const [phone, setPhone] = useState(initialPhone);
@@ -190,7 +193,7 @@ export const PaymentVerificationModal: React.FC<PaymentVerificationModalProps> =
             type="button"
             onClick={handleResetAndClose}
             className="w-8 h-8 rounded-full bg-neutral-800 hover:bg-neutral-700 flex items-center justify-center text-neutral-400 hover:text-white transition-colors cursor-pointer"
-            aria-label="Close Modal"
+            aria-label={translateUI("Close Modal")}
           >
             <X className="w-4 h-4" />
           </button>
@@ -207,38 +210,33 @@ export const PaymentVerificationModal: React.FC<PaymentVerificationModalProps> =
                     <Clock className="w-5 h-5 animate-pulse" />
                   </div>
                   <div>
-                    <span className="text-[10px] font-bold tracking-widest text-amber-400 uppercase block">
-                      Status: Under Admin Bank Verification
-                    </span>
-                    <h3 className="text-base font-bold text-white leading-tight mt-0.5">
-                      Claim Reference: {submittedClaim.claimCode}
+                    <span className="text-[10px] font-bold tracking-widest text-amber-400 uppercase block">{translateUI("Status: Under Admin Bank Verification")}</span>
+                    <h3 className="text-base font-bold text-white leading-tight mt-0.5">{translateUI("Claim Reference:")}{submittedClaim.claimCode}
                     </h3>
                   </div>
                 </div>
 
-                <p className="text-xs text-neutral-300 leading-relaxed">
-                  Thank you, <strong>{submittedClaim.studentName}</strong>! Your payment verification request for <strong>{submittedClaim.courseTitle}</strong> has been logged into our admin portal.
-                </p>
+                <p className="text-xs text-neutral-300 leading-relaxed">{translateUI("Thank you,")}<strong>{submittedClaim.studentName}</strong>{translateUI("! Your payment verification request for")}<strong>{submittedClaim.courseTitle}</strong>{translateUI("has been logged into our admin portal.")}</p>
 
                 <div className="p-3 rounded-xl bg-neutral-950/80 border border-neutral-800 space-y-1.5 text-xs font-mono">
                   <div className="flex justify-between text-neutral-400">
-                    <span>Payment ID / UTR:</span>
+                    <span>{translateUI("Payment ID / UTR:")}</span>
                     <span className="text-amber-400 font-bold">{submittedClaim.utrNumber}</span>
                   </div>
                   <div className="flex justify-between text-neutral-400">
-                    <span>Payment Method:</span>
+                    <span>{translateUI("Payment Method:")}</span>
                     <span className="text-neutral-300 font-semibold">{submittedClaim.paymentMethod || 'Gateway / UPI'}</span>
                   </div>
                   <div className="flex justify-between text-neutral-400">
-                    <span>Amount Paid:</span>
+                    <span>{translateUI("Amount Paid:")}</span>
                     <span className="text-white font-bold">₹{submittedClaim.amount.toLocaleString('en-IN')}</span>
                   </div>
                   <div className="flex justify-between text-neutral-400">
-                    <span>Payment App / Channel:</span>
+                    <span>{translateUI("Payment App / Channel:")}</span>
                     <span className="text-neutral-300">{submittedClaim.paymentApp}</span>
                   </div>
                   <div className="flex justify-between text-neutral-400">
-                    <span>Contact Email:</span>
+                    <span>{translateUI("Contact Email:")}</span>
                     <span className="text-neutral-300 truncate max-w-[200px]">{submittedClaim.email}</span>
                   </div>
                   <div className="flex justify-between text-neutral-400">
@@ -250,13 +248,10 @@ export const PaymentVerificationModal: React.FC<PaymentVerificationModalProps> =
                 <div className="p-3 rounded-xl bg-neutral-900 border border-neutral-800 text-[11px] text-neutral-300 space-y-1.5 leading-relaxed">
                   <p className="font-semibold text-white flex items-center gap-1.5">
                     <Lock className="w-3.5 h-3.5 text-orange-400" />
-                    <span>How Your Login Credentials Will Be Issued:</span>
+                    <span>{translateUI("How Your Login Credentials Will Be Issued:")}</span>
                   </p>
-                  <p>
-                    To protect academic assets and prevent fraud, our accounts team manually verifies credits against our official HDFC Bank account.
-                  </p>
-                  <p>
-                    Once confirmed (usually within <strong>15–30 minutes</strong> during business hours), your student account username & password will be automatically generated and dispatched directly to your <strong>WhatsApp (+91 {submittedClaim.phone})</strong> and <strong>Email ({submittedClaim.email})</strong>.
+                  <p>{translateUI("To protect academic assets and prevent fraud, our accounts team manually verifies credits against our official HDFC Bank account.")}</p>
+                  <p>{translateUI("Once confirmed (usually within")}<strong>{translateUI("15–30 minutes")}</strong>{translateUI("during business hours), your student account username & password will be automatically generated and dispatched directly to your")}<strong>{translateUI("WhatsApp (+91")}{submittedClaim.phone})</strong>{translateUI("and")}<strong>{translateUI("Email (")}{submittedClaim.email})</strong>.
                   </p>
                 </div>
               </div>
@@ -272,16 +267,14 @@ export const PaymentVerificationModal: React.FC<PaymentVerificationModalProps> =
                   className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-950 transition-all cursor-pointer"
                 >
                   <MessageCircle className="w-4 h-4" />
-                  <span>Expedite via WhatsApp (+91 87921 34951)</span>
+                  <span>{translateUI("Expedite via WhatsApp (+91 87921 34951)")}</span>
                 </a>
 
                 <button
                   type="button"
                   onClick={handleResetAndClose}
                   className="w-full py-2.5 px-4 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white font-semibold text-xs transition-colors cursor-pointer"
-                >
-                  Done & Close Window
-                </button>
+                >{translateUI("Done & Close Window")}</button>
               </div>
             </div>
           ) : (
@@ -290,9 +283,7 @@ export const PaymentVerificationModal: React.FC<PaymentVerificationModalProps> =
               
               {/* Informative Guidance Banner */}
               <div className="p-3.5 rounded-2xl bg-orange-500/10 border border-orange-500/25 text-xs text-neutral-300 space-y-1">
-                <span className="font-bold text-orange-400 block text-xs">
-                  🛡️ Anti-Fraud Manual Verification
-                </span>
+                <span className="font-bold text-orange-400 block text-xs">{translateUI("🛡️ Anti-Fraud Manual Verification")}</span>
                 <p className="text-[11px] text-neutral-300 leading-relaxed">
                   {paymentMethod.toLowerCase().includes('razorpay')
                     ? 'Submit your Razorpay Payment ID (e.g. pay_...) and contact details. Our team cross-references settlement logs before dispatching your credentials.'
@@ -309,9 +300,7 @@ export const PaymentVerificationModal: React.FC<PaymentVerificationModalProps> =
 
               {/* Payment Method Selector */}
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-neutral-300 block">
-                  Payment Method / Gateway *
-                </label>
+                <label className="text-xs font-semibold text-neutral-300 block">{translateUI("Payment Method / Gateway *")}</label>
                 <select
                   value={paymentMethod}
                   onChange={(e) => {
@@ -325,23 +314,15 @@ export const PaymentVerificationModal: React.FC<PaymentVerificationModalProps> =
                   }}
                   className="w-full px-3 py-2.5 rounded-xl bg-neutral-900 border border-neutral-700 text-xs text-white focus:outline-none focus:border-orange-500 font-medium cursor-pointer"
                 >
-                  <option value="Razorpay Gateway (Cards / NetBanking / UPI)">
-                    💳 Razorpay Gateway (Cards, UPI, NetBanking, Wallets)
-                  </option>
-                  <option value="Direct HDFC UPI (8281644058@hdfc)">
-                    ⚡ Direct HDFC UPI (8281644058@hdfc / QR Code)
-                  </option>
-                  <option value="Direct Bank NEFT / IMPS">
-                    🏦 Direct Bank NEFT / IMPS Transfer
-                  </option>
+                  <option value="Razorpay Gateway (Cards / NetBanking / UPI)">{translateUI("💳 Razorpay Gateway (Cards, UPI, NetBanking, Wallets)")}</option>
+                  <option value="Direct HDFC UPI (8281644058@hdfc)">{translateUI("⚡ Direct HDFC UPI (8281644058@hdfc / QR Code)")}</option>
+                  <option value="Direct Bank NEFT / IMPS">{translateUI("🏦 Direct Bank NEFT / IMPS Transfer")}</option>
                 </select>
               </div>
 
               {/* Course Selection & Amount */}
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-neutral-300 block">
-                  Enrolled Course / Program *
-                </label>
+                <label className="text-xs font-semibold text-neutral-300 block">{translateUI("Enrolled Course / Program *")}</label>
                 <select
                   value={selectedCourseId}
                   onChange={(e) => {
@@ -410,29 +391,25 @@ export const PaymentVerificationModal: React.FC<PaymentVerificationModalProps> =
               {/* Payment App Used & Amount Paid */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-neutral-300 block mb-1">
-                    Payment Gateway / App *
-                  </label>
+                  <label className="text-xs font-semibold text-neutral-300 block mb-1">{translateUI("Payment Gateway / App *")}</label>
                   <select
                     value={paymentApp}
                     onChange={(e) => setPaymentApp(e.target.value)}
                     className="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-neutral-700 text-xs text-white focus:outline-none focus:border-orange-500 cursor-pointer"
                   >
-                    <option value="Razorpay">Razorpay Gateway (Cards/UPI)</option>
+                    <option value="Razorpay">{translateUI("Razorpay Gateway (Cards/UPI)")}</option>
                     <option value="Google Pay">Google Pay (GPay)</option>
                     <option value="PhonePe">PhonePe</option>
                     <option value="Paytm">Paytm</option>
                     <option value="BHIM UPI">BHIM UPI</option>
                     <option value="HDFC MobileBanking">HDFC MobileBanking</option>
                     <option value="CRED">CRED</option>
-                    <option value="Other Bank UPI">Other Bank App / NetBanking</option>
+                    <option value="Other Bank UPI">{translateUI("Other Bank App / NetBanking")}</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-neutral-300 block mb-1">
-                    Amount Paid (₹) *
-                  </label>
+                  <label className="text-xs font-semibold text-neutral-300 block mb-1">{translateUI("Amount Paid (₹) *")}</label>
                   <input
                     type="number"
                     required
@@ -445,15 +422,13 @@ export const PaymentVerificationModal: React.FC<PaymentVerificationModalProps> =
 
               {/* Student Full Name */}
               <div>
-                <label className="text-xs font-semibold text-neutral-300 block mb-1">
-                  Student / Parent Full Name *
-                </label>
+                <label className="text-xs font-semibold text-neutral-300 block mb-1">{translateUI("Student / Parent Full Name *")}</label>
                 <input
                   type="text"
                   required
                   value={studentName}
                   onChange={(e) => setStudentName(e.target.value)}
-                  placeholder="e.g. Rahul Sharma"
+                  placeholder={translateUI("e.g. Rahul Sharma")}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-700 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-orange-500"
                 />
               </div>
@@ -461,10 +436,8 @@ export const PaymentVerificationModal: React.FC<PaymentVerificationModalProps> =
               {/* Student Email Address */}
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="text-xs font-semibold text-neutral-300 block">
-                    Email Address (for portal login credentials) *
-                  </label>
-                  <span className="text-[10px] text-neutral-400">Confidential</span>
+                  <label className="text-xs font-semibold text-neutral-300 block">{translateUI("Email Address (for portal login credentials) *")}</label>
+                  <span className="text-[10px] text-neutral-400">{translateUI("Confidential")}</span>
                 </div>
                 <input
                   type="email"
@@ -478,9 +451,7 @@ export const PaymentVerificationModal: React.FC<PaymentVerificationModalProps> =
 
               {/* WhatsApp Number */}
               <div>
-                <label className="text-xs font-semibold text-neutral-300 block mb-1">
-                  WhatsApp Number (for password delivery & study drops) *
-                </label>
+                <label className="text-xs font-semibold text-neutral-300 block mb-1">{translateUI("WhatsApp Number (for password delivery & study drops) *")}</label>
                 <div className="flex">
                   <span className="inline-flex items-center px-3 rounded-l-xl border border-r-0 border-neutral-700 bg-neutral-900 text-neutral-400 text-xs font-mono">
                     +91
@@ -490,7 +461,7 @@ export const PaymentVerificationModal: React.FC<PaymentVerificationModalProps> =
                     required
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="10-digit mobile number"
+                    placeholder={translateUI("10-digit mobile number")}
                     className="flex-1 px-3.5 py-2.5 rounded-r-xl bg-neutral-900 border border-neutral-700 text-xs font-mono text-white placeholder-neutral-500 focus:outline-none focus:border-orange-500"
                   />
                 </div>
@@ -498,14 +469,12 @@ export const PaymentVerificationModal: React.FC<PaymentVerificationModalProps> =
 
               {/* Optional Notes */}
               <div>
-                <label className="text-xs text-neutral-400 block mb-1">
-                  Optional Notes (Sender Bank, Account Name, or comments)
-                </label>
+                <label className="text-xs text-neutral-400 block mb-1">{translateUI("Optional Notes (Sender Bank, Account Name, or comments)")}</label>
                 <input
                   type="text"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="e.g. Paid from SBI Account of Mr. Sharma"
+                  placeholder={translateUI("e.g. Paid from SBI Account of Mr. Sharma")}
                   className="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-neutral-700 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-orange-500"
                 />
               </div>
@@ -518,17 +487,15 @@ export const PaymentVerificationModal: React.FC<PaymentVerificationModalProps> =
                   className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-neutral-950 font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 transition-all cursor-pointer disabled:opacity-50"
                 >
                   {isSubmitting ? (
-                    <span>Submitting Claim to Admin...</span>
+                    <span>{translateUI("Submitting Claim to Admin...")}</span>
                   ) : (
                     <>
                       <Send className="w-4 h-4" />
-                      <span>Submit Payment for Admin Verification</span>
+                      <span>{translateUI("Submit Payment for Admin Verification")}</span>
                     </>
                   )}
                 </button>
-                <p className="text-center text-[10px] text-neutral-500 mt-2">
-                  🔒 Bank reconciliation required. Official credentials are sent once verified.
-                </p>
+                <p className="text-center text-[10px] text-neutral-500 mt-2">{translateUI("🔒 Bank reconciliation required. Official credentials are sent once verified.")}</p>
               </div>
 
             </form>

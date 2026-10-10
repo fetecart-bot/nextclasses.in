@@ -1,3 +1,4 @@
+import { useLanguage } from '../context/LanguageContext';
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -39,6 +40,8 @@ export default function StudentBadges({
   completedLessonsCount = 0,
   onNavigateToTab,
 }: StudentBadgesProps) {
+  const { t: translateUI } = useLanguage();
+
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'unlocked' | 'locked'>('all');
   const [activeBadgeModal, setActiveBadgeModal] = useState<BadgeDefinition | null>(null);
 
@@ -189,23 +192,20 @@ export default function StudentBadges({
           <div className="space-y-1.5">
             <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs font-bold">
               <Award className="w-3.5 h-3.5" />
-              <span>Student Achievement & Badges</span>
+              <span>{translateUI("Student Achievement & Badges")}</span>
             </div>
             <h3 className="text-lg sm:text-xl font-extrabold text-white flex items-center gap-2">
               <span>{user?.name ? `${user.name}’s Honors Showcase` : 'Aspirant Honors & Badges'}</span>
               <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-mono font-bold">
-                {unlockedCount}/{totalBadges} Unlocked
-              </span>
+                {unlockedCount}/{totalBadges}{translateUI("Unlocked")}</span>
             </h3>
-            <p className="text-xs text-neutral-400 max-w-xl leading-relaxed">
-              Earn official digital credentials and milestone badges by watching curriculum video masterclasses, maintaining your daily learning streak, and taking CBT mock tests.
-            </p>
+            <p className="text-xs text-neutral-400 max-w-xl leading-relaxed">{translateUI("Earn official digital credentials and milestone badges by watching curriculum video masterclasses, maintaining your daily learning streak, and taking CBT mock tests.")}</p>
           </div>
 
           {/* Quick Stats Pill */}
           <div className="flex items-center gap-3 bg-[#0a0f1d]/80 border border-[#1f293d] p-3 rounded-2xl shrink-0">
             <div className="text-center px-2">
-              <span className="text-[10px] text-neutral-400 uppercase tracking-wider block font-semibold">Streak</span>
+              <span className="text-[10px] text-neutral-400 uppercase tracking-wider block font-semibold">{translateUI("Streak")}</span>
               <span className="text-base font-black text-orange-400 flex items-center justify-center gap-0.5">
                 <Flame className="w-4 h-4 fill-orange-500 text-orange-500" />
                 {streakDays}d
@@ -213,14 +213,14 @@ export default function StudentBadges({
             </div>
             <div className="h-7 w-[1px] bg-neutral-800" />
             <div className="text-center px-2">
-              <span className="text-[10px] text-neutral-400 uppercase tracking-wider block font-semibold">Avg Acc.</span>
+              <span className="text-[10px] text-neutral-400 uppercase tracking-wider block font-semibold">{translateUI("Avg Acc.")}</span>
               <span className="text-base font-black text-emerald-400 font-mono">
                 {averageAccuracy > 0 ? `${averageAccuracy}%` : '—'}
               </span>
             </div>
             <div className="h-7 w-[1px] bg-neutral-800" />
             <div className="text-center px-2">
-              <span className="text-[10px] text-neutral-400 uppercase tracking-wider block font-semibold">Level</span>
+              <span className="text-[10px] text-neutral-400 uppercase tracking-wider block font-semibold">{translateUI("Level")}</span>
               <span className="text-xs font-bold text-amber-300 block mt-0.5">
                 {unlockedCount >= 4 ? 'Scholar 🌟' : unlockedCount >= 2 ? 'Explorer 🚀' : 'Novice 🌱'}
               </span>
@@ -231,7 +231,7 @@ export default function StudentBadges({
         {/* Overall Progress Bar */}
         <div className="mt-5 pt-4 border-t border-[#1f293d]/80 space-y-1.5">
           <div className="flex items-center justify-between text-xs text-neutral-400">
-            <span className="font-semibold text-neutral-300">Milestone Completion Index</span>
+            <span className="font-semibold text-neutral-300">{translateUI("Milestone Completion Index")}</span>
             <span className="font-mono text-orange-400 font-bold">{progressPercent}%</span>
           </div>
           <div className="w-full h-2.5 rounded-full bg-[#1e293b] overflow-hidden p-0.5 border border-[#334155]/60">
@@ -256,8 +256,7 @@ export default function StudentBadges({
                 ? 'bg-orange-500 text-neutral-950 shadow-sm'
                 : 'text-neutral-400 hover:text-white'
             }`}
-          >
-            All Badges ({badges.length})
+          >{translateUI("All Badges (")}{badges.length})
           </button>
           <button
             type="button"
@@ -269,7 +268,7 @@ export default function StudentBadges({
             }`}
           >
             <CheckCircle2 className="w-3 h-3" />
-            <span>Unlocked ({unlockedCount})</span>
+            <span>{translateUI("Unlocked (")}{unlockedCount})</span>
           </button>
           <button
             type="button"
@@ -279,14 +278,13 @@ export default function StudentBadges({
                 ? 'bg-neutral-800 text-white shadow-sm'
                 : 'text-neutral-400 hover:text-white'
             }`}
-          >
-            In Progress ({badges.length - unlockedCount})
+          >{translateUI("In Progress (")}{badges.length - unlockedCount})
           </button>
         </div>
 
         <div className="text-[11px] text-neutral-400 flex items-center gap-1.5">
           <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-          <span>Active Course Track: <strong className="text-white">{selectedCourseTitle}</strong></span>
+          <span>{translateUI("Active Course Track:")}<strong className="text-white">{selectedCourseTitle}</strong></span>
         </div>
       </div>
 
@@ -327,18 +325,17 @@ export default function StudentBadges({
                       ? 'bg-slate-400/20 text-slate-200 border border-slate-400/30'
                       : 'bg-orange-800/30 text-orange-300 border border-orange-700/30'
                   }`}>
-                    {badge.tier} Tier
-                  </span>
+                    {badge.tier}{translateUI("Tier")}</span>
 
                   {badge.unlocked ? (
                     <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800/50 px-2 py-0.5 rounded-full">
                       <CheckCircle2 className="w-3 h-3" />
-                      <span>Unlocked</span>
+                      <span>{translateUI("Unlocked")}</span>
                     </span>
                   ) : (
                     <span className="text-[11px] text-neutral-500 flex items-center gap-1">
                       <Clock className="w-3 h-3" />
-                      <span>In Progress</span>
+                      <span>{translateUI("In Progress")}</span>
                     </span>
                   )}
                 </div>
@@ -368,7 +365,7 @@ export default function StudentBadges({
                 {/* Progress / Unlock Details */}
                 <div className="mt-4 pt-3 border-t border-[#1f293d] space-y-2">
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-neutral-400 font-medium">Progress</span>
+                    <span className="text-neutral-400 font-medium">{translateUI("Progress")}</span>
                     <span className="font-mono font-bold text-neutral-200">
                       {badge.currentValue} / {badge.targetValue} {badge.unit}
                     </span>
@@ -405,10 +402,8 @@ export default function StudentBadges({
             <Trophy className="w-5 h-5" />
           </div>
           <div>
-            <h5 className="text-xs sm:text-sm font-bold text-white">How to Earn Next Badges:</h5>
-            <p className="text-[11px] text-neutral-400 mt-0.5">
-              Attempt mock test questions in the CBT simulation tab or finish video masterclasses to level up your credentials.
-            </p>
+            <h5 className="text-xs sm:text-sm font-bold text-white">{translateUI("How to Earn Next Badges:")}</h5>
+            <p className="text-[11px] text-neutral-400 mt-0.5">{translateUI("Attempt mock test questions in the CBT simulation tab or finish video masterclasses to level up your credentials.")}</p>
           </div>
         </div>
 
@@ -419,7 +414,7 @@ export default function StudentBadges({
               onClick={() => onNavigateToTab('mock_tests')}
               className="px-3 py-1.5 rounded-xl bg-orange-500 hover:bg-orange-400 text-neutral-950 font-bold text-xs flex items-center gap-1 transition-colors cursor-pointer"
             >
-              <span>Take CBT Test</span>
+              <span>{translateUI("Take CBT Test")}</span>
               <ChevronRight className="w-3.5 h-3.5" />
             </button>
           )}
@@ -442,9 +437,7 @@ export default function StudentBadges({
               className="w-full max-w-md p-6 rounded-3xl bg-[#0f172a] border border-[#2a3854] shadow-2xl space-y-4 text-white"
             >
               <div className="flex items-center justify-between">
-                <span className="text-xs font-mono uppercase tracking-wider text-orange-400 font-bold">
-                  NextClass Achievement Award
-                </span>
+                <span className="text-xs font-mono uppercase tracking-wider text-orange-400 font-bold">{translateUI("NextClass Achievement Award")}</span>
                 <button
                   type="button"
                   onClick={() => setActiveBadgeModal(null)}
@@ -464,7 +457,7 @@ export default function StudentBadges({
                 </div>
                 <div>
                   <h3 className="text-lg font-black text-white">{activeBadgeModal.name}</h3>
-                  <span className="text-xs font-semibold text-amber-400">{activeBadgeModal.tier} Tier Award</span>
+                  <span className="text-xs font-semibold text-amber-400">{activeBadgeModal.tier}{translateUI("Tier Award")}</span>
                 </div>
               </div>
 
@@ -474,7 +467,7 @@ export default function StudentBadges({
 
               <div className="space-y-1 text-xs">
                 <div className="flex justify-between text-neutral-400">
-                  <span>Current Milestone</span>
+                  <span>{translateUI("Current Milestone")}</span>
                   <span className="font-mono font-bold text-white">
                     {activeBadgeModal.currentValue} / {activeBadgeModal.targetValue} {activeBadgeModal.unit}
                   </span>
@@ -492,9 +485,7 @@ export default function StudentBadges({
                   type="button"
                   onClick={() => setActiveBadgeModal(null)}
                   className="px-4 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-bold text-xs transition-colors"
-                >
-                  Got it
-                </button>
+                >{translateUI("Got it")}</button>
               </div>
             </motion.div>
           </div>

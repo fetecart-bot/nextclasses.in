@@ -7,6 +7,8 @@ interface LanguageSelectorModalProps {
 }
 
 export default function LanguageSelectorModal({ isOpen, onClose }: LanguageSelectorModalProps) {
+  const { t: translateUI } = useLanguage();
+
   const { currentLanguage, allLanguages, setLanguageByCode } = useLanguage();
 
   if (!isOpen) return null;
@@ -25,21 +27,17 @@ export default function LanguageSelectorModal({ isOpen, onClose }: LanguageSelec
             </div>
             <div>
               <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <span>Select Course Language</span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-orange-500/20 text-orange-400 border border-orange-500/30">
-                  Major Indian Languages
-                </span>
+                <span>{translateUI("Select Course Language")}</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-orange-500/20 text-orange-400 border border-orange-500/30">{translateUI("Major Indian Languages")}</span>
               </h3>
-              <p className="text-xs text-neutral-400">
-                Browse course titles, descriptions, and curriculum in your mother tongue
-              </p>
+              <p className="text-xs text-neutral-400">{translateUI("Browse course titles, descriptions, and curriculum in your mother tongue")}</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
             className="p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
-            aria-label="Close"
+            aria-label={translateUI("Close")}
           >
             <X className="w-5 h-5" />
           </button>
@@ -102,9 +100,7 @@ export default function LanguageSelectorModal({ isOpen, onClose }: LanguageSelec
           {/* Quick Notice */}
           <div className="mt-5 p-3.5 rounded-xl bg-neutral-950 border border-neutral-800/80 flex items-start gap-3 text-xs text-neutral-400">
             <Sparkles className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-            <p>
-              Switching language updates all course catalog cards, titles, syllabi, badges, and learning descriptions with 0 ms latency. Live classes are conducted in bilingual English + regional languages.
-            </p>
+            <p>{translateUI("Switching language updates all course catalog cards, titles, syllabi, badges, and learning descriptions with 0 ms latency. Live classes are conducted in bilingual English + regional languages.")}</p>
           </div>
         </div>
 
@@ -112,15 +108,13 @@ export default function LanguageSelectorModal({ isOpen, onClose }: LanguageSelec
         <div className="flex items-center justify-between px-6 py-4 border-t border-neutral-800 bg-neutral-950/60 text-xs text-neutral-400">
           <div className="flex items-center gap-2">
             <Globe className="w-3.5 h-3.5 text-neutral-500" />
-            <span>Active: <strong className="text-orange-400">{currentLanguage.nativeName} ({currentLanguage.name})</strong></span>
+            <span>{translateUI("Active:")}<strong className="text-orange-400">{currentLanguage.nativeName} ({currentLanguage.name})</strong></span>
           </div>
           <button
             type="button"
             onClick={onClose}
             className="px-4 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white font-semibold transition-colors"
-          >
-            Done
-          </button>
+          >{translateUI("Done")}</button>
         </div>
       </div>
     </div>

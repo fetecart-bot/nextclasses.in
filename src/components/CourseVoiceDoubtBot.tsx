@@ -1,3 +1,4 @@
+import { useLanguage } from '../context/LanguageContext';
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Mic,
@@ -67,6 +68,8 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
   initialLanguage = 'ml',
   studentGender = 'male',
 }) => {
+  const { t: translateUI } = useLanguage();
+
   const { user } = useAuth();
   const [reportChoice, setReportChoice] = useState<DoubtExchange | null>(null);
   const [reportBusy, setReportBusy] = useState(false);
@@ -630,13 +633,9 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-base sm:text-lg font-bold text-white truncate">
-                  AI Voice Doubt Tutor
-                </h3>
+                <h3 className="text-base sm:text-lg font-bold text-white truncate">{translateUI("AI Voice Doubt Tutor")}</h3>
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-[10px] font-mono text-emerald-300">
-                  <Radio className="w-2.5 h-2.5 text-emerald-400 animate-pulse" />
-                  ChatGPT Voice Mentor
-                </span>
+                  <Radio className="w-2.5 h-2.5 text-emerald-400 animate-pulse" />{translateUI("ChatGPT Voice Mentor")}</span>
                 <span className={`inline-flex items-center px-2 py-0.5 rounded-full border text-[10px] font-semibold ${isOnline ? 'bg-sky-950/70 border-sky-500/40 text-sky-300' : 'bg-amber-950/70 border-amber-500/40 text-amber-300'}`}>
                   {isOnline ? 'Online AI' : offlineReady ? 'Offline Course Assistant' : 'Offline pack unavailable'}
                 </span>
@@ -653,10 +652,10 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
               target="_blank"
               rel="noopener noreferrer"
               className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-950/60 border border-emerald-800 text-emerald-400 hover:bg-emerald-900 text-xs font-medium transition-colors"
-              title="Chat with Human Faculty on WhatsApp"
+              title={translateUI("Chat with Human Faculty on WhatsApp")}
             >
               <MessageCircle className="w-3.5 h-3.5" />
-              <span>WhatsApp Mentor</span>
+              <span>{translateUI("WhatsApp Mentor")}</span>
             </a>
             <button
               type="button"
@@ -675,7 +674,7 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
         <div className="px-5 py-2.5 bg-neutral-900/60 border-b border-neutral-800/80 flex items-center gap-2 overflow-x-auto no-scrollbar text-xs">
           <div className="flex items-center gap-1.5 text-neutral-400 shrink-0 font-medium mr-1">
             <Globe className="w-3.5 h-3.5 text-amber-400" />
-            <span className="hidden sm:inline">Respond in:</span>
+            <span className="hidden sm:inline">{translateUI("Respond in:")}</span>
           </div>
           <div className="flex items-center gap-1.5">
             {SUPPORTED_LANGUAGES.map((lang) => {
@@ -701,7 +700,7 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
 
         {/* Body: Conversation Stream + Visualizer */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 min-h-[260px] max-h-[50vh]">
-          {isThinking && history.length === 0 && <p role="status" className="text-orange-200">Your mentor is preparing your answer…</p>}
+          {isThinking && history.length === 0 && <p role="status" className="text-orange-200">{translateUI("Your mentor is preparing your answer…")}</p>}
           {history.length === 0 ? (
             <div className="py-6 sm:py-8 flex flex-col items-center justify-center text-center space-y-4">
               {/* Interactive Orb Animation */}
@@ -731,19 +730,13 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
               </div>
 
               <div className="space-y-1.5 max-w-md">
-                <h4 className="text-base font-bold text-white">
-                  Speak Your Doubts in Real Time
-                </h4>
-                <p className="text-xs text-neutral-400 leading-relaxed">
-                  Tap the microphone and ask in your preferred language. Your OpenAI powered mentor will answer by voice and text. The voice is AI generated.
-                </p>
+                <h4 className="text-base font-bold text-white">{translateUI("Speak Your Doubts in Real Time")}</h4>
+                <p className="text-xs text-neutral-400 leading-relaxed">{translateUI("Tap the microphone and ask in your preferred language. Your OpenAI powered mentor will answer by voice and text. The voice is AI generated.")}</p>
               </div>
 
               {/* Course-specific doubt suggestion chips */}
               <div className="w-full pt-2">
-                <p className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider mb-2 text-left sm:text-center">
-                  Frequently Asked Doubts in this Course:
-                </p>
+                <p className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider mb-2 text-left sm:text-center">{translateUI("Frequently Asked Doubts in this Course:")}</p>
                 <div className="flex flex-wrap gap-2 justify-center">
                   {getSuggestedDoubts().map((doubt, idx) => (
                     <button
@@ -768,7 +761,7 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
                     <div className="max-w-[85%] rounded-2xl rounded-tr-sm bg-gradient-to-r from-orange-600 to-amber-600 p-3.5 text-white shadow-md">
                       <div className="flex items-center gap-1.5 text-[11px] text-orange-100 mb-1 font-medium">
                         <Mic className="w-3 h-3" />
-                        <span>Student Doubt ({exchange.language})</span>
+                        <span>{translateUI("Student Doubt (")}{exchange.language})</span>
                         <span>•</span>
                         <span>{exchange.timestamp}</span>
                       </div>
@@ -786,9 +779,7 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
                           <div className="w-6 h-6 rounded-md bg-orange-500/20 text-orange-400 flex items-center justify-center">
                             <Sparkles className="w-3.5 h-3.5" />
                           </div>
-                          <span className="text-xs font-bold text-white">
-                            Faculty Doubt Resolution
-                          </span>
+                          <span className="text-xs font-bold text-white">{translateUI("Faculty Doubt Resolution")}</span>
                         </div>
 
                         {exchange.audioUrl && (
@@ -808,7 +799,7 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
                               {isPlayingAudio ? (
                                 <>
                                   <VolumeX className="w-3 h-3 text-red-400" />
-                                  <span>Stop Voice</span>
+                                  <span>{translateUI("Stop Voice")}</span>
                                 </>
                               ) : (
                                 <>
@@ -834,7 +825,7 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
                         <div className="p-2.5 rounded-xl bg-amber-950/40 border border-amber-500/30 flex items-start gap-2 text-xs text-amber-200">
                           <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                           <div>
-                            <span className="font-bold text-amber-300 block mb-0.5">Key Exam / Fluency Takeaway:</span>
+                            <span className="font-bold text-amber-300 block mb-0.5">{translateUI("Key Exam / Fluency Takeaway:")}</span>
                             <span>{exchange.keyTakeaway}</span>
                           </div>
                         </div>
@@ -848,18 +839,18 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
                 <div className="flex justify-start">
                   <div className="rounded-2xl rounded-tl-sm bg-neutral-900 border border-neutral-800 p-4 text-neutral-400 text-xs flex items-center gap-3">
                     <Loader2 className="w-4 h-4 text-orange-400 animate-spin" />
-                    <span>Your AI mentor is preparing an explanation in {selectedLanguage.toUpperCase()}…</span>
+                    <span>{translateUI("Your AI mentor is preparing an explanation in")}{selectedLanguage.toUpperCase()}…</span>
                   </div>
                 </div>
               )}
 
               <div ref={messagesEndRef} />
-              {reportChoice && <section className="rounded-xl border border-orange-500/40 bg-neutral-900 p-4" aria-label="Report AI answer">
-                <p className="text-sm">Report this answer to NextClasses?</p>
-                <p className="text-xs text-neutral-400 mt-2">Your question, this answer and an account reference will be sent privately to our support team for review.</p>
+              {reportChoice && <section className="rounded-xl border border-orange-500/40 bg-neutral-900 p-4" aria-label={translateUI("Report AI answer")}>
+                <p className="text-sm">{translateUI("Report this answer to NextClasses?")}</p>
+                <p className="text-xs text-neutral-400 mt-2">{translateUI("Your question, this answer and an account reference will be sent privately to our support team for review.")}</p>
                 <div className="flex gap-3 mt-3">
                   <button type="button" disabled={reportBusy} onClick={submitReport} className="rounded-lg bg-orange-500 px-3 py-2 text-black text-sm disabled:opacity-50">{reportBusy ? 'Sending…' : 'Send report'}</button>
-                  <button type="button" disabled={reportBusy} onClick={() => setReportChoice(null)} className="text-sm">Cancel</button>
+                  <button type="button" disabled={reportBusy} onClick={() => setReportChoice(null)} className="text-sm">{translateUI("Cancel")}</button>
                 </div>
               </section>}
               {reportNotice && <p role="status" className="text-xs text-orange-200 p-3">{reportNotice}</p>}
@@ -872,15 +863,13 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
           <div className="px-5 py-2.5 bg-red-950/50 border-t border-red-500/30 flex items-center justify-between text-xs text-red-200 animate-in fade-in">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
-              <span>Listening now... {liveTranscript ? `"${liveTranscript}"` : 'Please speak clearly'}</span>
+              <span>{translateUI("Listening now...")}{liveTranscript ? `"${liveTranscript}"` : 'Please speak clearly'}</span>
             </div>
             <button
               type="button"
               onClick={stopSpeechRecognition}
               className="px-2.5 py-1 rounded bg-red-800 hover:bg-red-700 text-white font-semibold cursor-pointer"
-            >
-              Done Speaking
-            </button>
+            >{translateUI("Done Speaking")}</button>
           </div>
         )}
 
@@ -888,21 +877,19 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
           <div className="px-5 py-2 bg-emerald-950/60 border-t border-emerald-500/30 flex items-center justify-between text-xs text-emerald-300">
             <div className="flex items-center gap-2">
               <Volume2 className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-              <span>Voice Tutor speaking response aloud...</span>
+              <span>{translateUI("Voice Tutor speaking response aloud...")}</span>
             </div>
             <button
               type="button"
               onClick={stopAudioPlayback}
               className="text-neutral-400 hover:text-white text-xs underline cursor-pointer"
-            >
-              Mute Audio
-            </button>
+            >{translateUI("Mute Audio")}</button>
           </div>
         )}
 
         <div className="px-4 py-2 bg-neutral-900 border-t border-neutral-800 text-xs">
-          {voiceEnabled ? <span className="text-emerald-400">Spoken answers enabled for this session</span> :
-            <button type="button" onClick={enableVoice} className="text-orange-400 font-semibold underline">Enable spoken answers</button>}
+          {voiceEnabled ? <span className="text-emerald-400">{translateUI("Spoken answers enabled for this session")}</span> :
+            <button type="button" onClick={enableVoice} className="text-orange-400 font-semibold underline">{translateUI("Enable spoken answers")}</button>}
         </div>
         {/* Input Bar & Controls */}
         <div className="p-4 bg-neutral-900 border-t border-neutral-800 space-y-3">
@@ -926,12 +913,12 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
               {isListening ? (
                 <>
                   <MicOff className="w-4 h-4" />
-                  <span>Stop Recording</span>
+                  <span>{translateUI("Stop Recording")}</span>
                 </>
               ) : (
                 <>
                   <Mic className="w-4 h-4" />
-                  <span>Tap to Speak Doubt</span>
+                  <span>{translateUI("Tap to Speak Doubt")}</span>
                 </>
               )}
             </button>
@@ -969,8 +956,8 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
           </div>
 
           <div className="flex items-center justify-between text-[11px] text-neutral-500 px-1">
-            <span>Powered by OpenAI • AI-generated voice • Multilingual course support</span>
-            <span className="hidden sm:inline">Ask in Malayalam, Tamil, Telugu, Hindi, or English</span>
+            <span>{translateUI("Powered by OpenAI • AI-generated voice • Multilingual course support")}</span>
+            <span className="hidden sm:inline">{translateUI("Ask in Malayalam, Tamil, Telugu, Hindi, or English")}</span>
           </div>
         </div>
       </div>

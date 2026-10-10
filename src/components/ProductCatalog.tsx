@@ -1,3 +1,4 @@
+import { useLanguage } from '../context/LanguageContext';
 import { useState } from 'react';
 import { Sparkles, Download, Check, Star, FileText, Layers, ExternalLink, Zap, Eye } from 'lucide-react';
 import { AIProduct, ProductCategory, CartItem } from '../types';
@@ -10,6 +11,8 @@ interface ProductCatalogProps {
 }
 
 export default function ProductCatalog({ products, onAddToCart, onInstantBuy, onOpenAdmin }: ProductCatalogProps) {
+  const { t: translateUI } = useLanguage();
+
   const [activeCategory, setActiveCategory] = useState<ProductCategory>('all');
   const [previewProduct, setPreviewProduct] = useState<AIProduct | null>(null);
 
@@ -34,19 +37,15 @@ export default function ProductCatalog({ products, onAddToCart, onInstantBuy, on
           <div className="space-y-3">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold">
               <Download className="w-3.5 h-3.5" />
-              <span>Instant Digital Access</span>
+              <span>{translateUI("Instant Digital Access")}</span>
             </div>
-            <h2 id="products-section-title" className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white">
-              AI Toolkits, Prompts & Digital Systems
-            </h2>
-            <p className="text-sm sm:text-base text-neutral-400 max-w-2xl leading-relaxed">
-              Curated, plug-and-play digital assets designed to save you hundreds of hours. Delivered instantly with lifetime updates.
-            </p>
+            <h2 id="products-section-title" className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white">{translateUI("AI Toolkits, Prompts & Digital Systems")}</h2>
+            <p className="text-sm sm:text-base text-neutral-400 max-w-2xl leading-relaxed">{translateUI("Curated, plug-and-play digital assets designed to save you hundreds of hours. Delivered instantly with lifetime updates.")}</p>
           </div>
 
           <div className="flex items-center gap-2 text-xs text-neutral-400">
             <Zap className="w-4 h-4 text-amber-400" />
-            <span>1-Click Notion Duplication & PDF Downloads</span>
+            <span>{translateUI("1-Click Notion Duplication & PDF Downloads")}</span>
           </div>
         </div>
 
@@ -113,14 +112,13 @@ export default function ProductCatalog({ products, onAddToCart, onInstantBuy, on
                       </span>
                       {discountPercent > 0 && (
                         <span className="px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-400 text-[11px] font-semibold border border-emerald-800">
-                          {discountPercent}% OFF
-                        </span>
+                          {discountPercent}{translateUI("% OFF")}</span>
                       )}
                     </div>
 
                     <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between text-[11px] text-neutral-300">
                       <span className="font-mono text-neutral-300">{product.fileType}</span>
-                      <span className="text-neutral-400">{product.downloadsCount.toLocaleString()}+ downloads</span>
+                      <span className="text-neutral-400">{product.downloadsCount.toLocaleString()}{translateUI("+ downloads")}</span>
                     </div>
                   </div>
 
@@ -131,7 +129,7 @@ export default function ProductCatalog({ products, onAddToCart, onInstantBuy, on
                     <div className="flex items-center gap-1.5 text-xs text-amber-400 font-bold">
                       <Star className="w-3.5 h-3.5 fill-amber-400" />
                       <span>{product.rating}</span>
-                      <span className="text-neutral-500 font-normal">Rating</span>
+                      <span className="text-neutral-500 font-normal">{translateUI("Rating")}</span>
                     </div>
 
                     {/* Title & Tagline */}
@@ -173,7 +171,7 @@ export default function ProductCatalog({ products, onAddToCart, onInstantBuy, on
                         type="button"
                         onClick={() => setPreviewProduct(product)}
                         className="p-2 rounded-lg bg-neutral-900 text-neutral-300 hover:text-white hover:bg-neutral-800 border border-neutral-700 transition-colors cursor-pointer"
-                        title="Preview Details"
+                        title={translateUI("Preview Details")}
                       >
                         <Eye className="w-4 h-4" />
                       </button>
@@ -191,9 +189,7 @@ export default function ProductCatalog({ products, onAddToCart, onInstantBuy, on
                           category: product.category,
                         })}
                         className="px-4 py-2 rounded-lg bg-white text-neutral-950 font-bold text-xs hover:bg-neutral-200 transition-all shadow-sm cursor-pointer"
-                      >
-                        Get Tool
-                      </button>
+                      >{translateUI("Get Tool")}</button>
                     </div>
                   </div>
                 </div>
@@ -229,9 +225,7 @@ export default function ProductCatalog({ products, onAddToCart, onInstantBuy, on
 
               {previewProduct.previewSnippet && (
                 <div className="p-4 rounded-xl bg-neutral-900 border border-neutral-800 space-y-1.5">
-                  <span className="text-xs font-semibold text-amber-400 uppercase tracking-wider">
-                    Inside this product
-                  </span>
+                  <span className="text-xs font-semibold text-amber-400 uppercase tracking-wider">{translateUI("Inside this product")}</span>
                   <p className="text-xs text-neutral-300 leading-relaxed">
                     {previewProduct.previewSnippet}
                   </p>
@@ -239,9 +233,7 @@ export default function ProductCatalog({ products, onAddToCart, onInstantBuy, on
               )}
 
               <div className="space-y-2">
-                <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
-                  Full Feature Highlights
-                </span>
+                <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">{translateUI("Full Feature Highlights")}</span>
                 <ul className="space-y-2 text-sm text-neutral-300">
                   {previewProduct.features.map((f, idx) => (
                     <li key={idx} className="flex items-start gap-2">
@@ -258,7 +250,7 @@ export default function ProductCatalog({ products, onAddToCart, onInstantBuy, on
                     <span className="text-3xl font-black text-white">₹{previewProduct.price}</span>
                     <span className="text-sm line-through text-neutral-500">₹{previewProduct.originalPrice}</span>
                   </div>
-                  <span className="text-xs text-emerald-400 font-medium">Instant Digital Delivery via Email & Portal</span>
+                  <span className="text-xs text-emerald-400 font-medium">{translateUI("Instant Digital Delivery via Email & Portal")}</span>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -266,9 +258,7 @@ export default function ProductCatalog({ products, onAddToCart, onInstantBuy, on
                     type="button"
                     onClick={() => setPreviewProduct(null)}
                     className="px-4 py-2.5 rounded-xl bg-neutral-900 text-neutral-300 text-xs font-semibold hover:bg-neutral-800 cursor-pointer"
-                  >
-                    Close
-                  </button>
+                  >{translateUI("Close")}</button>
                   <button
                     type="button"
                     onClick={() => {
@@ -285,9 +275,7 @@ export default function ProductCatalog({ products, onAddToCart, onInstantBuy, on
                       setPreviewProduct(null);
                     }}
                     className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-neutral-950 text-xs font-bold hover:opacity-90 transition-opacity shadow-md cursor-pointer"
-                  >
-                    Add to Cart & Checkout
-                  </button>
+                  >{translateUI("Add to Cart & Checkout")}</button>
                 </div>
               </div>
             </div>

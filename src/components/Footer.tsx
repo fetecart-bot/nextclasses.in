@@ -1,3 +1,4 @@
+import { useLanguage } from '../context/LanguageContext';
 import { Sparkles, MessageCircle, Mail, MapPin, Heart, ArrowUp, ShieldCheck, FileText, Truck, RefreshCw, DollarSign, Lock, Phone } from 'lucide-react';
 import { PolicyTab } from './PolicyModal';
 
@@ -8,6 +9,8 @@ interface FooterProps {
 }
 
 export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicyModal }: FooterProps) {
+  const { t: translateUI } = useLanguage();
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -24,14 +27,10 @@ export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicy
                 NC
               </div>
               <span className="font-extrabold text-lg text-white tracking-tight">NextClasses</span>
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-orange-500/20 text-orange-400 border border-orange-500/30">
-                .in Academy
-              </span>
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-orange-500/20 text-orange-400 border border-orange-500/30">{translateUI(".in Academy")}</span>
             </div>
 
-            <p className="text-neutral-400 leading-relaxed text-xs max-w-sm">
-              India's dedicated practical AI academy. We turn complex generative AI breakthroughs into simple, high-leverage workflows for educators, students, and professionals in conversational Indian languages and English.
-            </p>
+            <p className="text-neutral-400 leading-relaxed text-xs max-w-sm">{translateUI("India's dedicated practical AI academy. We turn complex generative AI breakthroughs into simple, high-leverage workflows for educators, students, and professionals in conversational Indian languages and English.")}</p>
 
             <div className="flex flex-wrap items-center gap-4 text-xs pt-1">
               <a
@@ -41,7 +40,7 @@ export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicy
                 className="inline-flex items-center gap-1.5 text-emerald-400 hover:text-emerald-300 transition-colors"
               >
                 <MessageCircle className="w-4 h-4" />
-                <span>WhatsApp: +91 8792134951</span>
+                <span>{translateUI("WhatsApp: +91 8792134951")}</span>
               </a>
               <span className="text-neutral-700">•</span>
               <a
@@ -49,7 +48,7 @@ export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicy
                 className="inline-flex items-center gap-1.5 text-orange-300 hover:text-orange-200 transition-colors font-medium"
               >
                 <Phone className="w-4 h-4 text-orange-400" />
-                <span>Phone: +91 87921 34951</span>
+                <span>{translateUI("Phone: +91 87921 34951")}</span>
               </a>
               <span className="text-neutral-700">•</span>
               <a
@@ -73,14 +72,14 @@ export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicy
 
           {/* Quick Links: Courses */}
           <div className="space-y-3">
-            <h4 className="font-bold text-white text-xs uppercase tracking-wider">Company & Courses</h4>
+            <h4 className="font-bold text-white text-xs uppercase tracking-wider">{translateUI("Company & Courses")}</h4>
             <ul className="space-y-2">
               <li>
                 <a
                   href="/about/"
                   className="text-amber-400 hover:text-amber-300 font-semibold transition-colors text-left flex items-center gap-1"
                 >
-                  <span>About Us (Nextclasses.in)</span>
+                  <span>{translateUI("About Us (Nextclasses.in)")}</span>
                 </a>
               </li>
               <li>
@@ -88,104 +87,84 @@ export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicy
                   type="button"
                   onClick={() => onNavigateTo('courses')}
                   className="hover:text-white transition-colors text-left"
-                >
-                  Master Claude AI (All Indian Languages & English)
-                </button>
+                >{translateUI("Master Claude AI (All Indian Languages & English)")}</button>
               </li>
               <li>
                 <button
                   type="button"
                   onClick={() => onNavigateTo('courses')}
                   className="hover:text-white transition-colors text-left"
-                >
-                  AI for School & College Teachers
-                </button>
+                >{translateUI("AI for School & College Teachers")}</button>
               </li>
               <li>
                 <button
                   type="button"
                   onClick={() => onNavigateTo('courses')}
                   className="hover:text-white transition-colors text-left"
-                >
-                  AI for Students & Academics
-                </button>
+                >{translateUI("AI for Students & Academics")}</button>
               </li>
               <li>
                 <button
                   type="button"
                   onClick={() => onNavigateTo('courses')}
                   className="hover:text-white transition-colors text-left"
-                >
-                  Generative AI for Beginners
-                </button>
+                >{translateUI("Generative AI for Beginners")}</button>
               </li>
               <li>
                 <button
                   type="button"
                   onClick={() => onNavigateTo('courses')}
                   className="hover:text-white transition-colors text-left"
-                >
-                  Automations & AI Agents with n8n
-                </button>
+                >{translateUI("Automations & AI Agents with n8n")}</button>
               </li>
             </ul>
           </div>
 
           {/* Digital Products */}
           <div className="space-y-3">
-            <h4 className="font-bold text-white text-xs uppercase tracking-wider">Digital AI Products</h4>
+            <h4 className="font-bold text-white text-xs uppercase tracking-wider">{translateUI("Digital AI Products")}</h4>
             <ul className="space-y-2">
               <li>
                 <button
                   type="button"
                   onClick={() => onNavigateTo('products')}
                   className="hover:text-white transition-colors text-left"
-                >
-                  2,500+ Curated Prompt Vault
-                </button>
+                >{translateUI("2,500+ Curated Prompt Vault")}</button>
               </li>
               <li>
                 <button
                   type="button"
                   onClick={() => onNavigateTo('products')}
                   className="hover:text-white transition-colors text-left"
-                >
-                  Educator's AI Notion Operating System
-                </button>
+                >{translateUI("Educator's AI Notion Operating System")}</button>
               </li>
               <li>
                 <button
                   type="button"
                   onClick={() => onNavigateTo('products')}
                   className="hover:text-white transition-colors text-left"
-                >
-                  Midjourney & Flux Photoreal Guide
-                </button>
+                >{translateUI("Midjourney & Flux Photoreal Guide")}</button>
               </li>
               <li>
                 <button
                   type="button"
                   onClick={() => onNavigateTo('products')}
                   className="hover:text-white transition-colors text-left"
-                >
-                  Freelance AI Consultant Agency Kit
-                </button>
+                >{translateUI("Freelance AI Consultant Agency Kit")}</button>
               </li>
               <li>
                 <button
                   type="button"
                   onClick={onOpenStudentPortal}
                   className="text-amber-400 hover:text-amber-300 font-semibold transition-colors text-left"
-                >
-                  Student Sign In →
-                </button>
+                >{translateUI("Student Sign In →")}</button>
               </li>
             </ul>
           </div>
 
           {/* Trust & Location */}
           <div className="space-y-3">
-            <h4 className="font-bold text-white text-xs uppercase tracking-wider">Registered Office & Contact</h4>
+            <h4 className="font-bold text-white text-xs uppercase tracking-wider">{translateUI("Registered Office & Contact")}</h4>
             <div className="space-y-2.5 text-neutral-400">
               <div className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 text-orange-400 shrink-0 mt-0.5" />
@@ -202,9 +181,7 @@ export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicy
                 </a>
               </div>
               <div className="pt-1">
-                <span className="inline-block px-2.5 py-1 rounded bg-neutral-900 border border-neutral-800 text-[11px] text-emerald-400 font-mono">
-                  ● Systems Operational • Instant Delivery Active
-                </span>
+                <span className="inline-block px-2.5 py-1 rounded bg-neutral-900 border border-neutral-800 text-[11px] text-emerald-400 font-mono">{translateUI("● Systems Operational • Instant Delivery Active")}</span>
               </div>
             </div>
           </div>
@@ -216,13 +193,9 @@ export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicy
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <span className="text-xs font-bold text-white uppercase tracking-wider">
-                Platform Terms & Policies
-              </span>
+              <span className="text-xs font-bold text-white uppercase tracking-wider">{translateUI("Platform Terms & Policies")}</span>
             </div>
-            <span className="text-[11px] text-neutral-500">
-              Compliant with Standard E-Commerce Consumer Guidelines & Security Standards
-            </span>
+            <span className="text-[11px] text-neutral-500">{translateUI("Compliant with Standard E-Commerce Consumer Guidelines & Security Standards")}</span>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5">
@@ -236,8 +209,8 @@ export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicy
               className="p-3 rounded-xl bg-neutral-900 hover:bg-neutral-800/80 border border-neutral-800 hover:border-orange-500/40 text-left transition-all group"
             >
               <DollarSign className="w-4 h-4 text-orange-400 mb-1.5 group-hover:scale-110 transition-transform" />
-              <div className="font-semibold text-white text-xs">Pricing Policy</div>
-              <div className="text-[10px] text-neutral-400">INR fee schedule & GST</div>
+              <div className="font-semibold text-white text-xs">{translateUI("Pricing Policy")}</div>
+              <div className="text-[10px] text-neutral-400">{translateUI("INR fee schedule & GST")}</div>
             </a>
 
             <a
@@ -250,8 +223,8 @@ export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicy
               className="p-3 rounded-xl bg-neutral-900 hover:bg-neutral-800/80 border border-neutral-800 hover:border-orange-500/40 text-left transition-all group"
             >
               <Truck className="w-4 h-4 text-cyan-400 mb-1.5 group-hover:scale-110 transition-transform" />
-              <div className="font-semibold text-white text-xs">Shipping Policy</div>
-              <div className="text-[10px] text-neutral-400">Instant digital delivery</div>
+              <div className="font-semibold text-white text-xs">{translateUI("Shipping Policy")}</div>
+              <div className="text-[10px] text-neutral-400">{translateUI("Instant digital delivery")}</div>
             </a>
 
             <a
@@ -264,8 +237,8 @@ export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicy
               className="p-3 rounded-xl bg-neutral-900 hover:bg-neutral-800/80 border border-neutral-800 hover:border-orange-500/40 text-left transition-all group"
             >
               <FileText className="w-4 h-4 text-amber-400 mb-1.5 group-hover:scale-110 transition-transform" />
-              <div className="font-semibold text-white text-xs">Terms & Conditions</div>
-              <div className="text-[10px] text-neutral-400">User license & course access</div>
+              <div className="font-semibold text-white text-xs">{translateUI("Terms & Conditions")}</div>
+              <div className="text-[10px] text-neutral-400">{translateUI("User license & course access")}</div>
             </a>
 
             <a
@@ -278,8 +251,8 @@ export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicy
               className="p-3 rounded-xl bg-neutral-900 hover:bg-neutral-800/80 border border-neutral-800 hover:border-orange-500/40 text-left transition-all group"
             >
               <Lock className="w-4 h-4 text-emerald-400 mb-1.5 group-hover:scale-110 transition-transform" />
-              <div className="font-semibold text-white text-xs">Privacy Policy</div>
-              <div className="text-[10px] text-neutral-400">Data safety & encryption</div>
+              <div className="font-semibold text-white text-xs">{translateUI("Privacy Policy")}</div>
+              <div className="text-[10px] text-neutral-400">{translateUI("Data safety & encryption")}</div>
             </a>
 
             <a
@@ -292,8 +265,8 @@ export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicy
               className="p-3 rounded-xl bg-neutral-900 hover:bg-neutral-800/80 border border-neutral-800 hover:border-orange-500/40 text-left transition-all group col-span-2 sm:col-span-1"
             >
               <RefreshCw className="w-4 h-4 text-rose-400 mb-1.5 group-hover:scale-110 transition-transform" />
-              <div className="font-semibold text-white text-xs">Refund Policy</div>
-              <div className="text-[10px] text-neutral-400">7-day guarantee & terms</div>
+              <div className="font-semibold text-white text-xs">{translateUI("Refund Policy")}</div>
+              <div className="text-[10px] text-neutral-400">{translateUI("7-day guarantee & terms")}</div>
             </a>
           </div>
         </div>
@@ -301,9 +274,9 @@ export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicy
         {/* Bottom Bar */}
         <div className="mt-10 pt-6 border-t border-neutral-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-neutral-500 text-[11px]">
           <div className="flex flex-wrap items-center gap-2">
-            <span>© {new Date().getFullYear()} NextClasses.in. All rights reserved.</span>
+            <span>© {new Date().getFullYear()}{translateUI("NextClasses.in. All rights reserved.")}</span>
             <span className="text-neutral-700">•</span>
-            <span className="text-neutral-400">Official Portal Domain: <a href="https://nextclasses.in" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">nextclasses.in</a></span>
+            <span className="text-neutral-400">{translateUI("Official Portal Domain:")}<a href="https://nextclasses.in" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">nextclasses.in</a></span>
           </div>
 
           <div className="flex flex-wrap items-center gap-4 sm:gap-6">
@@ -311,43 +284,33 @@ export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicy
               type="button"
               onClick={() => onOpenPolicyModal?.('about')}
               className="hover:text-neutral-300 transition-colors"
-            >
-              About Us
-            </button>
+            >{translateUI("About Us")}</button>
             <button
               type="button"
               onClick={() => onOpenPolicyModal?.('terms')}
               className="hover:text-neutral-300 transition-colors"
-            >
-              Terms of Service
-            </button>
+            >{translateUI("Terms of Service")}</button>
             <button
               type="button"
               onClick={() => onOpenPolicyModal?.('privacy')}
               className="hover:text-neutral-300 transition-colors"
-            >
-              Privacy Policy
-            </button>
+            >{translateUI("Privacy Policy")}</button>
             <button
               type="button"
               onClick={() => onOpenPolicyModal?.('refund')}
               className="hover:text-neutral-300 transition-colors"
-            >
-              Cancellation / Refund
-            </button>
+            >{translateUI("Cancellation / Refund")}</button>
             <button
               type="button"
               onClick={() => onOpenPolicyModal?.('shipping')}
               className="hover:text-neutral-300 transition-colors"
-            >
-              Shipping Policy
-            </button>
+            >{translateUI("Shipping Policy")}</button>
             <button
               type="button"
               onClick={scrollToTop}
               className="inline-flex items-center gap-1 text-neutral-400 hover:text-white transition-colors"
             >
-              <span>Back to top</span>
+              <span>{translateUI("Back to top")}</span>
               <ArrowUp className="w-3.5 h-3.5" />
             </button>
           </div>

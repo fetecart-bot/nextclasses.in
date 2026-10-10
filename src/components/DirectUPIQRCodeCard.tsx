@@ -1,3 +1,4 @@
+import { useLanguage } from '../context/LanguageContext';
 import React, { useState, useEffect } from 'react';
 import QRCode from 'qrcode';
 import {
@@ -30,6 +31,8 @@ export const DirectUPIQRCodeCard: React.FC<DirectUPIQRCodeCardProps> = ({
   onOpenVerificationModal,
   showConfirmationInput = true,
 }) => {
+  const { t: translateUI } = useLanguage();
+
   const [copied, setCopied] = useState(false);
   const [themeMode, setThemeMode] = useState<'dark' | 'light'>('dark');
   const [dynamicQrUrl, setDynamicQrUrl] = useState<string | null>(null);
@@ -90,12 +93,8 @@ export const DirectUPIQRCodeCard: React.FC<DirectUPIQRCodeCardProps> = ({
             <QrCode className="w-4 h-4 text-orange-400" />
           </div>
           <div>
-            <span className="text-[10px] text-neutral-400 uppercase tracking-widest font-bold block">
-              Official HDFC Bank UPI
-            </span>
-            <span className="text-xs font-semibold text-neutral-200">
-              Direct Bank Settlement (0% Extra Fee)
-            </span>
+            <span className="text-[10px] text-neutral-400 uppercase tracking-widest font-bold block">{translateUI("Official HDFC Bank UPI")}</span>
+            <span className="text-xs font-semibold text-neutral-200">{translateUI("Direct Bank Settlement (0% Extra Fee)")}</span>
           </div>
         </div>
 
@@ -105,26 +104,20 @@ export const DirectUPIQRCodeCard: React.FC<DirectUPIQRCodeCardProps> = ({
             type="button"
             onClick={() => setThemeMode('dark')}
             className={`px-2 py-0.5 rounded cursor-pointer ${themeMode === 'dark' ? 'bg-orange-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-white'}`}
-          >
-            Dark
-          </button>
+          >{translateUI("Dark")}</button>
           <button
             type="button"
             onClick={() => setThemeMode('light')}
             className={`px-2 py-0.5 rounded cursor-pointer ${themeMode === 'light' ? 'bg-white text-neutral-950 font-bold' : 'text-neutral-400 hover:text-white'}`}
-          >
-            Light
-          </button>
+          >{translateUI("Light")}</button>
         </div>
       </div>
 
       {/* Title & Amount Display */}
       <div>
-        <h3 className="text-lg sm:text-xl font-extrabold tracking-wide text-white">
-          Scan QR Code to Pay
-        </h3>
+        <h3 className="text-lg sm:text-xl font-extrabold tracking-wide text-white">{translateUI("Scan QR Code to Pay")}</h3>
         <div className="mt-1.5 inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-orange-500/20 border border-orange-500/40 text-orange-400 font-extrabold text-sm">
-          <span>Amount:</span>
+          <span>{translateUI("Amount:")}</span>
           <span className="text-base text-white">₹{payableAmount.toLocaleString('en-IN')}</span>
           <span className="text-[11px] text-neutral-300 font-medium truncate max-w-[180px]">
             • {propCourseTitle || currentCourse.title}
@@ -158,7 +151,7 @@ export const DirectUPIQRCodeCard: React.FC<DirectUPIQRCodeCardProps> = ({
             className="px-3 py-1.5 rounded-lg bg-white/90 text-neutral-900 font-bold text-xs flex items-center gap-1.5 hover:bg-white shadow cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>Save QR</span>
+            <span>{translateUI("Save QR")}</span>
           </button>
         </div>
       </div>
@@ -166,9 +159,9 @@ export const DirectUPIQRCodeCard: React.FC<DirectUPIQRCodeCardProps> = ({
       {/* UPI ID Info Box */}
       <div className="flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-[#161f30] border border-[#223049] text-xs">
         <div className="text-left font-mono truncate mr-2">
-          <span className="text-[10px] text-neutral-400 block">UPI ID / VPA</span>
+          <span className="text-[10px] text-neutral-400 block">{translateUI("UPI ID / VPA")}</span>
           <span className="font-bold text-orange-400 text-sm">{upiId}</span>
-          <span className="text-[10px] text-neutral-500 block truncate">Nextclasses.in Official (HDFC Bank)</span>
+          <span className="text-[10px] text-neutral-500 block truncate">{translateUI("Nextclasses.in Official (HDFC Bank)")}</span>
         </div>
         <button
           type="button"
@@ -184,7 +177,7 @@ export const DirectUPIQRCodeCard: React.FC<DirectUPIQRCodeCardProps> = ({
       <div className="space-y-1.5 pt-0.5">
         <span className="text-[11px] text-neutral-400 flex items-center justify-center gap-1.5">
           <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
-          <span>Mobile user? Tap to pay directly in your app:</span>
+          <span>{translateUI("Mobile user? Tap to pay directly in your app:")}</span>
         </span>
         <div className="grid grid-cols-4 gap-1.5">
           {[
@@ -213,20 +206,20 @@ export const DirectUPIQRCodeCard: React.FC<DirectUPIQRCodeCardProps> = ({
           <div className="p-3 rounded-2xl bg-neutral-900/90 border border-neutral-800 space-y-2 text-xs">
             <span className="font-bold text-white flex items-center gap-1.5 text-xs">
               <ShieldCheck className="w-4 h-4 text-orange-400" />
-              <span>How Direct UPI Verification Works:</span>
+              <span>{translateUI("How Direct UPI Verification Works:")}</span>
             </span>
             <div className="space-y-1.5 text-[11px] text-neutral-300">
               <div className="flex items-start gap-2">
                 <span className="w-4 h-4 rounded-full bg-orange-500/20 text-orange-400 font-bold flex items-center justify-center shrink-0 text-[10px] mt-0.5">1</span>
-                <span>Scan the QR code above or pay to <strong className="font-mono text-orange-400">8281644058@hdfc</strong> using any UPI app.</span>
+                <span>{translateUI("Scan the QR code above or pay to")}<strong className="font-mono text-orange-400">8281644058@hdfc</strong>{translateUI("using any UPI app.")}</span>
               </div>
               <div className="flex items-start gap-2">
                 <span className="w-4 h-4 rounded-full bg-orange-500/20 text-orange-400 font-bold flex items-center justify-center shrink-0 text-[10px] mt-0.5">2</span>
-                <span>Note down the <strong>12-digit UPI Reference / UTR Number</strong> from your payment receipt.</span>
+                <span>{translateUI("Note down the")}<strong>{translateUI("12-digit UPI Reference / UTR Number")}</strong>{translateUI("from your payment receipt.")}</span>
               </div>
               <div className="flex items-start gap-2">
                 <span className="w-4 h-4 rounded-full bg-orange-500/20 text-orange-400 font-bold flex items-center justify-center shrink-0 text-[10px] mt-0.5">3</span>
-                <span>Click the button below to submit your details for <strong>Admin Bank Verification</strong>.</span>
+                <span>{translateUI("Click the button below to submit your details for")}<strong>{translateUI("Admin Bank Verification")}</strong>.</span>
               </div>
             </div>
           </div>
@@ -238,14 +231,12 @@ export const DirectUPIQRCodeCard: React.FC<DirectUPIQRCodeCardProps> = ({
               className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-neutral-950 font-black text-xs uppercase tracking-wider transition-all shadow-lg shadow-orange-500/20 flex items-center justify-center gap-2 cursor-pointer"
             >
               <Send className="w-4 h-4" />
-              <span>I Have Paid — Submit Verification Details</span>
+              <span>{translateUI("I Have Paid — Submit Verification Details")}</span>
             </button>
           )}
 
           <div className="p-2.5 rounded-xl bg-orange-500/5 border border-orange-500/20 text-[10px] text-neutral-400 leading-relaxed">
-            <span className="text-orange-400 font-bold block mb-0.5">🛡️ Anti-Fraud Protected:</span>
-            To safeguard course materials and certificates, our administration reconciles bank credits before generating student login credentials. Credentials are dispatched to your WhatsApp & Email once verified.
-          </div>
+            <span className="text-orange-400 font-bold block mb-0.5">{translateUI("🛡️ Anti-Fraud Protected:")}</span>{translateUI("To safeguard course materials and certificates, our administration reconciles bank credits before generating student login credentials. Credentials are dispatched to your WhatsApp & Email once verified.")}</div>
         </div>
       )}
     </div>

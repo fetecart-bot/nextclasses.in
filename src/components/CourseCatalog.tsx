@@ -20,6 +20,8 @@ export default function CourseCatalog({
   onOpenAdmin,
   onOpenLanguageSelector,
 }: CourseCatalogProps) {
+  const { t: translateUI } = useLanguage();
+
   const { currentLanguage, allLanguages, setLanguageByCode, t, getCourseTranslation } = useLanguage();
   const [activeCategory, setActiveCategory] = useState<CourseCategory>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -78,7 +80,7 @@ export default function CourseCatalog({
           <div className="space-y-3">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs font-semibold">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Tailored Learning Paths</span>
+              <span>{translateUI("Tailored Learning Paths")}</span>
             </div>
             <h2 id="courses-section-title" className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white">
               {t('coursesHeading', 'Practical AI Courses for Real Impact')}
@@ -90,7 +92,7 @@ export default function CourseCatalog({
 
           <div className="flex items-center gap-2 text-xs text-neutral-400">
             <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>Lifetime Updates & Community Access</span>
+            <span>{translateUI("Lifetime Updates & Community Access")}</span>
           </div>
         </div>
 
@@ -102,12 +104,8 @@ export default function CourseCatalog({
                 <Languages className="w-4 h-4" />
               </div>
               <div>
-                <span className="text-xs sm:text-sm font-bold text-white">
-                  Translate Courses into Major Indian Languages:
-                </span>
-                <span className="hidden md:inline text-xs text-neutral-400 ml-2">
-                  (Instant 1-click switch for titles, syllabi & descriptions)
-                </span>
+                <span className="text-xs sm:text-sm font-bold text-white">{translateUI("Translate Courses into Major Indian Languages:")}</span>
+                <span className="hidden md:inline text-xs text-neutral-400 ml-2">{translateUI("(Instant 1-click switch for titles, syllabi & descriptions)")}</span>
               </div>
             </div>
 
@@ -117,7 +115,7 @@ export default function CourseCatalog({
                 onClick={onOpenLanguageSelector}
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-orange-400 hover:text-orange-300 transition-colors"
               >
-                <span>All {allLanguages.length} Languages</span>
+                <span>{translateUI("All")}{allLanguages.length}{translateUI("Languages")}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             )}
@@ -152,10 +150,10 @@ export default function CourseCatalog({
 
         {(activeCategory === 'all' || activeCategory === 'competitive_exams') && (
           <aside className="mb-6 p-5 rounded-xl border border-amber-500/30 bg-amber-500/5">
-            <h3 className="text-white font-bold">UPSC, SSC CGL & Kerala PSC graduate exam preparation</h3>
-            <p className="text-sm text-neutral-300 mt-2">Dedicated foundation study plans and AI mentor support. Other state PSC tracks: <strong className="text-amber-400">Coming soon</strong>.</p>
-            <button type="button" onClick={() => { setActiveCategory('competitive_exams'); setSearchQuery(''); setShowAllCourses(true); }} className="mt-3 text-amber-400 text-sm font-bold">Explore exam preparation →</button>
-            <a href="/exam-preparation/" className="block mt-2 text-sm text-neutral-300 underline">Compare the three graduate exam tracks</a>
+            <h3 className="text-white font-bold">{translateUI("UPSC, SSC CGL & Kerala PSC graduate exam preparation")}</h3>
+            <p className="text-sm text-neutral-300 mt-2">{translateUI("Dedicated foundation study plans and AI mentor support. Other state PSC tracks:")}<strong className="text-amber-400">{translateUI("Coming soon")}</strong>.</p>
+            <button type="button" onClick={() => { setActiveCategory('competitive_exams'); setSearchQuery(''); setShowAllCourses(true); }} className="mt-3 text-amber-400 text-sm font-bold">{translateUI("Explore exam preparation →")}</button>
+            <a href="/exam-preparation/" className="block mt-2 text-sm text-neutral-300 underline">{translateUI("Compare the three graduate exam tracks")}</a>
           </aside>
         )}
         {/* Filters and Search Bar */}
@@ -177,7 +175,7 @@ export default function CourseCatalog({
                       : 'bg-neutral-900 border border-neutral-800 text-neutral-300 hover:text-white hover:border-neutral-700'
                   }`}
                 >
-                  {cat.label} ({cat.count})
+                  {translateUI(cat.label)} ({cat.count})
                 </button>
               );
             })}
@@ -192,7 +190,7 @@ export default function CourseCatalog({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search courses by tool or keyword (e.g., Claude, Teacher, Midjourney, n8n)..."
+                placeholder={translateUI("Search courses by tool or keyword (e.g., Claude, Teacher, Midjourney, n8n)...")}
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white placeholder-neutral-500 text-xs sm:text-sm focus:outline-none focus:border-orange-500/60 transition-colors"
               />
               {searchQuery && (
@@ -200,26 +198,22 @@ export default function CourseCatalog({
                   type="button"
                   onClick={() => setSearchQuery('')}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white text-xs"
-                >
-                  Clear
-                </button>
+                >{translateUI("Clear")}</button>
               )}
             </div>
 
             <div className="sm:col-span-4 flex items-center gap-2">
-              <label htmlFor="course-level-select" className="text-xs text-neutral-400 whitespace-nowrap">
-                Difficulty:
-              </label>
+              <label htmlFor="course-level-select" className="text-xs text-neutral-400 whitespace-nowrap">{translateUI("Difficulty:")}</label>
               <select
                 id="course-level-select"
                 value={selectedLevel}
                 onChange={(e) => setSelectedLevel(e.target.value)}
                 className="w-full px-3 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-neutral-200 text-xs sm:text-sm focus:outline-none focus:border-orange-500/60 transition-colors cursor-pointer"
               >
-                <option value="all">All Difficulties</option>
-                <option value="Beginner">Beginner (No coding)</option>
-                <option value="All Levels">All Levels</option>
-                <option value="Intermediate">Intermediate</option>
+                <option value="all">{translateUI("All Difficulties")}</option>
+                <option value="Beginner">{translateUI("Beginner (No coding)")}</option>
+                <option value="All Levels">{translateUI("All Levels")}</option>
+                <option value="Intermediate">{translateUI("Intermediate")}</option>
               </select>
             </div>
           </div>
@@ -229,7 +223,7 @@ export default function CourseCatalog({
         {/* Course Cards Grid */}
         {filteredCourses.length === 0 ? (
           <div className="text-center py-16 bg-neutral-900/50 rounded-2xl border border-neutral-800 space-y-3">
-            <p className="text-base text-neutral-400">No courses found matching your criteria.</p>
+            <p className="text-base text-neutral-400">{translateUI("No courses found matching your criteria.")}</p>
             <button
               type="button"
               onClick={() => {
@@ -238,9 +232,7 @@ export default function CourseCatalog({
                 setSelectedLevel('all');
               }}
               className="px-4 py-2 rounded-lg bg-neutral-800 text-neutral-200 text-xs font-semibold hover:bg-neutral-700"
-            >
-              Reset Filters
-            </button>
+            >{translateUI("Reset Filters")}</button>
           </div>
         ) : (
           <div id="course-cards-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
@@ -308,14 +300,13 @@ export default function CourseCatalog({
                               setSharingCourse(course);
                             }}
                             className="p-1 rounded-md bg-neutral-900/90 hover:bg-neutral-800 text-neutral-300 hover:text-orange-400 border border-neutral-700/80 transition-colors cursor-pointer"
-                            title="Share Course Link & Social Media"
+                            title={translateUI("Share Course Link & Social Media")}
                           >
                             <Share2 className="w-3 h-3 text-orange-400" />
                           </button>
                           {discountPercent > 0 && (
                             <span className="px-2 py-0.5 rounded-md bg-black/80 backdrop-blur-md text-[11px] font-semibold text-emerald-400 border border-emerald-500/30">
-                              {discountPercent}% OFF
-                            </span>
+                              {discountPercent}{translateUI("% OFF")}</span>
                           )}
                         </div>
                       </div>
@@ -351,8 +342,7 @@ export default function CourseCatalog({
                           <span className="text-neutral-500 font-normal">({course.reviewCount})</span>
                         </div>
                         <span className="text-neutral-400 text-[11px]">
-                          {course.enrolledCount.toLocaleString()}+ students
-                        </span>
+                          {course.enrolledCount.toLocaleString()}{translateUI("+ students")}</span>
                       </div>}
 
                       {/* Title & Subtitle */}
@@ -381,7 +371,7 @@ export default function CourseCatalog({
                       <div className="pt-2 space-y-1.5 text-xs text-neutral-300 border-t border-neutral-800/80">
                         {course.isCompetitiveExam && !course.officialSyllabusUrl && (
                           <div className="flex items-center gap-1.5 text-[11px] font-bold text-amber-400 bg-amber-500/10 px-2 py-1 rounded-lg border border-amber-500/20 mb-1.5">
-                            <span>📦 Automated Weekly Delivery: Calculated from Exam Countdown</span>
+                            <span>{translateUI("📦 Automated Weekly Delivery: Calculated from Exam Countdown")}</span>
                           </div>
                         )}
                         {course.highlights.slice(0, 2).map((h, i) => (
@@ -414,7 +404,7 @@ export default function CourseCatalog({
                             setSharingCourse(course);
                           }}
                           className="p-2 rounded-lg bg-neutral-800 text-neutral-300 hover:text-orange-400 hover:bg-neutral-700 transition-colors cursor-pointer shrink-0"
-                          title="Share course link / social media"
+                          title={translateUI("Share course link / social media")}
                         >
                           <Share2 className="w-3.5 h-3.5" />
                         </button>
@@ -427,7 +417,7 @@ export default function CourseCatalog({
                             }
                           }}
                           className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-lg bg-neutral-800 text-neutral-200 text-xs font-semibold hover:bg-neutral-700 hover:text-white transition-colors cursor-pointer"
-                          title="Watch official YouTube demo & view curriculum"
+                          title={translateUI("Watch official YouTube demo & view curriculum")}
                         >
                           <Play className="w-3 h-3 text-red-500 fill-red-500 shrink-0" />
                           <span className="hidden xs:inline">{course.officialSyllabusUrl ? 'View Syllabus' : 'Demo & Syllabus'}</span>
@@ -469,18 +459,16 @@ export default function CourseCatalog({
               type="button"
               onClick={() => setShowAllCourses(true)}
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-neutral-900 border border-neutral-700 text-white font-bold text-sm hover:border-orange-500/60 hover:text-orange-300 transition-colors"
-            >
-              View all {filteredCourses.length} programs
-              <ArrowRight className="w-4 h-4" />
+            >{translateUI("View all")}{filteredCourses.length}{translateUI("programs")}<ArrowRight className="w-4 h-4" />
             </button>
-            <p className="mt-2 text-xs text-neutral-500">Or choose a category above to find the right program faster.</p>
+            <p className="mt-2 text-xs text-neutral-500">{translateUI("Or choose a category above to find the right program faster.")}</p>
           </div>
         )}
 
       </div>
 
-      <nav aria-label="All course pages" className="max-w-7xl mx-auto px-4 pb-12">
-        <h3 className="text-white font-bold mb-3">Browse all course syllabuses</h3>
+      <nav aria-label={translateUI("All course pages")} className="max-w-7xl mx-auto px-4 pb-12">
+        <h3 className="text-white font-bold mb-3">{translateUI("Browse all course syllabuses")}</h3>
         <ul className="flex flex-wrap gap-x-5 gap-y-3 text-sm text-neutral-300">
           {courses.map(course => <li key={course.id}>
             <a className="hover:text-orange-400 underline underline-offset-4" href={`/courses/${course.id.replace(/^course-/, '')}/`}>{course.title}</a>

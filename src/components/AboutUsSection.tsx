@@ -1,3 +1,4 @@
+import { useLanguage } from '../context/LanguageContext';
 import { Award, Users, BookOpen, Target, Sparkles, MapPin, Phone, Mail, Globe, CheckCircle2, ShieldCheck } from 'lucide-react';
 
 interface AboutUsSectionProps {
@@ -6,6 +7,8 @@ interface AboutUsSectionProps {
 }
 
 export default function AboutUsSection({ onOpenPolicyModal, onExploreCourses }: AboutUsSectionProps) {
+  const { t: translateUI } = useLanguage();
+
   const highlights = [
     {
       title: 'Our Mission',
@@ -46,14 +49,10 @@ export default function AboutUsSection({ onOpenPolicyModal, onExploreCourses }: 
           <div className="space-y-3 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs font-semibold">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>About Nextclasses.in</span>
+              <span>{translateUI("About Nextclasses.in")}</span>
             </div>
-            <h2 id="about-us-title" className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white">
-              Empowering India with Real, Practical AI Skills.
-            </h2>
-            <p className="text-sm sm:text-base text-neutral-400 leading-relaxed">
-              Bridging the gap between rapid technological breakthroughs and real-world everyday productivity for classrooms, exam halls, and modern offices.
-            </p>
+            <h2 id="about-us-title" className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white">{translateUI("Empowering India with Real, Practical AI Skills.")}</h2>
+            <p className="text-sm sm:text-base text-neutral-400 leading-relaxed">{translateUI("Bridging the gap between rapid technological breakthroughs and real-world everyday productivity for classrooms, exam halls, and modern offices.")}</p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -61,17 +60,13 @@ export default function AboutUsSection({ onOpenPolicyModal, onExploreCourses }: 
               type="button"
               onClick={() => onOpenPolicyModal?.('about')}
               className="px-4 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 hover:text-white text-xs font-semibold border border-neutral-700 transition-colors cursor-pointer"
-            >
-              Read Company Story →
-            </button>
+            >{translateUI("Read Company Story →")}</button>
             {onExploreCourses && (
               <button
                 type="button"
                 onClick={onExploreCourses}
                 className="px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-neutral-950 font-bold text-xs shadow-lg shadow-orange-500/20 transition-all cursor-pointer"
-              >
-                Browse Our Programs
-              </button>
+              >{translateUI("Browse Our Programs")}</button>
             )}
           </div>
         </div>
@@ -104,40 +99,34 @@ export default function AboutUsSection({ onOpenPolicyModal, onExploreCourses }: 
             <div className="lg:col-span-2 space-y-4">
               <div className="flex items-center gap-2 text-xs font-bold text-orange-400 uppercase tracking-wider">
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span>Registered Indian Business & Verified EdTech Publisher</span>
+                <span>{translateUI("Registered Indian Business & Verified EdTech Publisher")}</span>
               </div>
-              <h3 className="text-2xl font-extrabold text-white">
-                Nextclasses.in by Fetecart Store
-              </h3>
-              <p className="text-sm text-neutral-300 leading-relaxed">
-                Nextclasses.in was conceived with a straightforward belief: <em>Artificial intelligence shouldn't be reserved for high-end developers and Silicon Valley engineers</em>. From school teachers in Thrissur to university researchers and competitive exam candidates, everyone deserves straightforward, hands-on instruction to leverage AI safely and productively.
-              </p>
+              <h3 className="text-2xl font-extrabold text-white">{translateUI("Nextclasses.in by Fetecart Store")}</h3>
+              <p className="text-sm text-neutral-300 leading-relaxed">{translateUI("Nextclasses.in was conceived with a straightforward belief:")}<em>{translateUI("Artificial intelligence shouldn't be reserved for high-end developers and Silicon Valley engineers")}</em>{translateUI(". From school teachers in Thrissur to university researchers and competitive exam candidates, everyone deserves straightforward, hands-on instruction to leverage AI safely and productively.")}</p>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs text-neutral-300">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>Curated & Tested AI Frameworks</span>
+                  <span>{translateUI("Curated & Tested AI Frameworks")}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>100% Self-Paced with Lifetime Access</span>
+                  <span>{translateUI("100% Self-Paced with Lifetime Access")}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>Official Verified Course Certificates</span>
+                  <span>{translateUI("Official Verified Course Certificates")}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>RBI Compliant Payments via Razorpay</span>
+                  <span>{translateUI("RBI Compliant Payments via Razorpay")}</span>
                 </div>
               </div>
             </div>
 
             {/* Quick Contact & Office Box */}
             <div className="p-5 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-3.5 text-xs">
-              <h4 className="font-bold text-white text-xs uppercase tracking-wider border-b border-neutral-800 pb-2">
-                Merchant & Office Information
-              </h4>
+              <h4 className="font-bold text-white text-xs uppercase tracking-wider border-b border-neutral-800 pb-2">{translateUI("Merchant & Office Information")}</h4>
               
               <div className="flex items-start gap-2.5 text-neutral-300">
                 <MapPin className="w-4 h-4 text-orange-400 shrink-0 mt-0.5" />
@@ -150,7 +139,7 @@ export default function AboutUsSection({ onOpenPolicyModal, onExploreCourses }: 
               <div className="flex items-center gap-2.5 text-neutral-300">
                 <Phone className="w-4 h-4 text-emerald-400 shrink-0" />
                 <div>
-                  <span className="text-[10px] text-neutral-500 block">Phone & WhatsApp:</span>
+                  <span className="text-[10px] text-neutral-500 block">{translateUI("Phone & WhatsApp:")}</span>
                   <div className="flex items-center gap-2 flex-wrap">
                     <a href="tel:8792134951" className="text-white hover:text-orange-400 font-mono font-medium">
                       +91 87921 34951
@@ -160,9 +149,7 @@ export default function AboutUsSection({ onOpenPolicyModal, onExploreCourses }: 
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 text-[10px] font-semibold hover:bg-emerald-900 border border-emerald-800 transition-colors"
-                    >
-                      Chat on WhatsApp
-                    </a>
+                    >{translateUI("Chat on WhatsApp")}</a>
                   </div>
                 </div>
               </div>
@@ -170,7 +157,7 @@ export default function AboutUsSection({ onOpenPolicyModal, onExploreCourses }: 
               <div className="flex items-center gap-2.5 text-neutral-300">
                 <Mail className="w-4 h-4 text-cyan-400 shrink-0" />
                 <div>
-                  <span className="text-[10px] text-neutral-500 block">Official Support Email:</span>
+                  <span className="text-[10px] text-neutral-500 block">{translateUI("Official Support Email:")}</span>
                   <a href="mailto:support@nextclasses.in" className="text-white hover:text-cyan-400">
                     support@nextclasses.in
                   </a>

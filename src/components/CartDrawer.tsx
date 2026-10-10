@@ -1,3 +1,4 @@
+import { useLanguage } from '../context/LanguageContext';
 import { useState, useMemo, useEffect, type FormEvent } from 'react';
 import { 
   X, 
@@ -63,6 +64,8 @@ export default function CartDrawer({
   onOpenPolicyModal,
   onOpenVerificationModal,
 }: CartDrawerProps) {
+  const { t: translateUI } = useLanguage();
+
   const { user, loginWithAccount } = useAuth();
 
   const [couponCode, setCouponCode] = useState('');
@@ -479,7 +482,7 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
             type="button"
             onClick={handleClose}
             className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-900 transition-colors cursor-pointer"
-            aria-label="Close cart"
+            aria-label={translateUI("Close cart")}
           >
             <X className="w-5 h-5" />
           </button>
@@ -495,37 +498,35 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
               </div>
 
               <div className="space-y-1">
-                <h3 className="text-2xl font-black text-white">You're All Set! 🎉</h3>
-                <p className="text-xs text-neutral-300">
-                  Welcome to Nextclasses.in, <span className="font-bold text-white">{completedOrderDetails.name}</span>.
+                <h3 className="text-2xl font-black text-white">{translateUI("You're All Set! 🎉")}</h3>
+                <p className="text-xs text-neutral-300">{translateUI("Welcome to Nextclasses.in,")}<span className="font-bold text-white">{completedOrderDetails.name}</span>.
                 </p>
-                <div className="text-[11px] font-mono text-amber-400 pt-1">
-                  ORDER ID: {completedOrderDetails.orderId}
+                <div className="text-[11px] font-mono text-amber-400 pt-1">{translateUI("ORDER ID:")}{completedOrderDetails.orderId}
                 </div>
               </div>
 
               {/* Delivery info card */}
               <div className="p-4 rounded-xl bg-neutral-900 border border-neutral-800 text-left space-y-2 text-xs">
                 <div className="flex justify-between text-neutral-300">
-                  <span>Student Email:</span>
+                  <span>{translateUI("Student Email:")}</span>
                   <span className="font-mono text-white">{completedOrderDetails.email}</span>
                 </div>
                 <div className="flex justify-between text-neutral-300">
-                  <span>WhatsApp Number:</span>
+                  <span>{translateUI("WhatsApp Number:")}</span>
                   <span className="font-mono text-white">{completedOrderDetails.phone}</span>
                 </div>
                 <div className="flex justify-between text-neutral-300">
-                  <span>Payment Gateway:</span>
+                  <span>{translateUI("Payment Gateway:")}</span>
                   <span className="font-semibold text-orange-400">{completedOrderDetails.gatewayType || 'Verified'}</span>
                 </div>
                 {completedOrderDetails.paymentId && (
                   <div className="flex justify-between text-neutral-300">
-                    <span>Payment ID:</span>
+                    <span>{translateUI("Payment ID:")}</span>
                     <span className="font-mono text-[11px] text-neutral-300">{completedOrderDetails.paymentId}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-neutral-300 pt-1 border-t border-neutral-800">
-                  <span>Total Paid:</span>
+                  <span>{translateUI("Total Paid:")}</span>
                   <span className="font-bold text-emerald-400 text-sm">₹{completedOrderDetails.totalAmount}</span>
                 </div>
               </div>
@@ -541,57 +542,44 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5 text-xs font-bold text-orange-400">
                           <Zap className="w-4 h-4 text-orange-400" />
-                          <span>Weekly Material Delivery Active</span>
+                          <span>{translateUI("Weekly Material Delivery Active")}</span>
                         </div>
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                          AUTOMATED ENGINE
-                        </span>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">{translateUI("AUTOMATED ENGINE")}</span>
                       </div>
 
                       <div>
                         <h4 className="text-sm font-black text-white">{roadmap.examName}</h4>
                         <div className="flex items-center gap-3 text-xs text-neutral-300 mt-1">
                           <span className="font-mono text-amber-400 font-bold">
-                            {roadmap.daysRemaining} Days
-                          </span>
+                            {roadmap.daysRemaining}{translateUI("Days")}</span>
                           <span>•</span>
                           <span className="font-mono text-emerald-400 font-bold">
-                            {roadmap.weeksRemaining} Weekly Packs
-                          </span>
+                            {roadmap.weeksRemaining}{translateUI("Weekly Packs")}</span>
                           <span>•</span>
-                          <span className="text-neutral-400">Target: {roadmap.targetDate}</span>
+                          <span className="text-neutral-400">{translateUI("Target:")}{roadmap.targetDate}</span>
                         </div>
                       </div>
 
                       {/* Delivery cadence banner */}
                       <div className="p-2.5 rounded-lg bg-orange-500/10 border border-orange-500/20 text-[11px] text-orange-200 flex items-center gap-2">
                         <Clock className="w-3.5 h-3.5 text-orange-400 shrink-0" />
-                        <span>
-                          Check your student portal for published lessons and practice materials.
-                        </span>
+                        <span>{translateUI("Check your student portal for published lessons and practice materials.")}</span>
                       </div>
 
                       {/* Immediate Week 1 Pack */}
                       <div className="p-3 rounded-xl bg-emerald-950/40 border border-emerald-800/60 space-y-1.5">
                         <div className="flex items-center justify-between text-xs">
                           <span className="font-bold text-emerald-300 flex items-center gap-1.5">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                            Week 1 Study Pack (Unlocked Now)
-                          </span>
-                          <span className="text-[10px] font-mono text-emerald-400 uppercase font-bold">
-                            READY FOR DOWNLOAD
-                          </span>
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />{translateUI("Week 1 Study Pack (Unlocked Now)")}</span>
+                          <span className="text-[10px] font-mono text-emerald-400 uppercase font-bold">{translateUI("READY FOR DOWNLOAD")}</span>
                         </div>
                         <p className="text-[11px] text-neutral-300">
-                          {roadmap.dispatches[0]?.title}: NCERT Core Notes, 200+ MCQs, and Diagnostic Mock Test.
-                        </p>
+                          {roadmap.dispatches[0]?.title}{translateUI(": NCERT Core Notes, 200+ MCQs, and Diagnostic Mock Test.")}</p>
                       </div>
 
                       {/* Upcoming 2 dispatches preview */}
                       <div className="space-y-1.5 pt-1">
-                        <span className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 block">
-                          Next Upcoming Sunday Dispatches:
-                        </span>
+                        <span className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 block">{translateUI("Next Upcoming Sunday Dispatches:")}</span>
                         {roadmap.dispatches.slice(1, 3).map((disp) => (
                           <div
                             key={disp.weekNumber}
@@ -618,7 +606,7 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
                         className="w-full py-2.5 px-3 rounded-xl bg-neutral-800 hover:bg-neutral-750 text-neutral-200 text-xs font-semibold transition-colors flex items-center justify-center gap-2"
                       >
                         <Download className="w-3.5 h-3.5 text-orange-400" />
-                        <span>Download Full {roadmap.weeksRemaining}-Week Dispatch Calendar (PDF)</span>
+                        <span>{translateUI("Download Full")}{roadmap.weeksRemaining}{translateUI("-Week Dispatch Calendar (PDF)")}</span>
                       </button>
                     </div>
                   ))}
@@ -633,7 +621,7 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
 
               {/* Quick Actions */}
               <div className="space-y-3 pt-2">
-                <p className="text-sm text-neutral-300">Your purchased courses are available in the student portal. Contact support for help with materials or login.</p>
+                <p className="text-sm text-neutral-300">{translateUI("Your purchased courses are available in the student portal. Contact support for help with materials or login.")}</p>
 
                 <a
                   href={`https://wa.me/918792134951?text=${encodeURIComponent(`Hi Nextclasses.in Team, I just enrolled with Order #${completedOrderDetails.orderId} (${completedOrderDetails.name}, Phone: +91 ${completedOrderDetails.phone}). Please send my study materials and add me to the batch WhatsApp group!`)}`}
@@ -642,7 +630,7 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
                   className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-colors shadow-md shadow-emerald-600/20"
                 >
                   <MessageCircle className="w-4 h-4" />
-                  <span>Join Official WhatsApp Student Community (+91 87921 34951)</span>
+                  <span>{translateUI("Join Official WhatsApp Student Community (+91 87921 34951)")}</span>
                 </a>
 
                 <button
@@ -653,7 +641,7 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
                   }}
                   className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:opacity-95 text-neutral-950 font-bold text-xs transition-opacity cursor-pointer shadow-md shadow-orange-500/20"
                 >
-                  <span>Open NextClass Student Learning Portal</span>
+                  <span>{translateUI("Open NextClass Student Learning Portal")}</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
 
@@ -669,7 +657,7 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
                   className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-neutral-200 hover:text-white font-bold text-xs transition-colors cursor-pointer"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-orange-400" />
-                  <span>Enroll in Another Course / Explore Catalog</span>
+                  <span>{translateUI("Enroll in Another Course / Explore Catalog")}</span>
                 </button>
 
                 <button
@@ -678,23 +666,19 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
                   className="w-full py-2.5 px-3 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white text-xs font-semibold transition-colors flex items-center justify-center gap-2 border border-neutral-800 cursor-pointer"
                 >
                   <FileText className="w-3.5 h-3.5 text-orange-400" />
-                  <span>Download Payment Receipt (.txt)</span>
+                  <span>{translateUI("Download Payment Receipt (.txt)")}</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={handleClose}
                   className="w-full py-2 px-3 text-neutral-400 hover:text-white text-xs font-medium transition-colors cursor-pointer text-center"
-                >
-                  Done & Close Drawer
-                </button>
+                >{translateUI("Done & Close Drawer")}</button>
               </div>
 
               {/* Items Enrolled */}
               <div className="pt-4 border-t border-neutral-800 text-left space-y-2">
-                <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider">
-                  Enrolled Course / Digital Assets:
-                </span>
+                <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider">{translateUI("Enrolled Course / Digital Assets:")}</span>
                 <ul className="space-y-1 text-xs text-neutral-300">
                   {completedOrderDetails.items.map((it, idx) => (
                     <li key={idx} className="flex items-center gap-2">
@@ -711,17 +695,13 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
               <div className="w-16 h-16 rounded-full bg-neutral-900 mx-auto flex items-center justify-center text-neutral-500">
                 <Tag className="w-8 h-8" />
               </div>
-              <p className="text-base text-neutral-300 font-medium">Your cart is empty.</p>
-              <p className="text-xs text-neutral-500 max-w-xs mx-auto">
-                Explore our competitive exam tracks (NEET, JEE, KEAM, AISSEE, Navodaya) or practical AI courses.
-              </p>
+              <p className="text-base text-neutral-300 font-medium">{translateUI("Your cart is empty.")}</p>
+              <p className="text-xs text-neutral-500 max-w-xs mx-auto">{translateUI("Explore our competitive exam tracks (NEET, JEE, KEAM, AISSEE, Navodaya) or practical AI courses.")}</p>
               <button
                 type="button"
                 onClick={onClose}
                 className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-neutral-950 font-bold text-xs cursor-pointer"
-              >
-                Browse All Programs
-              </button>
+              >{translateUI("Browse All Programs")}</button>
             </div>
           ) : (
             /* Items in Cart & Checkout form */
@@ -729,8 +709,7 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
               
               {/* Items List */}
               <div className="space-y-3">
-                <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider block">
-                  Items Selected ({items.length})
+                <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider block">{translateUI("Items Selected (")}{items.length})
                 </span>
 
                 {items.map((item) => {
@@ -780,7 +759,7 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
                           type="button"
                           onClick={() => onRemoveItem(item.id)}
                           className="p-1.5 text-neutral-500 hover:text-rose-400 transition-colors cursor-pointer"
-                          title="Remove from cart"
+                          title={translateUI("Remove from cart")}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -792,22 +771,21 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
                           <div className="flex items-center justify-between">
                             <span className="text-[11px] font-bold text-orange-400 flex items-center gap-1.5">
                               <Clock className="w-3.5 h-3.5" />
-                              <span>Calculated Exam Delivery Schedule</span>
+                              <span>{translateUI("Calculated Exam Delivery Schedule")}</span>
                             </span>
                             <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20 font-bold">
-                              {daysToExam} Days Left • {weeksToExam} Weeks
-                            </span>
+                              {daysToExam}{translateUI("Days Left •")}{weeksToExam}{translateUI("Weeks")}</span>
                           </div>
 
                           {/* Target Date Picker */}
                           <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-neutral-950 border border-neutral-800">
                             <div className="flex items-center gap-1.5 text-neutral-300 text-[11px]">
                               <Calendar className="w-3.5 h-3.5 text-orange-400 shrink-0" />
-                              <span>Target Exam Date:</span>
+                              <span>{translateUI("Target Exam Date:")}</span>
                             </div>
                             <input
                               type="date"
-                              aria-label="Target Exam Date"
+                              aria-label={translateUI("Target Exam Date")}
                               value={targetDate}
                               onChange={(e) => handleDateChangeForItem(item.id, e.target.value)}
                               min={new Date().toISOString().split('T')[0]}
@@ -819,8 +797,7 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
                           <div className="text-[11px] text-neutral-300 leading-relaxed bg-orange-500/10 p-2 rounded-lg border border-orange-500/20 flex items-start gap-2">
                             <Zap className="w-3.5 h-3.5 text-orange-400 shrink-0 mt-0.5" />
                             <span>
-                              <strong>Weekly study plan:</strong> Based on your {daysToExam} days countdown, check your student portal for published course materials.
-                            </span>
+                              <strong>{translateUI("Weekly study plan:")}</strong>{translateUI("Based on your")}{daysToExam}{translateUI("days countdown, check your student portal for published course materials.")}</span>
                           </div>
                         </div>
                       )}
@@ -837,7 +814,7 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
                     <input
                       id="coupon-code-input"
                       type="text"
-                      placeholder="Enter promo code (e.g. AIFUTURE)"
+                      placeholder={translateUI("Enter promo code (e.g. AIFUTURE)")}
                       value={couponCode}
                       onChange={(e) => setCouponCode(e.target.value)}
                       className="w-full pl-9 pr-3 py-2 rounded-lg bg-neutral-950 border border-neutral-700 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-orange-500 uppercase font-mono"
@@ -846,9 +823,7 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
                   <button
                     type="submit"
                     className="px-4 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold text-white transition-colors cursor-pointer"
-                  >
-                    Apply
-                  </button>
+                  >{translateUI("Apply")}</button>
                 </form>
 
                 {couponError && (
@@ -857,19 +832,17 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
 
                 {appliedCoupon && discountEligibleTotal > 0 && (
                   <div className="flex items-center justify-between text-xs text-emerald-400 bg-emerald-950/40 p-2 rounded border border-emerald-800/60">
-                    <span>Coupon "{appliedCoupon.code}" applied ({appliedCoupon.percent}% OFF)</span>
+                    <span>{translateUI("Coupon \"")}{appliedCoupon.code}{translateUI("\" applied (")}{appliedCoupon.percent}{translateUI("% OFF)")}</span>
                     <button
                       type="button"
                       onClick={() => setAppliedCoupon(null)}
                       className="text-neutral-400 hover:text-white"
-                    >
-                      Remove
-                    </button>
+                    >{translateUI("Remove")}</button>
                   </div>
                 )}
               </div>
 
-              {discountEligibleTotal < rawTotal && <p className="text-xs text-neutral-400">UPSC, SSC CGL and Kerala PSC foundation tracks are ₹1,999 each. Additional promo discounts do not apply to these tracks.</p>}
+              {discountEligibleTotal < rawTotal && <p className="text-xs text-neutral-400">{translateUI("UPSC, SSC CGL and Kerala PSC foundation tracks are ₹1,999 each. Additional promo discounts do not apply to these tracks.")}</p>}
               {/* Checkout Form */}
               <form id="checkout-student-form" onSubmit={handleCheckoutSubmit} className="space-y-4">
                 {paymentError && (
@@ -888,25 +861,17 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
                       <div className="w-6 h-6 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center">
                         <User className="w-3.5 h-3.5" />
                       </div>
-                      <span className="text-xs font-bold text-white uppercase tracking-wider">
-                        Student Contact Details
-                      </span>
+                      <span className="text-xs font-bold text-white uppercase tracking-wider">{translateUI("Student Contact Details")}</span>
                     </div>
-                    <span className="text-[10px] text-amber-400 font-semibold px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20">
-                      Required for Portal Access
-                    </span>
+                    <span className="text-[10px] text-amber-400 font-semibold px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20">{translateUI("Required for Portal Access")}</span>
                   </div>
 
-                  <p className="text-[11px] text-neutral-400 leading-relaxed">
-                    Provide your mobile number and email. After payment verification, access your courses in the student portal. Keep a copy of your payment reference.
-                  </p>
+                  <p className="text-[11px] text-neutral-400 leading-relaxed">{translateUI("Provide your mobile number and email. After payment verification, access your courses in the student portal. Keep a copy of your payment reference.")}</p>
 
                   <div className="space-y-3 pt-1">
                     {/* Full Name */}
                     <div>
-                      <label htmlFor="checkout-student-name" className="block text-[11px] font-semibold text-neutral-300 mb-1">
-                        Full Name
-                      </label>
+                      <label htmlFor="checkout-student-name" className="block text-[11px] font-semibold text-neutral-300 mb-1">{translateUI("Full Name")}</label>
                       <div className="relative">
                         <User className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                         <input
@@ -917,7 +882,7 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
                             setStudentName(e.target.value);
                             if (paymentError) setPaymentError(null);
                           }}
-                          placeholder="e.g. Rahul Sharma"
+                          placeholder={translateUI("e.g. Rahul Sharma")}
                           className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-neutral-950 border border-neutral-700 text-base sm:text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors"
                         />
                       </div>
@@ -926,13 +891,10 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
                     {/* Contact Number (WhatsApp / Mobile) */}
                     <div>
                       <div className="flex items-center justify-between mb-1">
-                        <label htmlFor="checkout-student-phone" className="block text-[11px] font-semibold text-neutral-300">
-                          Contact Number (WhatsApp) <span className="text-rose-400">*</span>
+                        <label htmlFor="checkout-student-phone" className="block text-[11px] font-semibold text-neutral-300">{translateUI("Contact Number (WhatsApp)")}<span className="text-rose-400">*</span>
                         </label>
                         <span className="text-[10px] text-emerald-400 font-medium flex items-center gap-1">
-                          <Smartphone className="w-3 h-3" />
-                          WhatsApp support contact
-                        </span>
+                          <Smartphone className="w-3 h-3" />{translateUI("WhatsApp support contact")}</span>
                       </div>
                       <div className="relative flex">
                         <div className="inline-flex items-center px-3 rounded-l-xl bg-neutral-900 border border-r-0 border-neutral-700 text-neutral-300 text-xs font-mono font-bold select-none">
@@ -954,18 +916,15 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
                           required
                         />
                       </div>
-                      <span className="text-[10px] text-neutral-500 mt-1 block">
-                        Use a number where NextClasses support can reach you.
-                      </span>
+                      <span className="text-[10px] text-neutral-500 mt-1 block">{translateUI("Use a number where NextClasses support can reach you.")}</span>
                     </div>
 
                     {/* Email Address */}
                     <div>
                       <div className="flex items-center justify-between mb-1">
-                        <label htmlFor="checkout-student-email" className="block text-[11px] font-semibold text-neutral-300">
-                          Email Address <span className="text-rose-400">*</span>
+                        <label htmlFor="checkout-student-email" className="block text-[11px] font-semibold text-neutral-300">{translateUI("Email Address")}<span className="text-rose-400">*</span>
                         </label>
-                        <span className="text-[10px] text-neutral-400">PDF Study Pack & Receipt</span>
+                        <span className="text-[10px] text-neutral-400">{translateUI("PDF Study Pack & Receipt")}</span>
                       </div>
                       <div className="relative">
                         <Mail className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -982,9 +941,7 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
                           required
                         />
                       </div>
-                      <span className="text-[10px] text-neutral-500 mt-1 block">
-                        Use an email address you can access for your login details.
-                      </span>
+                      <span className="text-[10px] text-neutral-500 mt-1 block">{translateUI("Use an email address you can access for your login details.")}</span>
                     </div>
                   </div>
                 </div>
@@ -994,46 +951,40 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <CreditCard className="w-4 h-4 text-orange-400" />
-                      <span className="text-xs font-bold text-white uppercase tracking-wider">
-                        Razorpay Secure Gateway
-                      </span>
+                      <span className="text-xs font-bold text-white uppercase tracking-wider">{translateUI("Razorpay Secure Gateway")}</span>
                     </div>
                     <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                      RBI COMPLIANT
-                    </span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />{translateUI("RBI COMPLIANT")}</span>
                   </div>
 
-                  <p className="text-[11px] text-neutral-300 leading-relaxed">
-                    Razorpay checkout will launch with your contact details prefilled. Choose from any supported payment mode:
-                  </p>
+                  <p className="text-[11px] text-neutral-300 leading-relaxed">{translateUI("Razorpay checkout will launch with your contact details prefilled. Choose from any supported payment mode:")}</p>
 
                   <div className="grid grid-cols-2 gap-2 pt-1 text-xs">
                     <div className="p-2.5 rounded-xl bg-neutral-950/70 border border-neutral-800 flex items-center gap-2">
                       <Smartphone className="w-3.5 h-3.5 text-orange-400 shrink-0" />
                       <div>
-                        <span className="text-[11px] font-semibold text-white block">UPI Instant</span>
+                        <span className="text-[11px] font-semibold text-white block">{translateUI("UPI Instant")}</span>
                         <span className="text-[9px] text-neutral-400 block">GPay, PhonePe, Paytm, CRED</span>
                       </div>
                     </div>
                     <div className="p-2.5 rounded-xl bg-neutral-950/70 border border-neutral-800 flex items-center gap-2">
                       <CreditCard className="w-3.5 h-3.5 text-orange-400 shrink-0" />
                       <div>
-                        <span className="text-[11px] font-semibold text-white block">Cards</span>
-                        <span className="text-[9px] text-neutral-400 block">Debit & Credit (Visa, MC, RuPay)</span>
+                        <span className="text-[11px] font-semibold text-white block">{translateUI("Cards")}</span>
+                        <span className="text-[9px] text-neutral-400 block">{translateUI("Debit & Credit (Visa, MC, RuPay)")}</span>
                       </div>
                     </div>
                     <div className="p-2.5 rounded-xl bg-neutral-950/70 border border-neutral-800 flex items-center gap-2">
                       <Building className="w-3.5 h-3.5 text-orange-400 shrink-0" />
                       <div>
-                        <span className="text-[11px] font-semibold text-white block">Net Banking</span>
-                        <span className="text-[9px] text-neutral-400 block">50+ Banks (SBI, HDFC, ICICI...)</span>
+                        <span className="text-[11px] font-semibold text-white block">{translateUI("Net Banking")}</span>
+                        <span className="text-[9px] text-neutral-400 block">{translateUI("50+ Banks (SBI, HDFC, ICICI...)")}</span>
                       </div>
                     </div>
                     <div className="p-2.5 rounded-xl bg-neutral-950/70 border border-neutral-800 flex items-center gap-2">
                       <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                       <div>
-                        <span className="text-[11px] font-semibold text-white block">Wallets & PayLater</span>
+                        <span className="text-[11px] font-semibold text-white block">{translateUI("Wallets & PayLater")}</span>
                         <span className="text-[9px] text-neutral-400 block">Amazon Pay, Mobikwik, etc.</span>
                       </div>
                     </div>
@@ -1042,30 +993,30 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
                   <div className="flex items-center justify-between text-[10px] text-neutral-400 pt-1.5 border-t border-neutral-800">
                     <span className="flex items-center gap-1 text-emerald-400 font-medium">
                       <ShieldCheck className="w-3.5 h-3.5" />
-                      <span>PCI-DSS Level 1 & 256-Bit SSL Encrypted</span>
+                      <span>{translateUI("PCI-DSS Level 1 & 256-Bit SSL Encrypted")}</span>
                     </span>
-                    <span>Zero Platform Fees</span>
+                    <span>{translateUI("Zero Platform Fees")}</span>
                   </div>
                 </div>
 
                 {/* Pricing Summary */}
                 <div className="pt-4 border-t border-neutral-800 space-y-1.5 text-xs">
                   <div className="flex justify-between text-neutral-400">
-                    <span>Subtotal:</span>
+                    <span>{translateUI("Subtotal:")}</span>
                     <span>₹{rawTotal}</span>
                   </div>
                   {appliedCoupon && discountEligibleTotal > 0 && (
                     <div className="flex justify-between text-emerald-400">
-                      <span>Discount ({appliedCoupon.code}):</span>
+                      <span>{translateUI("Discount (")}{appliedCoupon.code}):</span>
                       <span>-₹{discountAmount}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-neutral-400">
-                    <span>Platform Delivery & AI Engine:</span>
-                    <span className="text-emerald-400 font-medium">FREE</span>
+                    <span>{translateUI("Platform Delivery & AI Engine:")}</span>
+                    <span className="text-emerald-400 font-medium">{translateUI("FREE")}</span>
                   </div>
                   <div className="flex justify-between text-base font-black text-white pt-2 border-t border-neutral-800">
-                    <span>Total Amount:</span>
+                    <span>{translateUI("Total Amount:")}</span>
                     <span className="text-orange-400">₹{finalTotal}</span>
                   </div>
                 </div>
@@ -1080,12 +1031,12 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
                   {isProcessing ? (
                     <div className="flex items-center gap-2">
                       <div className="w-4 h-4 border-2 border-neutral-950 border-t-transparent rounded-full animate-spin" />
-                      <span>Opening Razorpay Secure Gateway...</span>
+                      <span>{translateUI("Opening Razorpay Secure Gateway...")}</span>
                     </div>
                   ) : (
                     <>
                       <CreditCard className="w-4 h-4" />
-                      <span>Pay ₹{finalTotal.toLocaleString('en-IN')} via Razorpay</span>
+                      <span>{translateUI("Pay ₹")}{finalTotal.toLocaleString('en-IN')}{translateUI("via Razorpay")}</span>
                       <ArrowRight className="w-4 h-4" />
                     </>
                   )}
@@ -1093,7 +1044,7 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
 
                 <div className="flex items-center justify-center gap-2 text-[11px] text-neutral-400 pt-1">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Instant Verification & Portal Activation</span>
+                  <span>{translateUI("Instant Verification & Portal Activation")}</span>
                 </div>
 
                 {/* Direct link for students who already paid via Razorpay */}
@@ -1104,52 +1055,42 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
                     className="w-full py-2.5 px-3 rounded-xl bg-neutral-900/90 hover:bg-neutral-800 border border-neutral-700 text-neutral-300 hover:text-white text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
                   >
                     <ShieldCheck className="w-3.5 h-3.5 text-orange-400" />
-                    <span>Already completed Razorpay payment? Submit Verification Details</span>
+                    <span>{translateUI("Already completed Razorpay payment? Submit Verification Details")}</span>
                   </button>
                 </div>
 
                 {/* Razorpay Compliance Policy Links */}
                 <div className="pt-2 border-t border-neutral-800 text-[10px] text-neutral-400 flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
-                  <span>By paying, you agree to our:</span>
+                  <span>{translateUI("By paying, you agree to our:")}</span>
                   <button
                     type="button"
                     onClick={() => onOpenPolicyModal?.('terms')}
                     className="text-neutral-300 hover:text-white underline cursor-pointer"
-                  >
-                    Terms
-                  </button>
+                  >{translateUI("Terms")}</button>
                   <span>•</span>
                   <button
                     type="button"
                     onClick={() => onOpenPolicyModal?.('privacy')}
                     className="text-neutral-300 hover:text-white underline cursor-pointer"
-                  >
-                    Privacy
-                  </button>
+                  >{translateUI("Privacy")}</button>
                   <span>•</span>
                   <button
                     type="button"
                     onClick={() => onOpenPolicyModal?.('refund')}
                     className="text-neutral-300 hover:text-white underline cursor-pointer"
-                  >
-                    Refund Policy
-                  </button>
+                  >{translateUI("Refund Policy")}</button>
                   <span>•</span>
                   <button
                     type="button"
                     onClick={() => onOpenPolicyModal?.('pricing')}
                     className="text-neutral-300 hover:text-white underline cursor-pointer"
-                  >
-                    Pricing
-                  </button>
+                  >{translateUI("Pricing")}</button>
                   <span>•</span>
                   <button
                     type="button"
                     onClick={() => onOpenPolicyModal?.('shipping')}
                     className="text-neutral-300 hover:text-white underline cursor-pointer"
-                  >
-                    Shipping
-                  </button>
+                  >{translateUI("Shipping")}</button>
                 </div>
               </form>
             </div>

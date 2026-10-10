@@ -1,3 +1,4 @@
+import { useLanguage } from '../context/LanguageContext';
 import { useState } from 'react';
 import { X, CheckCircle2, Clock, Globe, Calendar, Award, ChevronDown, ChevronUp, Sparkles, Shield, User, Play, ExternalLink, MessageCircle, Share2, Copy, Check, Tv, Radio } from 'lucide-react';
 import { Course, CartItem } from '../types';
@@ -12,6 +13,8 @@ interface CourseModalProps {
 }
 
 export default function CourseModal({ course, onClose, onAddToCart, isCoursePage = false }: CourseModalProps) {
+  const { t: translateUI } = useLanguage();
+
   const [activeVideoIndex, setActiveVideoIndex] = useState<number>(0);
   const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
   const [copiedQuickLink, setCopiedQuickLink] = useState<boolean>(false);
@@ -95,10 +98,10 @@ export default function CourseModal({ course, onClose, onAddToCart, isCoursePage
               type="button"
               onClick={() => setIsShareModalOpen(true)}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-neutral-200 text-xs font-semibold transition-colors cursor-pointer"
-              title="Share Course Link & Social Media"
+              title={translateUI("Share Course Link & Social Media")}
             >
               <Share2 className="w-3.5 h-3.5 text-orange-400" />
-              <span>Share</span>
+              <span>{translateUI("Share")}</span>
             </button>
 
             <button
@@ -109,17 +112,17 @@ export default function CourseModal({ course, onClose, onAddToCart, isCoursePage
                   ? 'bg-emerald-950/80 border-emerald-600 text-emerald-300'
                   : 'bg-neutral-900 hover:bg-neutral-800 border-neutral-700 text-neutral-300'
               }`}
-              title="Copy Course Link"
+              title={translateUI("Copy Course Link")}
             >
               {copiedQuickLink ? (
                 <>
                   <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-emerald-400">Copied!</span>
+                  <span className="text-emerald-400">{translateUI("Copied!")}</span>
                 </>
               ) : (
                 <>
                   <Copy className="w-3.5 h-3.5 text-neutral-400" />
-                  <span className="hidden sm:inline">Copy Link</span>
+                  <span className="hidden sm:inline">{translateUI("Copy Link")}</span>
                 </>
               )}
             </button>
@@ -128,7 +131,7 @@ export default function CourseModal({ course, onClose, onAddToCart, isCoursePage
               type="button"
               onClick={onClose}
               className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors cursor-pointer"
-              aria-label="Close modal"
+              aria-label={translateUI("Close modal")}
             >
               <X className="w-5 h-5" />
             </button>
@@ -144,7 +147,7 @@ export default function CourseModal({ course, onClose, onAddToCart, isCoursePage
               <div className="relative aspect-21/9 sm:aspect-16/6 w-full rounded-xl overflow-hidden bg-neutral-900 border border-neutral-800 shadow-lg">
                 <img
                   src={course.thumbnail}
-                  alt={course.title}
+                  alt={translateUI(course.title)}
                   className="w-full h-full object-cover"
                   referrerPolicy="no-referrer"
                   onError={(e) => {
@@ -175,37 +178,35 @@ export default function CourseModal({ course, onClose, onAddToCart, isCoursePage
             )}
 
             <CourseHeading className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight">
-              {course.title}
+              {translateUI(course.title)}
             </CourseHeading>
             <p className="text-sm sm:text-base text-neutral-300 leading-relaxed">
-              {course.subtitle}
+              {translateUI(course.subtitle)}
             </p>
 
             {/* Quick Metadata Bar */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-xl bg-neutral-900 border border-neutral-800 text-xs">
               <div>
-                <span className="text-neutral-500 block">Total Duration</span>
+                <span className="text-neutral-500 block">{translateUI("Total Duration")}</span>
                 <span className="font-semibold text-white mt-0.5 flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5 text-amber-400" />
                   {course.duration}
                 </span>
               </div>
               <div>
-                <span className="text-neutral-500 block">Delivery Medium</span>
+                <span className="text-neutral-500 block">{translateUI("Delivery Medium")}</span>
                 <span className="font-semibold text-white mt-0.5 flex items-center gap-1">
                   <Globe className="w-3.5 h-3.5 text-blue-400" />
                   {course.language}
                 </span>
               </div>
               <div>
-                <span className="text-neutral-500 block">Course Access</span>
+                <span className="text-neutral-500 block">{translateUI("Course Access")}</span>
                 <span className="font-semibold text-emerald-400 mt-0.5 flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                  Instant • Self-Paced
-                </span>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />{translateUI("Instant • Self-Paced")}</span>
               </div>
               <div>
-                <span className="text-neutral-500 block">Certification</span>
+                <span className="text-neutral-500 block">{translateUI("Certification")}</span>
                 <span className="font-semibold text-emerald-400 mt-0.5 flex items-center gap-1">
                   <Award className="w-3.5 h-3.5 text-emerald-400" />
                   {course.officialSyllabusUrl ? 'Foundation Learning' : 'Official Certificate'}
@@ -218,22 +219,19 @@ export default function CourseModal({ course, onClose, onAddToCart, isCoursePage
               <div className="flex flex-wrap items-center justify-between gap-2 px-1">
                 <div className="flex items-center gap-2">
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-600/15 text-red-400 border border-red-500/30 text-xs font-bold">
-                    <Tv className="w-3.5 h-3.5 text-red-400" />
-                    Curated YouTube Previews ({courseVideos.length})
+                    <Tv className="w-3.5 h-3.5 text-red-400" />{translateUI("Curated YouTube Previews (")}{courseVideos.length})
                   </span>
-                  <span className="text-xs text-neutral-400 hidden sm:inline">Independent educator previews selected for this syllabus</span>
+                  <span className="text-xs text-neutral-400 hidden sm:inline">{translateUI("Independent educator previews selected for this syllabus")}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded">
-                    YouTube Embed
-                  </span>
+                  <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded">{translateUI("YouTube Embed")}</span>
                   <button
                     type="button"
                     onClick={() => setIsShareModalOpen(true)}
                     className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-xs text-neutral-300 transition-colors cursor-pointer"
                   >
                     <Share2 className="w-3 h-3 text-orange-400" />
-                    <span>Share</span>
+                    <span>{translateUI("Share")}</span>
                   </button>
                 </div>
               </div>
@@ -276,7 +274,7 @@ export default function CourseModal({ course, onClose, onAddToCart, isCoursePage
                       className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-semibold shadow transition-colors cursor-pointer"
                     >
                       <Play className="w-3 h-3 fill-current" />
-                      <span>Watch on YouTube</span>
+                      <span>{translateUI("Watch on YouTube")}</span>
                       <ExternalLink className="w-3 h-3 opacity-80" />
                     </a>
                   </div>
@@ -289,9 +287,7 @@ export default function CourseModal({ course, onClose, onAddToCart, isCoursePage
                   <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
                     {activeVideo.description}
                   </p>
-                  <p className="text-[10px] text-neutral-500 mt-2">
-                    Preview source: {activeVideo.company}. This public YouTube video is provided for course evaluation; enrolled materials and support are delivered by NextClasses.in.
-                  </p>
+                  <p className="text-[10px] text-neutral-500 mt-2">{translateUI("Preview source:")}{activeVideo.company}{translateUI(". This public YouTube video is provided for course evaluation; enrolled materials and support are delivered by NextClasses.in.")}</p>
                 </div>
               </div>
 
@@ -299,10 +295,9 @@ export default function CourseModal({ course, onClose, onAddToCart, isCoursePage
               <div className="space-y-2.5 pt-1">
                 <div className="flex items-center justify-between px-1">
                   <span className="text-xs font-bold uppercase tracking-wider text-neutral-300 flex items-center gap-1.5">
-                    <Play className="w-3.5 h-3.5 text-orange-400 fill-orange-400" />
-                    Free Course Preview Library ({courseVideos.length})
+                    <Play className="w-3.5 h-3.5 text-orange-400 fill-orange-400" />{translateUI("Free Course Preview Library (")}{courseVideos.length})
                   </span>
-                  <span className="text-[11px] text-neutral-400">Click to switch lesson</span>
+                  <span className="text-[11px] text-neutral-400">{translateUI("Click to switch lesson")}</span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -346,9 +341,7 @@ export default function CourseModal({ course, onClose, onAddToCart, isCoursePage
                             {video.title}
                           </h5>
                           {isActive && (
-                            <span className="inline-block text-[10px] font-bold text-emerald-400 mt-1">
-                              ● Now Playing in Player Above
-                            </span>
+                            <span className="inline-block text-[10px] font-bold text-emerald-400 mt-1">{translateUI("● Now Playing in Player Above")}</span>
                           )}
                         </div>
                       </button>
@@ -357,7 +350,7 @@ export default function CourseModal({ course, onClose, onAddToCart, isCoursePage
                 </div>
               </div>
             </div>}
-            {course.officialSyllabusUrl && <p className="text-sm text-neutral-300">Start with your foundation study pack and AI mentor. <a className="text-amber-400 underline" href={course.officialSyllabusUrl} target="_blank" rel="noopener noreferrer">Check official syllabus and notifications</a>. Optional subjects, post-specific Mains and unannounced exam dates are not included.</p>}
+            {course.officialSyllabusUrl && <p className="text-sm text-neutral-300">{translateUI("Start with your foundation study pack and AI mentor.")}<a className="text-amber-400 underline" href={course.officialSyllabusUrl} target="_blank" rel="noopener noreferrer">{translateUI("Check official syllabus and notifications")}</a>{translateUI(". Optional subjects, post-specific Mains and unannounced exam dates are not included.")}</p>}
           </div>
 
           {/* Tools Covered */}
@@ -381,12 +374,11 @@ export default function CourseModal({ course, onClose, onAddToCart, isCoursePage
           <div className="pt-6 space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-bold text-white tracking-tight">Complete Course Curriculum</h3>
+                <h3 className="text-lg font-bold text-white tracking-tight">{translateUI("Complete Course Curriculum")}</h3>
                 <p className="text-xs text-neutral-400">{course.officialSyllabusUrl ? 'Suggested study topics for a self-paced foundation plan.' : 'Structured step-by-step from zero foundations to live capstone implementation.'}</p>
               </div>
               <span className="text-xs font-mono text-neutral-500 hidden sm:inline">
-                {course.curriculum.length} Modules
-              </span>
+                {course.curriculum.length}{translateUI("Modules")}</span>
             </div>
 
             <div className="space-y-3">
@@ -412,7 +404,7 @@ export default function CourseModal({ course, onClose, onAddToCart, isCoursePage
                             {mod.title}
                           </span>
                           <span className="text-[11px] text-neutral-400">
-                            {mod.lessons.length} Lessons • {mod.duration}
+                            {mod.lessons.length}{translateUI("Lessons •")}{mod.duration}
                           </span>
                         </div>
                       </div>
@@ -446,7 +438,7 @@ export default function CourseModal({ course, onClose, onAddToCart, isCoursePage
           {/* Target Audience & Inclusions */}
           <div className="pt-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-400">Who This Course Is For</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-400">{translateUI("Who This Course Is For")}</h4>
               <ul className="space-y-1.5 text-xs text-neutral-300">
                 {course.targetAudience.map((item, i) => (
                   <li key={i} className="flex items-start gap-2">
@@ -458,7 +450,7 @@ export default function CourseModal({ course, onClose, onAddToCart, isCoursePage
             </div>
 
             <div className="space-y-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-400">Everything Included</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-400">{translateUI("Everything Included")}</h4>
               <ul className="space-y-1.5 text-xs text-neutral-300">
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
@@ -490,8 +482,7 @@ export default function CourseModal({ course, onClose, onAddToCart, isCoursePage
               <span className="text-sm line-through text-neutral-500">₹{course.originalPrice}</span>
               {discountPercent > 0 && (
                 <span className="text-xs font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800">
-                  {discountPercent}% OFF
-                </span>
+                  {discountPercent}{translateUI("% OFF")}</span>
               )}
             </div>
             <span className="text-[11px] text-neutral-400">{course.officialSyllabusUrl ? 'Foundation study pack + AI mentor support' : 'No hidden fees • Full course + Certificate'}</span>
@@ -502,20 +493,20 @@ export default function CourseModal({ course, onClose, onAddToCart, isCoursePage
               type="button"
               onClick={() => setIsShareModalOpen(true)}
               className="inline-flex items-center gap-1.5 px-3.5 py-3 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-neutral-200 text-xs font-semibold transition-colors cursor-pointer"
-              title="Share Course Link & Social Media"
+              title={translateUI("Share Course Link & Social Media")}
             >
               <Share2 className="w-4 h-4 text-orange-400" />
-              <span className="hidden sm:inline">Share</span>
+              <span className="hidden sm:inline">{translateUI("Share")}</span>
             </button>
             <a
-              href={`https://wa.me/918792134951?text=${encodeURIComponent(`Hi Nextclasses.in, I have questions about the "${course.title}" course.`)}`}
+              href={`https://wa.me/918792134951?text=${encodeURIComponent(`Hi Nextclasses.in, I have questions about the "${translateUI(course.title)}" course.`)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="hidden md:inline-flex items-center gap-1.5 px-3 py-3 rounded-xl bg-emerald-950/80 border border-emerald-800 text-emerald-400 hover:bg-emerald-900 text-xs font-semibold transition-colors"
-              title="Chat with Counselor on WhatsApp (+91 87921 34951)"
+              title={translateUI("Chat with Counselor on WhatsApp (+91 87921 34951)")}
             >
               <MessageCircle className="w-3.5 h-3.5" />
-              <span>Ask on WhatsApp</span>
+              <span>{translateUI("Ask on WhatsApp")}</span>
             </a>
             <button
               id="modal-enroll-now-btn"

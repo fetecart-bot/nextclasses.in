@@ -1,6 +1,9 @@
+import { useLanguage } from '../context/LanguageContext';
 import { Sparkles, Check, Globe, Code2, Users, Award, ShieldCheck, HeartHandshake } from 'lucide-react';
 
 export default function WhyNextClass() {
+  const { t: translateUI } = useLanguage();
+
   const pillars = [
     {
       id: 'pillar-jargon-free',
@@ -60,15 +63,9 @@ export default function WhyNextClass() {
         
         {/* Header */}
         <div className="max-w-3xl space-y-4 mb-16">
-          <span className="text-xs font-bold uppercase tracking-wider text-orange-400">
-            The Nextclasses.in Advantage
-          </span>
-          <h2 id="why-heading" className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white">
-            Why thousands of learners trust Nextclasses.in for their journey.
-          </h2>
-          <p className="text-neutral-400 text-sm sm:text-base leading-relaxed">
-            Most online tutorials are either too academic or overly superficial. We bridge the gap with hands-on, contextual learning that creates immediate productivity.
-          </p>
+          <span className="text-xs font-bold uppercase tracking-wider text-orange-400">{translateUI("The Nextclasses.in Advantage")}</span>
+          <h2 id="why-heading" className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white">{translateUI("Why thousands of learners trust Nextclasses.in for their journey.")}</h2>
+          <p className="text-neutral-400 text-sm sm:text-base leading-relaxed">{translateUI("Most online tutorials are either too academic or overly superficial. We bridge the gap with hands-on, contextual learning that creates immediate productivity.")}</p>
         </div>
 
         {/* 6-Grid Pillars */}
@@ -97,7 +94,7 @@ export default function WhyNextClass() {
 
                 <div className="pt-4 border-t border-neutral-800/60 flex items-center gap-2 text-xs text-emerald-400 font-medium">
                   <Check className="w-3.5 h-3.5" />
-                  <span>Guaranteed in every course</span>
+                  <span>{translateUI("Guaranteed in every course")}</span>
                 </div>
               </div>
             );

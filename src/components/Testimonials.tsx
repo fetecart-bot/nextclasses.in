@@ -1,3 +1,4 @@
+import { useLanguage } from '../context/LanguageContext';
 import { useEffect, useState } from 'react';
 import { CheckCircle2, Star } from 'lucide-react';
 
@@ -11,6 +12,8 @@ type PublishedReview = {
 };
 
 export default function Testimonials() {
+  const { t: translateUI } = useLanguage();
+
   const [reviews, setReviews] = useState<PublishedReview[]>([]);
 
   useEffect(() => {
@@ -24,16 +27,16 @@ export default function Testimonials() {
     <section id="testimonials" className="py-20 sm:py-28 bg-neutral-900 text-white border-b border-neutral-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto space-y-4 mb-12">
-          <span className="text-xs font-bold uppercase tracking-wider text-orange-400">Verified student reviews</span>
-          <h2 id="testimonials-heading" className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white">Experiences shared by enrolled learners</h2>
-          <p className="text-neutral-400 text-sm sm:text-base leading-relaxed">Every published review is submitted from an active student account and checked before appearing here.</p>
+          <span className="text-xs font-bold uppercase tracking-wider text-orange-400">{translateUI("Verified student reviews")}</span>
+          <h2 id="testimonials-heading" className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white">{translateUI("Experiences shared by enrolled learners")}</h2>
+          <p className="text-neutral-400 text-sm sm:text-base leading-relaxed">{translateUI("Every published review is submitted from an active student account and checked before appearing here.")}</p>
         </div>
 
         {reviews.length === 0 ? (
           <div className="max-w-2xl mx-auto rounded-2xl border border-neutral-800 bg-neutral-950 p-8 text-center">
             <Star className="w-8 h-8 text-orange-400 mx-auto mb-3" />
-            <h3 className="font-bold text-white">Verified reviews are opening soon</h3>
-            <p className="text-sm text-neutral-400 mt-2">Enrolled students can submit feedback from their portal. Approved reviews will appear here.</p>
+            <h3 className="font-bold text-white">{translateUI("Verified reviews are opening soon")}</h3>
+            <p className="text-sm text-neutral-400 mt-2">{translateUI("Enrolled students can submit feedback from their portal. Approved reviews will appear here.")}</p>
           </div>
         ) : (
           <div id="testimonials-grid" className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
@@ -53,9 +56,9 @@ export default function Testimonials() {
                   <div className="pt-4 border-t border-neutral-800/80 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-11 h-11 rounded-full bg-orange-600 text-white flex items-center justify-center font-black" aria-hidden="true">{initials}</div>
-                      <div><h4 className="font-bold text-white text-sm">{review.display_name}</h4><span className="text-xs text-neutral-400">Enrolled student</span></div>
+                      <div><h4 className="font-bold text-white text-sm">{review.display_name}</h4><span className="text-xs text-neutral-400">{translateUI("Enrolled student")}</span></div>
                     </div>
-                    <span className="text-[10px] text-emerald-400 font-medium flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5" />Verified learner</span>
+                    <span className="text-[10px] text-emerald-400 font-medium flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5" />{translateUI("Verified learner")}</span>
                   </div>
                 </article>
               );

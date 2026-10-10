@@ -1,5 +1,7 @@
+import LanguageSwitch from './LanguageSwitch';
+import { useLanguage } from '../context/LanguageContext';
 import { GRADUATE_EXAM_COURSES } from '../data/graduateExamCourses';
-import { useState, useEffect, useMemo, FormEvent } from 'react';
+import { useState, useEffect, useMemo, useRef, FormEvent } from 'react';
 import { 
   X, Play, CheckCircle2, Clock, Calendar, Download, Send, 
   Copy, Check, Award, Tv, ExternalLink, Target, 
@@ -9,12 +11,12 @@ import {
 import StudentBadges from './StudentBadges';
 import { useAuth } from '../context/AuthContext';
 import { MOCK_TESTS_DATA } from '../data/mockTestsData';
-import { downloadStudyMaterialFile, generateWhatsAppDispatchMessage, STUDY_MATERIALS_DATABASE } from '../utils/studyMaterialGenerator';
+import { downloadStudyMaterialFile, STUDY_MATERIALS_DATABASE } from '../utils/studyMaterialGenerator';
 import { COURSES_DATA } from '../data';
 import { PortalVideoLesson } from '../types';
 import { generateMailtoUrl } from '../utils/studentRegistry';
 import { COURSE_VIDEO_PLAYLISTS } from '../utils/courseVideos';
-import { getDailyStudyMaterial, downloadDailyStudyMaterial } from '../utils/dailyStudyMaterials';
+import { downloadDailyStudyMaterial } from '../utils/dailyStudyMaterials';
 import { CourseVoiceDoubtBot } from './CourseVoiceDoubtBot';
 import StudentReviewForm from './StudentReviewForm';
 
@@ -2177,6 +2179,8 @@ export default function StudentPortalModal({
   onLaunchMockTest,
   initialCourseId = 'course-aissee-sainik-6',
 }: StudentPortalModalProps) {
+  const { t: translateUI, currentLanguage } = useLanguage();
+
   const { user, loginWithCredentials, logout, setStudentStandard } = useAuth();
 
   // Login form state for unauthenticated visitors
@@ -2240,30 +2244,37 @@ export default function StudentPortalModal({
   const weeksLeft = calculateWeeksToExam(daysLeft);
 
   const currentLesson = effectiveVideos.find((l) => l.id === activeVideoId) || effectiveVideos[0];
-  const dailyMaterial = useMemo(() => getDailyStudyMaterial(selectedCourseId), [selectedCourseId]);
+  const materialRequestRef = useRef(0);
   const [cloudDailyMaterials, setCloudDailyMaterials] = useState<PortalDailyMaterial[]>([]);
   const [completedMaterialIds, setCompletedMaterialIds] = useState<string[]>([]);
   const [cloudMaterialLoading, setCloudMaterialLoading] = useState(false);
+  const [cloudMaterialError, setCloudMaterialError] = useState<string | null>(null);
 
   const syncCloudMaterials = async (action?: 'opened' | 'completed', materialId?: string) => {
     if (!user?.password || !(user.username || user.email)) return;
+    const requestId = ++materialRequestRef.current;
     setCloudMaterialLoading(true);
+    setCloudMaterialError(null);
     try {
       const response = await fetch('/api/daily-materials', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifier: user.username || user.email, password: user.password, courseId: selectedCourseId, action, materialId }),
       });
       const payload = await response.json().catch(() => ({}));
+      if (requestId !== materialRequestRef.current) return;
       if (!response.ok) throw new Error(payload.error || 'Unable to load daily materials');
       setCloudDailyMaterials((payload.materials || []).map((item: any) => ({ id: item.id, date: item.material_date, title: item.title, focus: item.focus, lesson: item.lesson || [], practice: item.practice || [], answers: item.answers || [] })));
       setCompletedMaterialIds((payload.progress || []).filter((item: any) => item.completed_at).map((item: any) => item.material_id));
     } catch {
-      setCloudDailyMaterials([]);
-    } finally { setCloudMaterialLoading(false); }
+      if (requestId !== materialRequestRef.current) return;
+      setCloudMaterialError('We could not load your published lessons. Please try again.');
+    } finally { if (requestId === materialRequestRef.current) setCloudMaterialLoading(false); }
   };
 
   useEffect(() => {
+    setCloudDailyMaterials([]);
     if (user) syncCloudMaterials();
+    return () => { materialRequestRef.current++; };
   }, [user?.id, user?.password, selectedCourseId]);
 
   useEffect(() => {
@@ -2271,7 +2282,7 @@ export default function StudentPortalModal({
     if (activeTab === 'daily' && newest?.id) syncCloudMaterials('opened', newest.id);
   }, [activeTab, cloudDailyMaterials[0]?.id]);
 
-  const visibleDailyMaterials: PortalDailyMaterial[] = cloudDailyMaterials.length ? cloudDailyMaterials : [dailyMaterial];
+  const visibleDailyMaterials: PortalDailyMaterial[] = cloudDailyMaterials;
 
   const handleCopy = (text: string, index: number) => {
     navigator.clipboard?.writeText(text);
@@ -2281,37 +2292,13 @@ export default function StudentPortalModal({
 
   const handleDownloadFullStudyPack = () => {
     downloadStudyMaterialFile(selectedCourseId, studentName);
-    setDownloadNotice(`✓ Downloaded complete ${currentCurriculum.courseTitle} Study Pack (PDF)!`);
+    setDownloadNotice(`✓ Downloaded complete ${translateUI(currentCurriculum.courseTitle)} Study Pack (PDF)!`);
     setTimeout(() => setDownloadNotice(null), 3500);
   };
 
-  const handleSendToWhatsApp = async (pkgTitle?: string) => {
-    setIsSendingWhatsApp(true);
-    const targetPhone = user?.phone?.replace(/[^0-9]/g, '') || '8792134951';
-    const cleanPhone = targetPhone.length === 10 ? `91${targetPhone}` : targetPhone;
-    const customMessage = generateWhatsAppDispatchMessage(studentName, selectedCourseId, cleanPhone);
-
-    try {
-      await fetch('/api/whatsapp/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          phone: cleanPhone,
-          recipientName: studentName,
-          messageType: 'weekly_drop',
-          customMessage,
-        }),
-      });
-
-      setDownloadNotice(`✓ Opening WhatsApp with your study pack links...`);
-      window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(customMessage)}`, '_blank');
-      setTimeout(() => setDownloadNotice(null), 4000);
-    } catch {
-      window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(customMessage)}`, '_blank');
-      setTimeout(() => setDownloadNotice(null), 4000);
-    } finally {
-      setIsSendingWhatsApp(false);
-    }
+  const handleSendToWhatsApp = (pkgTitle?: string) => {
+    const message = `Hello NextClasses, I need help with ${translateUI(currentCurriculum.courseTitle)}${pkgTitle ? ` — ${pkgTitle}` : ''}. Please help me access my study materials.`;
+    window.open(`https://wa.me/918792134951?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
   };
 
   const handlePortalLogin = async (e?: FormEvent) => {
@@ -2351,7 +2338,7 @@ export default function StudentPortalModal({
   }, [selectedCourseId, user?.standard, isGraduateExam, currentCurriculum.examCode]);
 
   if (user && (!selectedCourseId || !COURSE_CURRICULUMS[selectedCourseId] || !user.enrolledCourseIds.includes(selectedCourseId))) {
-    return <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4"><section className="rounded-2xl bg-neutral-900 p-6 text-white max-w-md"><h2 className="font-bold text-lg">Course assignment needs review</h2><p className="mt-3">We could not verify an available course for this account. Please contact NextClasses so we can correct the assignment.</p><a className="block mt-4 text-orange-400" href="https://wa.me/918792134951">Contact support</a><button onClick={onClose} className="block mt-4">Close portal</button></section></div>;
+    return <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4"><section className="rounded-2xl bg-neutral-900 p-6 text-white max-w-md"><h2 className="font-bold text-lg">{translateUI("Course assignment needs review")}</h2><p className="mt-3">{translateUI("We could not verify an available course for this account. Please contact NextClasses so we can correct the assignment.")}</p><a className="block mt-4 text-orange-400" href="https://wa.me/918792134951">{translateUI("Contact support")}</a><button onClick={onClose} className="block mt-4">{translateUI("Close portal")}</button></section></div>;
   }
 
   // UN-AUTHENTICATED STATE: SHOW SECURE LOGIN GATE
@@ -2369,15 +2356,15 @@ export default function StudentPortalModal({
                 NC
               </div>
               <div>
-                <h3 className="text-sm font-extrabold text-white leading-tight">Student Learning Portal</h3>
-                <p className="text-[11px] text-neutral-400">Nextclasses.in Academy</p>
+                <h3 className="text-sm font-extrabold text-white leading-tight">{translateUI("Student Learning Portal")}</h3>
+                <p className="text-[11px] text-neutral-400">{translateUI("Nextclasses.in Academy")}</p>
               </div>
             </div>
             <button
               type="button"
               onClick={onClose}
               className="p-1.5 rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors cursor-pointer"
-              aria-label="Close"
+              aria-label={translateUI("Close")}
             >
               <X className="w-5 h-5" />
             </button>
@@ -2389,10 +2376,8 @@ export default function StudentPortalModal({
               <div className="w-12 h-12 rounded-2xl bg-orange-500/10 border border-orange-500/30 flex items-center justify-center mx-auto text-orange-400">
                 <Lock className="w-6 h-6" />
               </div>
-              <h4 className="text-lg font-black text-white">Sign In to Student Portal</h4>
-              <p className="text-xs text-neutral-300 max-w-xs mx-auto">
-                Access study materials, formula sheets, CBT mock tests, and Sunday dispatches.
-              </p>
+              <h4 className="text-lg font-black text-white">{translateUI("Sign In to Student Portal")}</h4>
+              <p className="text-xs text-neutral-300 max-w-xs mx-auto">{translateUI("Access study materials, formula sheets, CBT mock tests, and Sunday dispatches.")}</p>
             </div>
 
             {/* Login Form */}
@@ -2401,7 +2386,7 @@ export default function StudentPortalModal({
               <div>
                 <label htmlFor="portal-login-course-select" className="text-[11px] font-bold text-neutral-300 uppercase tracking-wider block mb-1.5 flex items-center gap-1.5">
                   <BookOpen className="w-3.5 h-3.5 text-orange-400" />
-                  <span>Select Enrolled Course</span>
+                  <span>{translateUI("Select Enrolled Course")}</span>
                 </label>
                 <select
                   id="portal-login-course-select"
@@ -2414,23 +2399,21 @@ export default function StudentPortalModal({
                 >
                   {COURSES_DATA.map((course) => (
                     <option key={course.id} value={course.id} className="bg-[#0b101b] text-white">
-                      {course.title}
+                      {translateUI(course.title)}
                     </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-neutral-300 uppercase tracking-wider block mb-1">
-                  Username or Registered Email
-                </label>
+                <label className="text-[11px] font-bold text-neutral-300 uppercase tracking-wider block mb-1">{translateUI("Username or Registered Email")}</label>
                 <div className="relative">
                   <KeyRound className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     value={loginIdentifier}
                     onChange={(e) => setLoginIdentifier(e.target.value)}
-                    placeholder="Enter your username or registered email"
+                    placeholder={translateUI("Enter your username or registered email")}
                     className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-neutral-900/90 border border-neutral-800 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-orange-500 transition-colors font-mono"
                     required
                   />
@@ -2438,9 +2421,7 @@ export default function StudentPortalModal({
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-neutral-300 uppercase tracking-wider block mb-1">
-                  Access Password
-                </label>
+                <label className="text-[11px] font-bold text-neutral-300 uppercase tracking-wider block mb-1">{translateUI("Access Password")}</label>
                 <div className="relative">
                   <Lock className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
@@ -2473,22 +2454,19 @@ export default function StudentPortalModal({
                 className="w-full py-3 rounded-xl bg-orange-500 hover:bg-orange-400 text-neutral-950 font-extrabold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-orange-500/20 cursor-pointer disabled:opacity-50"
               >
                 {isLoggingIn ? <Loader2 className="w-4 h-4 animate-spin text-neutral-950" /> : <Lock className="w-4 h-4 text-neutral-950" />}
-                <span>Sign In to Student Portal</span>
+                <span>{translateUI("Sign In to Student Portal")}</span>
               </button>
             </form>
 
             {/* Info for new enrollments */}
             <div className="p-3 rounded-2xl bg-neutral-900/60 border border-neutral-800 text-[11px] text-neutral-400 text-center space-y-1">
               <p>
-                💡 <strong className="text-neutral-200">Just paid via UPI QR Code?</strong> Your personal username and password were generated and sent to your email & phone.
-              </p>
+                💡 <strong className="text-neutral-200">{translateUI("Just paid via UPI QR Code?")}</strong>{translateUI("Your personal username and password were generated and sent to your email & phone.")}</p>
               <button
                 type="button"
                 onClick={onClose}
                 className="text-orange-400 hover:underline font-bold"
-              >
-                Scan UPI QR Code on Homepage &rarr;
-              </button>
+              >{translateUI("Scan UPI QR Code on Homepage &rarr;")}</button>
             </div>
           </div>
         </div>
@@ -2511,13 +2489,11 @@ export default function StudentPortalModal({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-extrabold text-sm text-white">Nextclasses.in Student Learning Portal</span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">
-                  Enrolled & Active
-                </span>
+                <span className="font-extrabold text-sm text-white">{translateUI("Nextclasses.in Student Learning Portal")}</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">{translateUI("Enrolled & Active")}</span>
               </div>
               <p className="text-[11px] text-neutral-400 flex items-center gap-1.5 flex-wrap">
-                <span>Student: <strong className="text-white">{user?.name || studentName}</strong></span>
+                <span>{translateUI("Student:")}<strong className="text-white">{user?.name || studentName}</strong></span>
                 {user?.username && (
                   <span className="font-mono text-sky-400 text-[10px] bg-sky-950/60 px-1.5 py-0.5 rounded border border-sky-800/60">
                     @{user.username}
@@ -2532,33 +2508,34 @@ export default function StudentPortalModal({
                     {user.standard === 'class-9' ? 'Class 9 (400 Marks)' : 'Class 6 (300 Marks)'}
                   </span>
                 )}
-                <span>• Goal: <strong className="text-amber-400">{currentCurriculum.examCode}</strong></span>
+                <span>{translateUI("• Goal:")}<strong className="text-amber-400">{currentCurriculum.examCode}</strong></span>
               </p>
             </div>
           </div>
 
+          <LanguageSwitch />
           {/* Quick Header Action Buttons */}
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => setIsVoiceMentorOpen(true)}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:opacity-90 text-neutral-950 text-xs font-black transition-all shadow-md shadow-orange-500/20 cursor-pointer"
-              title="Ask your course mentor by voice or text"
+              title={translateUI("Ask your course mentor by voice or text")}
             >
               <Mic className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Course Voice Mentor</span>
-              <span className="sm:hidden">Mentor</span>
+              <span className="hidden sm:inline">{translateUI("Course Voice Mentor")}</span>
+              <span className="sm:hidden">{translateUI("Mentor")}</span>
             </button>
             {/* Direct Study Material Download Button */}
             <button
               type="button"
               onClick={handleDownloadFullStudyPack}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-500 hover:bg-orange-400 text-neutral-950 text-xs font-extrabold transition-all shadow-md shadow-orange-500/20 cursor-pointer"
-              title="Download printable study guide, syllabus & formula sheets"
+              title={translateUI("Download printable study guide, syllabus & formula sheets")}
             >
               <Download className="w-3.5 h-3.5 text-neutral-950" />
-              <span className="hidden sm:inline">Download Study Pack (PDF)</span>
-              <span className="sm:hidden">PDF</span>
+              <span className="hidden sm:inline">{translateUI("Download Study Pack (PDF)")}</span>
+              <span className="sm:hidden">{translateUI("PDF")}</span>
             </button>
 
             {/* Direct WhatsApp Dispatch Button */}
@@ -2567,10 +2544,10 @@ export default function StudentPortalModal({
               onClick={() => handleSendToWhatsApp()}
               disabled={isSendingWhatsApp}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-md shadow-emerald-600/20 cursor-pointer disabled:opacity-50"
-              title="Send study links directly to WhatsApp"
+              title="Contact NextClasses on WhatsApp"
             >
               {isSendingWhatsApp ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <MessageCircle className="w-3.5 h-3.5" />}
-              <span className="hidden sm:inline">WhatsApp Links</span>
+              <span className="hidden sm:inline">{translateUI("WhatsApp Support")}</span>
             </button>
 
             {/* Logout / Switch Account */}
@@ -2578,17 +2555,17 @@ export default function StudentPortalModal({
               type="button"
               onClick={logout}
               className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white text-xs font-semibold border border-neutral-800 transition-colors cursor-pointer"
-              title="Sign out of student account"
+              title={translateUI("Sign out of student account")}
             >
               <LogOut className="w-3.5 h-3.5 text-neutral-400" />
-              <span className="hidden sm:inline">Sign Out</span>
+              <span className="hidden sm:inline">{translateUI("Sign Out")}</span>
             </button>
 
             <button
               type="button"
               onClick={onClose}
               className="p-1.5 rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors cursor-pointer"
-              aria-label="Close portal"
+              aria-label={translateUI("Close portal")}
             >
               <X className="w-5 h-5" />
             </button>
@@ -2599,7 +2576,7 @@ export default function StudentPortalModal({
         <div className="px-5 py-2.5 bg-[#0b1220] border-b border-[#1a2336] flex flex-wrap items-center justify-between gap-2.5">
           <div className="flex items-center gap-2 text-xs flex-wrap">
             <BookOpen className="w-4 h-4 text-orange-400 shrink-0" />
-            <span className="font-semibold text-neutral-300">Active Course:</span>
+            <span className="font-semibold text-neutral-300">{translateUI("Active Course:")}</span>
             <select
               value={selectedCourseId}
               onChange={(e) => {
@@ -2625,7 +2602,7 @@ export default function StudentPortalModal({
             {/* Quick Standard Toggle for Sainik School aspirants */}
             {selectedCourseId.includes('sainik') && (
               <div className="flex items-center gap-1 bg-[#141d2d] px-2 py-1 rounded-lg border border-[#263750]">
-                <span className="text-[11px] text-neutral-400 font-semibold mr-1">Standard:</span>
+                <span className="text-[11px] text-neutral-400 font-semibold mr-1">{translateUI("Standard:")}</span>
                 <button
                   type="button"
                   id="portal-toggle-class6-btn"
@@ -2639,9 +2616,7 @@ export default function StudentPortalModal({
                       ? 'bg-orange-500 text-neutral-950 shadow-sm'
                       : 'text-neutral-400 hover:text-white'
                   }`}
-                >
-                  Class 6 (300M)
-                </button>
+                >{translateUI("Class 6 (300M)")}</button>
                 <button
                   type="button"
                   id="portal-toggle-class9-btn"
@@ -2655,9 +2630,7 @@ export default function StudentPortalModal({
                       ? 'bg-orange-500 text-neutral-950 shadow-sm'
                       : 'text-neutral-400 hover:text-white'
                   }`}
-                >
-                  Class 9 (400M)
-                </button>
+                >{translateUI("Class 9 (400M)")}</button>
               </div>
             )}
           </div>
@@ -2666,7 +2639,7 @@ export default function StudentPortalModal({
             <div className="px-2.5 py-1 rounded-lg bg-[#141d2d] border border-[#263750] text-[11px] text-neutral-300 flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5 text-amber-400" />
               <span>
-                {!isExamCourse ? 'Learn at your own pace' : !targetDate || isGraduateExam ? 'Study plan • Check official exam dates' : <><strong className="text-white">{daysLeft}</strong> days to exam (<strong className="text-amber-400">{weeksLeft}</strong> study drops)</>}
+                {!isExamCourse ? 'Learn at your own pace' : !targetDate || isGraduateExam ? 'Study plan • Check official exam dates' : <><strong className="text-white">{daysLeft}</strong>{translateUI("days to exam (")}<strong className="text-amber-400">{weeksLeft}</strong>{translateUI("study drops)")}</>}
               </span>
             </div>
           </div>
@@ -2682,8 +2655,7 @@ export default function StudentPortalModal({
                 ? 'border-orange-500 text-white'
                 : 'border-transparent text-neutral-400 hover:text-neutral-200'
             }`}
-          >
-            Video Masterclasses ({effectiveVideos.length})
+          >{translateUI("Video Masterclasses (")}{effectiveVideos.length})
           </button>
           <button
             type="button"
@@ -2695,8 +2667,8 @@ export default function StudentPortalModal({
             }`}
           >
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            <span>Today’s Study Material</span>
-            <span className="px-1.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px]">New Today</span>
+            <span>{translateUI("Today’s Study Material")}</span>
+            <span className="px-1.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px]">{translateUI("New Today")}</span>
           </button>
           <button
             type="button"
@@ -2707,8 +2679,8 @@ export default function StudentPortalModal({
                 : 'border-transparent text-neutral-400 hover:text-neutral-200'
             }`}
           >
-            <span>Weekly Study Packs</span>
-            <span className="px-1.5 py-0.2 rounded-full bg-orange-500/20 text-orange-400 text-[10px]">Active Drops</span>
+            <span>{translateUI("Weekly Study Packs")}</span>
+            <span className="px-1.5 py-0.2 rounded-full bg-orange-500/20 text-orange-400 text-[10px]">{translateUI("Active Drops")}</span>
           </button>
           <button
             type="button"
@@ -2719,8 +2691,8 @@ export default function StudentPortalModal({
                 : 'border-transparent text-neutral-400 hover:text-neutral-200'
             }`}
           >
-            <span>Mock Tests (CBT)</span>
-            <span className="px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px]">Live Exam</span>
+            <span>{translateUI("Mock Tests (CBT)")}</span>
+            <span className="px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px]">{translateUI("Live Exam")}</span>
           </button>
           <button
             type="button"
@@ -2732,8 +2704,8 @@ export default function StudentPortalModal({
             }`}
           >
             <Medal className="w-3.5 h-3.5 text-amber-400" />
-            <span>Badges & Honors</span>
-            <span className="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 text-[10px]">New</span>
+            <span>{translateUI("Badges & Honors")}</span>
+            <span className="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 text-[10px]">{translateUI("New")}</span>
           </button>
           <button
             type="button"
@@ -2743,9 +2715,7 @@ export default function StudentPortalModal({
                 ? 'border-orange-500 text-white'
                 : 'border-transparent text-neutral-400 hover:text-neutral-200'
             }`}
-          >
-            Formulas & Prompts
-          </button>
+          >{translateUI("Formulas & Prompts")}</button>
           <button
             type="button"
             onClick={() => setActiveTab('certificate')}
@@ -2754,9 +2724,7 @@ export default function StudentPortalModal({
                 ? 'border-orange-500 text-white'
                 : 'border-transparent text-neutral-400 hover:text-neutral-200'
             }`}
-          >
-            Verified Certificate
-          </button>
+          >{translateUI("Verified Certificate")}</button>
           <button
             type="button"
             onClick={() => setActiveTab('review')}
@@ -2766,9 +2734,7 @@ export default function StudentPortalModal({
                 : 'border-transparent text-neutral-400 hover:text-neutral-200'
             }`}
           >
-            <Star className="w-3.5 h-3.5 text-amber-400" />
-            Course Review
-          </button>
+            <Star className="w-3.5 h-3.5 text-amber-400" />{translateUI("Course Review")}</button>
         </div>
 
         {downloadNotice && (
@@ -2781,15 +2747,12 @@ export default function StudentPortalModal({
         <div className="mx-4 sm:mx-6 mt-4 p-4 rounded-2xl bg-gradient-to-r from-[#131d2e] via-[#0f172a] to-[#162035] border border-[#23354e] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-orange-400 uppercase tracking-wider">Your Enrolled Study Material Pack</span>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">
-                Unlocked for {user?.name || studentName}
+              <span className="text-xs font-bold text-orange-400 uppercase tracking-wider">{translateUI("Your Enrolled Study Material Pack")}</span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">{translateUI("Unlocked for")}{user?.name || studentName}
               </span>
             </div>
-            <h4 className="text-sm sm:text-base font-black text-white">{currentCurriculum.courseTitle}</h4>
-            <p className="text-xs text-neutral-300">
-              Course study guide, worked examples and practice activities for your enrolled course.
-            </p>
+            <h4 className="text-sm sm:text-base font-black text-white">{translateUI(currentCurriculum.courseTitle)}</h4>
+            <p className="text-xs text-neutral-300">{translateUI("Course study guide, worked examples and practice activities for your enrolled course.")}</p>
           </div>
 
           <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
@@ -2799,7 +2762,7 @@ export default function StudentPortalModal({
               className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-orange-500 hover:bg-orange-400 text-neutral-950 text-xs font-extrabold shadow-md transition-all cursor-pointer"
             >
               <Download className="w-3.5 h-3.5 text-neutral-950" />
-              <span>Download Study Pack (PDF)</span>
+              <span>{translateUI("Download Study Pack (PDF)")}</span>
             </button>
 
             <button
@@ -2808,7 +2771,7 @@ export default function StudentPortalModal({
               className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md transition-all cursor-pointer"
             >
               <MessageCircle className="w-3.5 h-3.5" />
-              <span>WhatsApp Links</span>
+              <span>{translateUI("WhatsApp Support")}</span>
             </button>
           </div>
         </div>
@@ -2817,7 +2780,10 @@ export default function StudentPortalModal({
         <div className="p-4 sm:p-6 overflow-y-auto flex-1">
           {activeTab === 'daily' && (
             <div className="max-w-4xl mx-auto space-y-5">
-              {cloudMaterialLoading && <div className="text-xs text-neutral-400 flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Checking for published materials…</div>}
+              {cloudMaterialLoading && <div className="text-xs text-neutral-400 flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" />{translateUI("Checking for published materials…")}</div>}
+              {cloudMaterialError && <div role="alert" className="p-4 rounded-xl border border-amber-500/40 text-amber-200">{cloudMaterialError}<button type="button" onClick={() => syncCloudMaterials()} className="ml-3 underline">{translateUI("Retry")}</button></div>}
+              {!cloudMaterialLoading && !cloudMaterialError && !visibleDailyMaterials.length && <p className="p-4 rounded-xl bg-neutral-900 text-neutral-300">{translateUI("Your next lesson is awaiting publication. Your complete course study pack remains available above.")}</p>}
+              <button type="button" disabled={cloudMaterialLoading} onClick={() => syncCloudMaterials()} className="text-sm text-orange-300 underline">{translateUI("Refresh published lessons")}</button>
               {visibleDailyMaterials.map((material, materialIndex) => (
                 <div key={material.id || material.date} className="space-y-5">
                   <div className="p-5 rounded-2xl bg-gradient-to-br from-orange-950/50 to-[#111827] border border-orange-500/30">
@@ -2828,15 +2794,14 @@ export default function StudentPortalModal({
                         <p className="text-sm text-neutral-300 mt-1">{material.focus}</p>
                       </div>
                       <button type="button" onClick={() => downloadDailyStudyMaterial({ ...material, id: material.id || `daily-${selectedCourseId}-${material.date}`, courseId: selectedCourseId, courseTitle: currentCurriculum.courseTitle, estimatedMinutes: 30 }, studentName)} className="px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-400 text-neutral-950 text-xs font-extrabold flex items-center justify-center gap-2 shrink-0">
-                        <Download className="w-4 h-4" /> Download Material
-                      </button>
+                        <Download className="w-4 h-4" />{translateUI("Download Material")}</button>
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <section className="p-5 rounded-2xl bg-[#111827] border border-[#233047]"><h4 className="font-extrabold text-white mb-3 flex items-center gap-2"><BookOpen className="w-4 h-4 text-orange-400" /> Lesson notes</h4><ul className="space-y-3 text-sm text-neutral-300">{material.lesson.map((item) => <li key={item} className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" /><span>{item}</span></li>)}</ul></section>
-                    <section className="p-5 rounded-2xl bg-[#111827] border border-[#233047]"><h4 className="font-extrabold text-white mb-3 flex items-center gap-2"><Target className="w-4 h-4 text-orange-400" /> Practice activity</h4><ol className="space-y-3 text-sm text-neutral-300 list-decimal pl-5">{material.practice.map((item) => <li key={item}>{item}</li>)}</ol></section>
+                    <section className="p-5 rounded-2xl bg-[#111827] border border-[#233047]"><h4 className="font-extrabold text-white mb-3 flex items-center gap-2"><BookOpen className="w-4 h-4 text-orange-400" />{translateUI("Lesson notes")}</h4><ul className="space-y-3 text-sm text-neutral-300">{material.lesson.map((item) => <li key={item} className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" /><span>{item}</span></li>)}</ul></section>
+                    <section className="p-5 rounded-2xl bg-[#111827] border border-[#233047]"><h4 className="font-extrabold text-white mb-3 flex items-center gap-2"><Target className="w-4 h-4 text-orange-400" />{translateUI("Practice activity")}</h4><ol className="space-y-3 text-sm text-neutral-300 list-decimal pl-5">{material.practice.map((item) => <li key={item}>{item}</li>)}</ol></section>
                   </div>
-                  <details className="p-5 rounded-2xl bg-[#0f172a] border border-[#233047]"><summary className="font-bold text-amber-300 cursor-pointer">Open answer and self-check guide after completing the activity</summary><ol className="mt-4 space-y-2 text-sm text-neutral-300 list-decimal pl-5">{material.answers.map((item) => <li key={item}>{item}</li>)}</ol></details>
+                  <details className="p-5 rounded-2xl bg-[#0f172a] border border-[#233047]"><summary className="font-bold text-amber-300 cursor-pointer">{translateUI("Open answer and self-check guide after completing the activity")}</summary><ol className="mt-4 space-y-2 text-sm text-neutral-300 list-decimal pl-5">{material.answers.map((item) => <li key={item}>{item}</li>)}</ol></details>
                   {material.id && <button type="button" disabled={completedMaterialIds.includes(material.id)} onClick={() => syncCloudMaterials('completed', material.id)} className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-950 disabled:text-emerald-400 text-white text-sm font-extrabold flex items-center justify-center gap-2"><CheckCircle2 className="w-4 h-4" />{completedMaterialIds.includes(material.id) ? 'Completed' : 'Mark as Completed'}</button>}
                   {materialIndex < visibleDailyMaterials.length - 1 && <div className="border-t border-neutral-800" />}
                 </div>
@@ -2863,7 +2828,7 @@ export default function StudentPortalModal({
                   ) : (
                     <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center text-neutral-400">
                       <Tv className="w-12 h-12 text-neutral-600 mb-2" />
-                      <p className="text-sm font-semibold text-neutral-300">No Video Lessons In Portal</p>
+                      <p className="text-sm font-semibold text-neutral-300">{translateUI("No Video Lessons In Portal")}</p>
                     </div>
                   )}
                 </div>
@@ -2895,7 +2860,7 @@ export default function StudentPortalModal({
                           className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-semibold shadow-md transition-colors cursor-pointer"
                         >
                           <Play className="w-3.5 h-3.5 fill-current" />
-                          <span>Direct YouTube</span>
+                          <span>{translateUI("Direct YouTube")}</span>
                           <ExternalLink className="w-3.5 h-3.5 opacity-80" />
                         </a>
                       </div>
@@ -2912,8 +2877,7 @@ export default function StudentPortalModal({
               {/* Right Playlist */}
               <div className="lg:col-span-4 space-y-2">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider block">
-                    Curriculum Masterclasses ({effectiveVideos.length})
+                  <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider block">{translateUI("Curriculum Masterclasses (")}{effectiveVideos.length})
                   </span>
                 </div>
 
@@ -2961,11 +2925,9 @@ export default function StudentPortalModal({
                 <div>
                   <h3 className="text-base font-extrabold text-white flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-orange-400" />
-                    <span>Weekly Study Material Dispatches ({currentCurriculum.examCode})</span>
+                    <span>{translateUI("Weekly Study Material Dispatches (")}{currentCurriculum.examCode})</span>
                   </h3>
-                  <p className="text-xs text-neutral-400 mt-0.5">
-                    Structured high-yield study packs designed for direct printout, revision, and mobile practice.
-                  </p>
+                  <p className="text-xs text-neutral-400 mt-0.5">{translateUI("Structured high-yield study packs designed for direct printout, revision, and mobile practice.")}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
@@ -2974,7 +2936,7 @@ export default function StudentPortalModal({
                     className="px-3.5 py-1.5 rounded-xl bg-orange-500 hover:bg-orange-400 text-neutral-950 font-bold text-xs flex items-center gap-1.5 transition-all shadow-md shadow-orange-500/20 cursor-pointer"
                   >
                     <Download className="w-3.5 h-3.5" />
-                    <span>Download All Modules (PDF)</span>
+                    <span>{translateUI("Download All Modules (PDF)")}</span>
                   </button>
                 </div>
               </div>
@@ -2987,8 +2949,7 @@ export default function StudentPortalModal({
                   >
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#1e293b] text-orange-400">
-                          WEEK {pkg.week}
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#1e293b] text-orange-400">{translateUI("WEEK")}{pkg.week}
                         </span>
                         <span className="text-[10px] font-bold text-emerald-400">
                           {pkg.status}
@@ -3018,7 +2979,7 @@ export default function StudentPortalModal({
                         className="w-full py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-bold text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer"
                       >
                         <Download className="w-3.5 h-3.5 text-orange-400" />
-                        <span>Download Week {pkg.week} Pack (PDF)</span>
+                        <span>{translateUI("Download Week")}{pkg.week}{translateUI("Pack (PDF)")}</span>
                       </button>
 
                       <button
@@ -3028,7 +2989,7 @@ export default function StudentPortalModal({
                         className="w-full py-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 font-bold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                       >
                         <Send className="w-3 h-3" />
-                        <span>Send to My WhatsApp</span>
+                        <span>{translateUI("Ask on WhatsApp")}</span>
                       </button>
                     </div>
                   </div>
@@ -3044,7 +3005,7 @@ export default function StudentPortalModal({
                 <div>
                   <h3 className="text-base font-extrabold text-white flex items-center gap-2">
                     <Target className="w-4 h-4 text-orange-400" />
-                    <span>Computer Based Test (CBT) Mock Exams — {currentCurriculum.examCode}</span>
+                    <span>{translateUI("Computer Based Test (CBT) Mock Exams —")}{currentCurriculum.examCode}</span>
                   </h3>
                   <p className="text-xs text-neutral-400">
                     {isGraduateExam ? 'Short foundation practice quizzes with explained answers. These are not full-length official exam simulations.' : 'Timed exam simulations matching official NTA scoring patterns with step-by-step solutions.'}
@@ -3054,8 +3015,7 @@ export default function StudentPortalModal({
 
               {/* Available Mock Tests */}
               <div className="space-y-3">
-                <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider block">
-                  Available Test Papers for {currentCurriculum.courseTitle}:
+                <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider block">{translateUI("Available Test Papers for")}{translateUI(currentCurriculum.courseTitle)}:
                 </span>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -3071,20 +3031,19 @@ export default function StudentPortalModal({
                           </span>
                           <span className="text-[11px] text-neutral-400 flex items-center gap-1">
                             <Clock className="w-3 h-3 text-neutral-500" />
-                            <span>{test.durationMinutes} Mins • {test.totalMarks} Marks</span>
+                            <span>{test.durationMinutes}{translateUI("Mins •")}{test.totalMarks}{translateUI("Marks")}</span>
                           </span>
                         </div>
 
                         <h4 className="font-extrabold text-sm text-white">{test.title}</h4>
                         <p className="text-xs text-neutral-400 leading-relaxed">
-                          {test.questions.length} real entrance questions covering {test.questions.map(q => q.subject).filter((v, i, a) => a.indexOf(v) === i).join(', ')}.
+                          {test.questions.length}{translateUI("real entrance questions covering")}{test.questions.map(q => q.subject).filter((v, i, a) => a.indexOf(v) === i).join(', ')}.
                         </p>
                       </div>
 
                       <div className="pt-2 border-t border-[#1e293b] flex items-center justify-between">
                         <span className="text-[11px] text-neutral-400 font-mono">
-                          +{test.positiveMarks} / -{test.negativeMarks} Marking
-                        </span>
+                          +{test.positiveMarks} / -{test.negativeMarks}{translateUI("Marking")}</span>
 
                         <button
                           type="button"
@@ -3095,7 +3054,7 @@ export default function StudentPortalModal({
                           }}
                           className="px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-400 text-neutral-950 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-md shadow-orange-500/20"
                         >
-                          <span>Start CBT Exam</span>
+                          <span>{translateUI("Start CBT Exam")}</span>
                           <ArrowRight className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -3110,9 +3069,8 @@ export default function StudentPortalModal({
           {activeTab === 'prompts' && (
             <div className="space-y-4">
               <div>
-                <h3 className="font-extrabold text-base text-white">High-Yield Memory Drills & Formula Cards</h3>
-                <p className="text-xs text-neutral-400">
-                  Ready-to-use memory drills, mental math shortcuts, and AI prompt templates for {currentCurriculum.courseTitle}.
+                <h3 className="font-extrabold text-base text-white">{translateUI("High-Yield Memory Drills & Formula Cards")}</h3>
+                <p className="text-xs text-neutral-400">{translateUI("Ready-to-use memory drills, mental math shortcuts, and AI prompt templates for")}{translateUI(currentCurriculum.courseTitle)}.
                 </p>
               </div>
 
@@ -3129,12 +3087,12 @@ export default function StudentPortalModal({
                         {copiedPromptIndex === idx ? (
                           <>
                             <Check className="w-3.5 h-3.5 text-emerald-400" />
-                            <span className="text-emerald-400">Copied</span>
+                            <span className="text-emerald-400">{translateUI("Copied")}</span>
                           </>
                         ) : (
                           <>
                             <Copy className="w-3.5 h-3.5" />
-                            <span>Copy Drill</span>
+                            <span>{translateUI("Copy Drill")}</span>
                           </>
                         )}
                       </button>
@@ -3152,7 +3110,7 @@ export default function StudentPortalModal({
           {activeTab === 'badges' && (
             <StudentBadges
               user={user}
-              selectedCourseTitle={currentCurriculum.courseTitle}
+              selectedCourseTitle={translateUI(currentCurriculum.courseTitle)}
               totalLessonsCount={effectiveVideos.length}
               completedLessonsCount={effectiveVideos.filter(v => v.completed).length}
               onNavigateToTab={(target) => {
@@ -3167,15 +3125,13 @@ export default function StudentPortalModal({
           {activeTab === 'certificate' && (
             <div className="space-y-6 text-center">
               <div className="max-w-md mx-auto flex items-center gap-2 text-left">
-                <label htmlFor="student-name-input" className="text-xs text-neutral-400 whitespace-nowrap">
-                  Recipient Student Name:
-                </label>
+                <label htmlFor="student-name-input" className="text-xs text-neutral-400 whitespace-nowrap">{translateUI("Recipient Student Name:")}</label>
                 <input
                   id="student-name-input"
                   type="text"
                   value={studentName}
                   onChange={(e) => setStudentName(e.target.value)}
-                  placeholder="Enter student name..."
+                  placeholder={translateUI("Enter student name...")}
                   className="w-full px-3 py-1.5 rounded-xl bg-[#141d2d] border border-[#263750] text-xs text-white focus:outline-none focus:border-orange-500"
                 />
               </div>
@@ -3190,32 +3146,29 @@ export default function StudentPortalModal({
                   </div>
 
                   <div>
-                    <span className="text-xs uppercase font-bold tracking-widest text-orange-400">
-                      Nextclasses.in Academy
-                    </span>
+                    <span className="text-xs uppercase font-bold tracking-widest text-orange-400">{translateUI("Nextclasses.in Academy")}</span>
                     <h2 className="text-xl sm:text-2xl font-serif font-bold text-white mt-1">
                       {currentCurriculum.certificateTitle}
                     </h2>
                   </div>
 
-                  <p className="text-xs text-neutral-400">This is proudly presented to</p>
+                  <p className="text-xs text-neutral-400">{translateUI("This is proudly presented to")}</p>
 
                   <div className="text-2xl sm:text-3xl font-serif font-black text-amber-300 underline decoration-amber-500/40 underline-offset-8">
                     {studentName || 'Aspirant Student'}
                   </div>
 
-                  <p className="text-xs text-neutral-300 max-w-md mx-auto leading-relaxed">
-                    for successfully completing weekly study sprints, diagnostic baseline assessments, and OMR speed benchmarks in <strong>{currentCurriculum.courseTitle}</strong>.
+                  <p className="text-xs text-neutral-300 max-w-md mx-auto leading-relaxed">{translateUI("for successfully completing weekly study sprints, diagnostic baseline assessments, and OMR speed benchmarks in")}<strong>{translateUI(currentCurriculum.courseTitle)}</strong>.
                   </p>
 
                   <div className="pt-6 border-t border-neutral-800 flex items-center justify-between text-[11px] text-neutral-400">
                     <div>
-                      <span className="block font-mono text-emerald-400 font-bold">VERIFIED ID: NC-2027-{selectedCourseId.slice(-4).toUpperCase()}</span>
-                      <span>Authorized Nextclasses.in Credential</span>
+                      <span className="block font-mono text-emerald-400 font-bold">{translateUI("VERIFIED ID: NC-2027-")}{selectedCourseId.slice(-4).toUpperCase()}</span>
+                      <span>{translateUI("Authorized Nextclasses.in Credential")}</span>
                     </div>
                     <div className="text-right">
-                      <span className="block font-semibold text-white">Academic Council</span>
-                      <span>Director of Curriculum</span>
+                      <span className="block font-semibold text-white">{translateUI("Academic Council")}</span>
+                      <span>{translateUI("Director of Curriculum")}</span>
                     </div>
                   </div>
 
@@ -3229,28 +3182,25 @@ export default function StudentPortalModal({
               identifier={user.username || user.email || ''}
               password={user.password || ''}
               courseId={selectedCourseId}
-              courseTitle={currentCurriculum.courseTitle}
+              courseTitle={translateUI(currentCurriculum.courseTitle)}
             />
           )}
         </div>
 
         {/* Footer */}
         <div className="px-5 py-3.5 bg-[#0f172a] border-t border-[#1e293b] flex items-center justify-between">
-          <span className="text-xs text-neutral-400">
-            Helpline & WhatsApp Dispatch: <strong className="text-white">+91 87921 34951</strong>
+          <span className="text-xs text-neutral-400">{translateUI("Helpline & WhatsApp Dispatch:")}<strong className="text-white">+91 87921 34951</strong>
           </span>
           <button
             type="button"
             onClick={onClose}
             className="px-4 py-2 rounded-xl bg-white text-neutral-950 font-bold text-xs hover:bg-neutral-200 transition-colors cursor-pointer"
-          >
-            Close Portal
-          </button>
+          >{translateUI("Close Portal")}</button>
         </div>
 
       </div>
 
-      <CourseVoiceDoubtBot
+      <CourseVoiceDoubtBot initialLanguage={currentLanguage.code}
         isOpen={isVoiceMentorOpen}
         onClose={() => setIsVoiceMentorOpen(false)}
         course={{ id: selectedCourseId, title: currentCurriculum.courseTitle, category: currentCurriculum.examCode }}
