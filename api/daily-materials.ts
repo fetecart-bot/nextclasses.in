@@ -47,7 +47,8 @@ export default async function handler(req: any, res: any) {
     if (req.method === 'GET') {
       if (!adminAuthorized(req)) return res.status(401).json({ error: 'Admin authorization failed' });
       const status = encodeURIComponent(String(req.query?.status || 'draft'));
-      const rows = await supabaseRequest(`daily_materials?status=eq.${status}&order=material_date.desc,course_title.asc&limit=200`);
+      const filter = status === 'review' ? 'status=in.(draft,approved)' : `status=eq.${status}`;
+      const rows = await supabaseRequest(`daily_materials?${filter}&order=material_date.desc,course_title.asc&limit=200`);
       return res.status(200).json({ materials: rows });
     }
     if (req.method === 'PATCH') {

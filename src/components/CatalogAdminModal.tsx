@@ -1,4 +1,4 @@
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect, useRef, FormEvent } from 'react';
 import { 
   X, Plus, Trash2, Edit3, Check, RefreshCw, Download, 
   Package, BookOpen, AlertTriangle, ShieldCheck, DollarSign, 
@@ -115,6 +115,9 @@ export default function CatalogAdminModal({
   const [isSendingDispatchEmail, setIsSendingDispatchEmail] = useState<boolean>(false);
   const [cloudMaterials, setCloudMaterials] = useState<CloudDailyMaterial[]>([]);
   const [cloudQueueLoading, setCloudQueueLoading] = useState(false);
+  const [cloudSavingId, setCloudSavingId] = useState<string | null>(null);
+  const cloudGeneratingRef = useRef(false);
+  const [cloudGenerating, setCloudGenerating] = useState(false);
   const [cloudQueueMessage, setCloudQueueMessage] = useState<string | null>(null);
   const [studentReviews, setStudentReviews] = useState<StudentReview[]>([]);
   const [reviewLoading, setReviewLoading] = useState(false);
@@ -151,7 +154,7 @@ export default function CatalogAdminModal({
     setReviewLoading(true);
     setReviewMessage(null);
     try {
-      const response = await fetch('/api/reviews?admin=true', { headers: { 'x-admin-key': getStoredPassword() } });
+      const response = await fetch('/api/reviews?admin=true', { headers: { 'x-admin-key': getStoredPassword() }, signal: AbortSignal.timeout(55000) });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || 'Unable to load reviews');
       setStudentReviews(Array.isArray(payload.reviews) ? payload.reviews : []);
@@ -211,7 +214,7 @@ export default function CatalogAdminModal({
     setCloudQueueLoading(true);
     setCloudQueueMessage(null);
     try {
-      const response = await fetch('/api/daily-materials?status=draft', { headers: { 'x-admin-key': getStoredPassword() } });
+      const response = await fetch('/api/daily-materials?status=review', { headers: { 'x-admin-key': getStoredPassword() }, signal: AbortSignal.timeout(55000) });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || 'Unable to load the cloud queue');
       setCloudMaterials(Array.isArray(payload.materials) ? payload.materials : []);
@@ -221,15 +224,18 @@ export default function CatalogAdminModal({
   };
 
   const generateCloudMaterials = async () => {
+    if (cloudGeneratingRef.current) return;
+    cloudGeneratingRef.current = true;
+    setCloudGenerating(true);
     setCloudQueueLoading(true);
     setCloudQueueMessage(null);
     try {
-      const response = await fetch('/api/daily-materials-cron', { method: 'POST', headers: { 'x-admin-key': getStoredPassword() } });
+      const response = await fetch('/api/daily-materials-cron', { method: 'POST', headers: { 'x-admin-key': getStoredPassword() }, signal: AbortSignal.timeout(55000) });
       const payload = await response.json().catch(() => ({}));
       await loadCloudMaterials();
       setCloudQueueMessage(response.ok ? `${payload.drafts || 0} new course lesson drafts ready for review. Publish reviewed lessons to make them visible to students.${payload.remaining ? ' More courses remain; run generation again.' : ''}` : payload.error || `Some lessons could not be generated: ${(payload.failures || []).join(', ')}. Please retry.`);
     } catch { setCloudQueueMessage('Generation unavailable. Please retry.'); }
-    finally { setCloudQueueLoading(false); }
+    finally { cloudGeneratingRef.current = false; setCloudGenerating(false); setCloudQueueLoading(false); }
   };
 
   const updateCloudMaterial = (id: string, changes: Partial<CloudDailyMaterial>) => {
@@ -237,7 +243,9 @@ export default function CatalogAdminModal({
   };
 
   const saveCloudMaterial = async (material: CloudDailyMaterial, status: 'approved' | 'published' | 'rejected') => {
-    setCloudQueueMessage(null);
+    if (cloudSavingId) return;
+    setCloudSavingId(material.id);
+    setCloudQueueMessage('Saving lesson…');
     try {
       const response = await fetch('/api/daily-materials', {
         method: 'PATCH', headers: { 'Content-Type': 'application/json', 'x-admin-key': getStoredPassword() },
@@ -245,9 +253,10 @@ export default function CatalogAdminModal({
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || 'Unable to update material');
-      setCloudMaterials((items) => items.filter((item) => item.id !== material.id));
+      setCloudMaterials((items) => status === 'approved' ? items.map(item => item.id === material.id ? { ...item, status } : item) : items.filter((item) => item.id !== material.id));
       setCloudQueueMessage(status === 'published' ? 'Material published to enrolled students.' : status === 'rejected' ? 'Draft rejected.' : 'Draft approved.');
     } catch (error: any) { setCloudQueueMessage(error?.message || 'Unable to update material'); }
+    finally { setCloudSavingId(null); }
   };
 
   useEffect(() => {
@@ -3046,19 +3055,19 @@ export default function CatalogAdminModal({
                     <h4 className="font-black text-white mt-1">Daily Material Approval</h4>
                     <p className="text-xs text-neutral-400 mt-1">Review and edit generated drafts before students can see them.</p>
                   </div>
-                  <button type="button" disabled={cloudQueueLoading} onClick={generateCloudMaterials} className="px-3 py-2 rounded-xl bg-orange-500 text-neutral-950 text-xs font-bold disabled:opacity-50">Generate today’s lessons</button>
+                  <button type="button" disabled={cloudQueueLoading || cloudGenerating} onClick={generateCloudMaterials} className="px-3 py-2 rounded-xl bg-orange-500 text-neutral-950 text-xs font-bold disabled:opacity-50">{cloudGenerating ? 'Generating… please wait' : 'Generate today’s lessons'}</button>
                   <button type="button" onClick={loadCloudMaterials} disabled={cloudQueueLoading} className="px-3 py-2 rounded-xl border border-neutral-700 text-xs font-bold text-white hover:border-emerald-500 flex items-center gap-1.5 disabled:opacity-50">
                     <RefreshCw className={`w-3.5 h-3.5 ${cloudQueueLoading ? 'animate-spin' : ''}`} /> Refresh
                   </button>
                 </div>
-                {cloudQueueMessage && <div className="text-xs rounded-lg bg-neutral-900 border border-neutral-800 p-3 text-emerald-300">{cloudQueueMessage}</div>}
-                {!cloudQueueLoading && cloudMaterials.length === 0 && <div className="rounded-xl bg-neutral-900 border border-neutral-800 p-4 text-sm text-neutral-400">No drafts are waiting. New course drafts are generated every day at 6:00 AM IST.</div>}
+                {cloudQueueMessage && <div role="status" aria-live="polite" className="sticky top-0 z-10 text-sm font-bold rounded-lg bg-neutral-900 border border-emerald-500 p-4 text-emerald-300">{cloudQueueMessage}</div>}
+                {!cloudQueueLoading && cloudMaterials.length === 0 && <div className="rounded-xl bg-neutral-900 border border-neutral-800 p-4 text-sm text-neutral-400">No lessons are waiting for review. Generation stops when the course lesson plan is complete.</div>}
                 <div className="space-y-4">
                   {cloudMaterials.map((material) => (
                     <div key={material.id} className="rounded-xl bg-neutral-900 border border-neutral-800 p-4 space-y-3">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="text-xs font-bold text-orange-300">{material.course_title} • {material.material_date}</div>
-                        <span className="text-[10px] uppercase font-bold text-amber-300 border border-amber-700 rounded px-2 py-0.5">Draft</span>
+                        <span className="text-[10px] uppercase font-bold text-amber-300 border border-amber-700 rounded px-2 py-0.5">{material.status === 'approved' ? 'Approved — ready to publish' : 'Draft'}</span>
                       </div>
                       <input value={material.title} onChange={(e) => updateCloudMaterial(material.id, { title: e.target.value })} className="w-full px-3 py-2 rounded-lg bg-neutral-950 border border-neutral-700 text-sm font-bold text-white" />
                       <textarea value={material.focus} onChange={(e) => updateCloudMaterial(material.id, { focus: e.target.value })} rows={2} className="w-full px-3 py-2 rounded-lg bg-neutral-950 border border-neutral-700 text-xs text-neutral-200" />
@@ -3069,46 +3078,13 @@ export default function CatalogAdminModal({
                         </div>
                       ))}
                       <div className="flex flex-wrap justify-end gap-2">
-                        <button type="button" onClick={() => saveCloudMaterial(material, 'rejected')} className="px-3 py-2 rounded-lg border border-red-800 text-xs font-bold text-red-300">Reject</button>
-                        <button type="button" onClick={() => saveCloudMaterial(material, 'approved')} className="px-3 py-2 rounded-lg border border-cyan-700 text-xs font-bold text-cyan-300">Approve</button>
-                        <button type="button" onClick={() => saveCloudMaterial(material, 'published')} className="px-3 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-neutral-950 text-xs font-black">Publish to Students</button>
+                        <button type="button" disabled={!!cloudSavingId} onClick={() => saveCloudMaterial(material, 'rejected')} className="px-3 py-2 rounded-lg border border-red-800 text-xs font-bold text-red-300">Reject</button>
+                        <button type="button" disabled={!!cloudSavingId} onClick={() => saveCloudMaterial(material, 'approved')} className="px-3 py-2 rounded-lg border border-cyan-700 text-xs font-bold text-cyan-300">Approve</button>
+                        <button type="button" disabled={!!cloudSavingId} onClick={() => saveCloudMaterial(material, 'published')} className="px-3 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-neutral-950 text-xs font-black">{cloudSavingId === material.id ? 'Saving…' : 'Publish to Students'}</button>
                       </div>
                     </div>
                   ))}
                 </div>
-              </div>
-              <div className="p-5 rounded-2xl bg-gradient-to-br from-orange-950/40 to-neutral-950 border border-orange-500/30 space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                  <div>
-                    <div className="text-[11px] font-bold uppercase tracking-wider text-orange-400">Daily portal material • Ready for review</div>
-                    <h4 className="font-black text-white mt-1">{dailyMaterialPreview.title}</h4>
-                    <p className="text-xs text-neutral-300 mt-1">{dailyMaterialPreview.focus}</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => downloadDailyStudyMaterial(dailyMaterialPreview, 'Admin Review Copy')}
-                    className="px-3.5 py-2 rounded-xl bg-orange-500 hover:bg-orange-400 text-neutral-950 text-xs font-extrabold flex items-center justify-center gap-1.5 shrink-0"
-                  >
-                    <Download className="w-3.5 h-3.5" /> Review Download
-                  </button>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                  <div>
-                    <div className="font-bold text-neutral-200 mb-2">Lesson notes</div>
-                    <ul className="space-y-1.5 text-neutral-400 list-disc pl-4">
-                      {dailyMaterialPreview.lesson.map((item) => <li key={item}>{item}</li>)}
-                    </ul>
-                  </div>
-                  <div>
-                    <div className="font-bold text-neutral-200 mb-2">Practice</div>
-                    <ol className="space-y-1.5 text-neutral-400 list-decimal pl-4">
-                      {dailyMaterialPreview.practice.map((item) => <li key={item}>{item}</li>)}
-                    </ol>
-                  </div>
-                </div>
-                <p className="text-[11px] text-emerald-300 border-t border-neutral-800 pt-3">
-                  This reviewed curriculum item is available today in the portal only to students enrolled in the selected course. Use the dispatcher below for extra individual material.
-                </p>
               </div>
               <div className="p-4 rounded-2xl bg-neutral-950 border border-neutral-800 space-y-1">
                 <div className="flex items-center justify-between">
