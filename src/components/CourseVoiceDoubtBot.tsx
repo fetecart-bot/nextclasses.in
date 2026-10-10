@@ -101,6 +101,7 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
   const [isThinking, setIsThinking] = useState<boolean>(false);
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const voiceEnabledRef = useRef(false);
+  const pendingVoiceUrlRef = useRef<string | null>(null);
   const audioGenerationRef = useRef(0);
   const [isPreparingAudio, setIsPreparingAudio] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState<boolean>(false);
@@ -152,7 +153,9 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
 
   // Audio Recording Fallback with server transcription
   const startAudioRecording = async () => {
+    pendingVoiceUrlRef.current = null;
     stopAudioPlayback();
+    enableVoice();
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       audioChunksRef.current = [];
@@ -342,6 +345,7 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
 
   // Browser speech recognition (STT) setup
   const startSpeechRecognition = () => {
+    pendingVoiceUrlRef.current = null;
     stopAudioPlayback();
     enableVoice();
     latestDoubtTranscriptRef.current = '';
@@ -462,6 +466,7 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
 
     setIsThinking(true);
     setLiveStatus('processing');
+    pendingVoiceUrlRef.current = null;
     stopAudioPlayback();
     enableVoice();
 
@@ -557,6 +562,12 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
   // Reuse the element unlocked by a tap; creating one after an API response
   // loses mobile Safari's per-element playback permission.
   const enableVoice = () => {
+    if (pendingVoiceUrlRef.current) {
+      const url = pendingVoiceUrlRef.current;
+      pendingVoiceUrlRef.current = null;
+      playAudio(url);
+      return;
+    }
     if (voiceEnabledRef.current) return;
     const audio = audioPlayerRef.current || new Audio();
     audioPlayerRef.current = audio;
@@ -581,13 +592,13 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
     const generation = ++audioGenerationRef.current;
     const current = () => audioGenerationRef.current === generation;
     setIsPreparingAudio(true);
-    audio.onplay = () => { if (current()) { voiceEnabledRef.current = true; setVoiceEnabled(true); setIsPreparingAudio(false); setIsPlayingAudio(true); setLiveStatus('speaking'); } };
+    audio.onplay = () => { if (current()) { pendingVoiceUrlRef.current = null; setReportNotice(''); voiceEnabledRef.current = true; setVoiceEnabled(true); setIsPreparingAudio(false); setIsPlayingAudio(true); setLiveStatus('speaking'); } };
     audio.onended = () => { if (current()) { setIsPlayingAudio(false); setLiveStatus('idle'); } };
     audio.onerror = () => { if (current()) { setIsPreparingAudio(false); setIsPlayingAudio(false); setLiveStatus('idle'); setReportNotice('Natural voice could not load. Please try Play Voice again.'); } };
     audio.src = url;
     audio.play().catch((error) => { if (current()) {
       setIsPreparingAudio(false); setIsPlayingAudio(false); setLiveStatus('idle');
-      if (error?.name === 'NotAllowedError') { voiceEnabledRef.current = false; setVoiceEnabled(false); }
+      if (error?.name === 'NotAllowedError') { pendingVoiceUrlRef.current = url; voiceEnabledRef.current = false; setVoiceEnabled(false); }
       setReportNotice('Tap Play Voice for this answer, or Enable spoken answers for the next questions.');
     } });
   };
@@ -615,6 +626,7 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
       audioGenerationRef.current += 1;
       audioPlayerRef.current?.pause();
       audioPlayerRef.current = null;
+      pendingVoiceUrlRef.current = null;
       voiceEnabledRef.current = false;
       setVoiceEnabled(false);
       window.speechSynthesis?.cancel();

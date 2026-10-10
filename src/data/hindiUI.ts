@@ -1,4 +1,10 @@
 export const HINDI_UI: Record<string, string> = {
+  "Latest Lesson PDF": "नवीनतम पाठ PDF",
+  "Lesson PDF": "पाठ PDF",
+  "Course foundation guide": "कोर्स की आधार मार्गदर्शिका",
+  "Foundation Guide PDF": "आधार मार्गदर्शिका PDF",
+  "Open and download your latest published lesson": "नवीनतम प्रकाशित पाठ खोलें और डाउनलोड करें",
+  "This foundation guide stays available. Open Today’s Study Material for newly published lessons.": "यह आधार मार्गदर्शिका हमेशा उपलब्ध है। नए प्रकाशित पाठ के लिए आज की अध्ययन सामग्री खोलें।",
   "NextClasses Course Guide": "NextClasses कोर्स मार्गदर्शक",
   "Real-Time": "तुरंत जवाब",
   "Close": "बंद करें",

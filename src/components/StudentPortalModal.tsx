@@ -2257,7 +2257,7 @@ export default function StudentPortalModal({
     setCloudMaterialError(null);
     try {
       const response = await fetch('/api/daily-materials', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifier: user.username || user.email, password: user.password, courseId: selectedCourseId, action, materialId }),
       });
       const payload = await response.json().catch(() => ({}));
@@ -2283,6 +2283,22 @@ export default function StudentPortalModal({
   }, [activeTab, cloudDailyMaterials[0]?.id]);
 
   const visibleDailyMaterials: PortalDailyMaterial[] = cloudDailyMaterials;
+
+  useEffect(() => {
+    const refresh = () => { if (document.visibilityState === 'visible' && user) syncCloudMaterials(); };
+    document.addEventListener('visibilitychange', refresh);
+    return () => document.removeEventListener('visibilitychange', refresh);
+  }, [user?.id, user?.password, selectedCourseId]);
+
+  const handleLatestLesson = () => {
+    setActiveTab('daily');
+    const material = visibleDailyMaterials[0];
+    if (!material || cloudMaterialError || cloudMaterialLoading) {
+      if (!cloudMaterialLoading) syncCloudMaterials();
+      return;
+    }
+    downloadDailyStudyMaterial({ ...material, id: material.id || `daily-${selectedCourseId}-${material.date}`, courseId: selectedCourseId, courseTitle: currentCurriculum.courseTitle, estimatedMinutes: 30 }, studentName);
+  };
 
   const handleCopy = (text: string, index: number) => {
     navigator.clipboard?.writeText(text);
@@ -2529,13 +2545,13 @@ export default function StudentPortalModal({
             {/* Direct Study Material Download Button */}
             <button
               type="button"
-              onClick={handleDownloadFullStudyPack}
+              onClick={handleLatestLesson}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-500 hover:bg-orange-400 text-neutral-950 text-xs font-extrabold transition-all shadow-md shadow-orange-500/20 cursor-pointer"
-              title={translateUI("Download printable study guide, syllabus & formula sheets")}
+              title={translateUI("Open and download your latest published lesson")}
             >
               <Download className="w-3.5 h-3.5 text-neutral-950" />
-              <span className="hidden sm:inline">{translateUI("Download Study Pack (PDF)")}</span>
-              <span className="sm:hidden">{translateUI("PDF")}</span>
+              <span className="hidden sm:inline">{translateUI("Latest Lesson PDF")}</span>
+              <span className="sm:hidden">{translateUI("Lesson PDF")}</span>
             </button>
 
             {/* Direct WhatsApp Dispatch Button */}
@@ -2747,12 +2763,12 @@ export default function StudentPortalModal({
         <div className="mx-4 sm:mx-6 mt-4 p-4 rounded-2xl bg-gradient-to-r from-[#131d2e] via-[#0f172a] to-[#162035] border border-[#23354e] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-orange-400 uppercase tracking-wider">{translateUI("Your Enrolled Study Material Pack")}</span>
+              <span className="text-xs font-bold text-orange-400 uppercase tracking-wider">{translateUI("Course foundation guide")}</span>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">{translateUI("Unlocked for")}{user?.name || studentName}
               </span>
             </div>
             <h4 className="text-sm sm:text-base font-black text-white">{translateUI(currentCurriculum.courseTitle)}</h4>
-            <p className="text-xs text-neutral-300">{translateUI("Course study guide, worked examples and practice activities for your enrolled course.")}</p>
+            <p className="text-xs text-neutral-300">{translateUI("This foundation guide stays available. Open Today’s Study Material for newly published lessons.")}</p>
           </div>
 
           <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
@@ -2762,7 +2778,7 @@ export default function StudentPortalModal({
               className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-orange-500 hover:bg-orange-400 text-neutral-950 text-xs font-extrabold shadow-md transition-all cursor-pointer"
             >
               <Download className="w-3.5 h-3.5 text-neutral-950" />
-              <span>{translateUI("Download Study Pack (PDF)")}</span>
+              <span>{translateUI("Foundation Guide PDF")}</span>
             </button>
 
             <button

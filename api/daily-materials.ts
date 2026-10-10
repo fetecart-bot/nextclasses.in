@@ -42,6 +42,7 @@ async function notifyPublishedMaterial(material: any) {
 }
 
 export default async function handler(req: any, res: any) {
+  res.setHeader('Cache-Control', 'no-store');
   try {
     if (req.method === 'GET') {
       if (!adminAuthorized(req)) return res.status(401).json({ error: 'Admin authorization failed' });
