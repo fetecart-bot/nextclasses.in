@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { credentialsFor, recentCapturedPayments } from './_razorpay.js';
+import { saveStudentAndEnrollment } from './_supabase.js';
 
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -20,6 +21,9 @@ export default async function handler(req: any, res: any) {
     const payment = (await recentCapturedPayments()).find((item: any) => item.id === paymentId);
     if (!payment) return res.status(404).json({ error: 'Captured Razorpay payment not found' });
     const account = { ...credentialsFor(payment), courseId, courseTitle, enrolledCourseIds: [courseId] };
+    // Persist the admin correction before reporting success. Login on another
+    // device reads this enrollment, not the administrator's browser storage.
+    await saveStudentAndEnrollment(account, payment);
     return res.status(200).json({ account });
   } catch (error: any) {
     return res.status(503).json({ error: error.message || 'Unable to create credentials' });
