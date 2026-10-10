@@ -2377,7 +2377,7 @@ export const FAQ_DATA: FAQItem[] = [
   {
     id: 'faq-exam-1',
     question: 'How does the Weekly Study Material Delivery work for competitive exams (NEET, JEE, KEAM, AISSEE, Navodaya)?',
-    answer: 'Once you checkout, our intelligent engine calculates the exact number of days remaining until your target exam date. Based on that timeline, your entire exam syllabus is divided into weekly progressive modules. Every Sunday at 6:00 AM IST, your fresh weekly package (NCERT concise notes, high-yield question banks, weekly mock test & video explanations) is automatically unlocked on your student portal and delivered to your registered WhatsApp number.',
+    answer: 'After payment confirmation, sign in to your student portal to access the guide, lessons and published materials for your enrolled course. New study materials are reviewed before publication. Email notifications depend on successful delivery; WhatsApp notifications require an approved messaging setup. Check the portal for the latest available material.',
     category: 'Competitive Exams',
   },
   {

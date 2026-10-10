@@ -365,8 +365,8 @@ export default function CartDrawer({
     if (!completedOrderDetails) return;
     const invoiceContent = `
 =====================================================
-NEXTCLASSES.IN - OFFICIAL TAX INVOICE & RECEIPT
-GSTIN: 32AABCN1234F1Z8 | Kerala, India
+NEXTCLASSES.IN - PAYMENT RECEIPT
+Fetecart Store | Kerala, India
 =====================================================
 Invoice No:    INV-${completedOrderDetails.orderId}
 Date:          ${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
@@ -382,12 +382,12 @@ ${completedOrderDetails.items.map((it, idx) => `${idx + 1}. ${it.title} - ₹${i
 
 Subtotal:      ₹${completedOrderDetails.items.reduce((acc, it) => acc + it.price, 0)}
 Coupon:        ${appliedCoupon ? appliedCoupon.code + ' (' + appliedCoupon.percent + '% OFF)' : 'None'}
-Total Paid:    ₹${completedOrderDetails.totalAmount} (Inclusive of all taxes)
+Total Paid:    ₹${completedOrderDetails.totalAmount}
 -----------------------------------------------------
 DISPATCH DELIVERY DETAILS:
-Weekly Study Material Cycle: Every Sunday at 06:00 AM IST
-Channels: WhatsApp (+91 ${completedOrderDetails.phone}) + Student Learning Portal
-Guarantee: 100% 7-Day Money-Back Guarantee
+Course access: Student Learning Portal
+Study materials: Available after publication in the portal
+Refund requests: Subject to the published refund policy
 =====================================================
 Thank you for choosing Nextclasses.in!
 Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextclasses.in
@@ -678,7 +678,7 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
                   className="w-full py-2.5 px-3 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white text-xs font-semibold transition-colors flex items-center justify-center gap-2 border border-neutral-800 cursor-pointer"
                 >
                   <FileText className="w-3.5 h-3.5 text-orange-400" />
-                  <span>Download Official GST Tax Invoice & Receipt (.txt)</span>
+                  <span>Download Payment Receipt (.txt)</span>
                 </button>
 
                 <button
