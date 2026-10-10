@@ -29,7 +29,14 @@ export async function supabaseRequest(path: string, init: RequestInit = {}) {
   return data;
 }
 
-export async function saveStudentAndEnrollment(account: any, payment: any) {
+export async function saveStudentAndEnrollment(account: any, payment: any, options: { preserveExisting?: boolean } = {}) {
+  if (options.preserveExisting) {
+    const existing = await supabaseRequest(`students?payment_id=eq.${encodeURIComponent(payment.id)}&limit=1`);
+    if (existing?.[0]) {
+      const rows = await supabaseRequest(`enrollments?student_id=eq.${encodeURIComponent(existing[0].id)}&select=course_id&limit=1`);
+      if (rows?.length) return existing[0];
+    }
+  }
   const students = await supabaseRequest('students?on_conflict=payment_id', {
     method: 'POST',
     headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
@@ -48,15 +55,12 @@ export async function saveStudentAndEnrollment(account: any, payment: any) {
   await supabaseRequest('enrollments?on_conflict=student_id,course_id', {
     method: 'POST',
     headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-    body: JSON.stringify({
-      student_id: student.id,
-      course_id: account.courseId,
-      course_title: account.courseTitle,
+    body: JSON.stringify((account.enrolledCourseIds?.length ? account.enrolledCourseIds : [account.courseId]).map((courseId: string) => ({
+      student_id: student.id, course_id: courseId,
+      course_title: account.courseTitles?.[courseId] || account.courseTitle,
       payment_amount: Number(payment.amount || 0) / 100,
-      // A corrected admin assignment must become the login default even when
-      // this enrollment row already existed before an incorrect one.
       created_at: new Date().toISOString(),
-    }),
+    }))),
   });
   return student;
 }

@@ -40,6 +40,7 @@ export default async function handler(req: any, res: any) {
       }
     } catch (error) {
       console.error('Supabase student login lookup failed', error);
+      return res.status(503).json({ error: 'Course login is temporarily unavailable. Please try again shortly.' });
     }
 
     // Compatibility fallback for captured payments that have not synced yet.
@@ -50,7 +51,7 @@ export default async function handler(req: any, res: any) {
       const identifierPhone = identifier.replace(/[^0-9]/g, '');
       if ((account.username.toLowerCase() === identifier || account.email === identifier || (identifierPhone.length >= 10 && phone.length >= 10 && phone.endsWith(identifierPhone))) && account.password === password) {
         if (account.courseId === 'course-unassigned') return res.status(409).json({ error: 'Your payment is verified, but the course assignment needs support review.' });
-        await saveStudentAndEnrollment(account, payment);
+        await saveStudentAndEnrollment(account, payment, { preserveExisting: true });
         return res.status(200).json({ account });
       }
     }

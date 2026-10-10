@@ -28,7 +28,6 @@ import {
 import { CartItem, ExamScheduleCalculation } from '../types';
 import { calculateDaysToExam, calculateWeeksToExam, generateWeeklyDispatchRoadmap } from '../utils/examScheduler';
 import { useAuth } from '../context/AuthContext';
-import { registerPaidStudent } from '../utils/studentRegistry';
 import { submitPaymentClaim } from '../utils/paymentClaims';
 
 interface CartDrawerProps {
@@ -64,7 +63,7 @@ export default function CartDrawer({
   onOpenPolicyModal,
   onOpenVerificationModal,
 }: CartDrawerProps) {
-  const { user, loginWithAccount, enrollCourse } = useAuth();
+  const { user, loginWithAccount } = useAuth();
 
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; percent: number } | null>({
@@ -155,7 +154,8 @@ export default function CartDrawer({
     paymentId: string,
     gatewayType: string,
     roadmaps: ExamScheduleCalculation[],
-    verifiedStudent?: { name?: string; email?: string; phone?: string }
+    verifiedStudent?: { name?: string; email?: string; phone?: string },
+    verifiedAccount?: any
   ) => {
     const finalName = (verifiedStudent?.name || studentName || user?.name || 'Student').trim();
     const finalEmail = (verifiedStudent?.email || studentEmail || user?.email || '').trim();
@@ -176,51 +176,13 @@ export default function CartDrawer({
     });
     setOrderComplete(true);
 
-    // Register verified student in secure student registry and auto-login
-    const primaryCourseId = items[0]?.id || 'course-aissee-sainik';
-    registerPaidStudent({
-      name: finalName,
-      email: finalEmail,
-      phone: finalPhone,
-      courseId: primaryCourseId,
-      amount: finalTotal,
-      utrNumber: paymentId,
-    }).then((verifiedAccount) => {
-      loginWithAccount({
-        id: verifiedAccount.id,
-        name: verifiedAccount.name,
-        email: verifiedAccount.email,
-        phone: verifiedAccount.phone,
-        username: verifiedAccount.username,
-        enrolledCourseIds: items.map((i) => i.id),
-        targetExamCode: roadmaps[0]?.examCode || items[0]?.targetExamCode || 'OTHER',
-        targetExamDate: roadmaps[0]?.targetExamDate || undefined,
-        learningGoal: `Master Curriculum for ${items[0]?.title || 'Sainik School'}`,
-        registeredAt: verifiedAccount.registeredAt,
-        completedLessons: [1],
-        mockTestScores: [],
-      });
-    }).catch(() => {
-      // fallback safe student enrollment
+    if (verifiedAccount) loginWithAccount({
+      ...verifiedAccount,
+      targetExamCode: roadmaps[0]?.examCode || items[0]?.targetExamCode || 'OTHER',
+      targetExamDate: roadmaps[0]?.targetExamDate || undefined,
+      learningGoal: `Master ${verifiedAccount.courseTitle}`,
+      completedLessons: [], mockTestScores: [],
     });
-    items.forEach((it) => enrollCourse(it.id));
-
-    // Automated server-side WhatsApp dispatch via Meta Cloud API / Server Dispatcher
-    try {
-      fetch('/api/whatsapp/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          phone: finalPhone,
-          recipientName: finalName,
-          orderId: randomOrderId,
-          itemsSummary: items.map((i) => i.title).join(', '),
-          messageType: 'enrollment_confirmation',
-        }),
-      }).catch((err) => console.log('Automated WhatsApp dispatch notice:', err));
-    } catch {
-      // safe fallback
-    }
 
     onClearCart();
   };
@@ -270,7 +232,7 @@ export default function CartDrawer({
     }
   };
 
-  const handleCheckoutSubmit = (e: FormEvent) => {
+  const handleCheckoutSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setPaymentError(null);
 
@@ -316,13 +278,21 @@ export default function CartDrawer({
           // iOS Safari's input zoom from making the payment sheet wider than the viewport.
           if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
           window.scrollTo({ left: 0, behavior: 'instant' as ScrollBehavior });
+          const orderResponse = await fetch('/api/razorpay-payments', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'create-order', courseIds: items.map(item => item.id), coupon: appliedCoupon?.code || '', studentName: studentName.trim(), studentEmail: studentEmail.trim(), studentPhone: formattedContact }),
+          });
+          const order = await orderResponse.json();
+          if (!orderResponse.ok || !order.orderId) throw new Error(order.error || 'Could not prepare checkout');
+          if (order.amount !== Math.round(finalTotal * 100)) throw new Error('The course price has changed. Please refresh before paying.');
           const options = {
-            key: razorpayKeyId,
-            amount: Math.round(finalTotal * 100), // amount in paise
+            key: order.keyId,
+            order_id: order.orderId,
+            amount: order.amount,
             currency: 'INR',
             name: 'Nextclasses.in',
             description: items.map((it) => it.title).join(', ').substring(0, 80),
-            image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=120&q=80',
+            image: '/apple-touch-icon.png',
             prefill: {
               name: studentName.trim() || user?.name || 'Student',
               email: studentEmail.trim(),
@@ -333,6 +303,7 @@ export default function CartDrawer({
               studentEmail: studentEmail.trim(),
               studentPhone: formattedContact,
               courseCount: items.length.toString(),
+              courseIds: JSON.stringify(items.map(item => item.id)),
               courseId: items[0]?.id || '',
               courseTitle: items.map((it) => it.title).join(', ').substring(0, 240),
             },
@@ -345,27 +316,19 @@ export default function CartDrawer({
               },
             },
             handler: async (response: any) => {
-              setIsProcessing(false);
-              const rzpPaymentId = response.razorpay_payment_id || `pay_${Date.now()}`;
-              await submitPaymentClaim({
-                studentName: studentName.trim() || user?.name || 'Student',
-                email: studentEmail.trim(),
-                phone: formattedContact,
-                courseId: items[0]?.id || 'course-unassigned',
-                courseTitle: items.map((it) => it.title).join(', '),
-                amount: finalTotal,
-                utrNumber: rzpPaymentId,
-                paymentMethod: 'Razorpay Gateway',
-                paymentApp: 'Razorpay',
-                notes: 'Recorded automatically after successful checkout.',
-              });
-              onClearCart();
-              // Pop up verification window immediately with Razorpay Payment ID prefilled!
-              handleOpenVerification({
-                utr: rzpPaymentId,
-                paymentMethod: 'Razorpay Gateway (Cards / NetBanking / UPI)',
-                paymentApp: 'Razorpay',
-              });
+              setIsProcessing(true);
+              try {
+                const verification = await fetch('/api/razorpay-payments', {
+                  method: 'POST', headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ action: 'verify-checkout', paymentId: response.razorpay_payment_id, orderId: order.orderId, signature: response.razorpay_signature }),
+                });
+                const result = await verification.json();
+                if (!verification.ok || !result.account) throw new Error(result.error || 'Payment confirmation is pending. Please do not pay again.');
+                completeEnrollmentAndOrder(result.paymentId, 'Razorpay Gateway', roadmaps, result.account, result.account);
+              } catch (error) {
+                setPaymentError(`${error instanceof Error ? error.message : 'Payment confirmation is pending.'} Reference: ${response.razorpay_payment_id || 'Contact support'}`);
+                setIsProcessing(false);
+              }
             },
           };
 
@@ -437,7 +400,7 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
-    setDownloadNotice(`✓ Official Tax Invoice downloaded for ${completedOrderDetails.orderId}`);
+    setDownloadNotice(`✓ Payment receipt downloaded for ${completedOrderDetails.orderId}`);
     setTimeout(() => setDownloadNotice(null), 3000);
   };
 
@@ -604,7 +567,7 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
                       <div className="p-2.5 rounded-lg bg-orange-500/10 border border-orange-500/20 text-[11px] text-orange-200 flex items-center gap-2">
                         <Clock className="w-3.5 h-3.5 text-orange-400 shrink-0" />
                         <span>
-                          Delivered every Sunday at 6:00 AM IST to WhatsApp (<strong>{completedOrderDetails.phone}</strong>) & Student Portal.
+                          Check your student portal for published lessons and practice materials.
                         </span>
                       </div>
 
@@ -670,77 +633,7 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
 
               {/* Quick Actions */}
               <div className="space-y-3 pt-2">
-                {/* WhatsApp Dispatch Preview Box */}
-                <div className="p-3.5 rounded-xl bg-neutral-900 border border-emerald-900/40 text-left space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-bold">
-                      <MessageCircle className="w-4 h-4" />
-                      <span>WhatsApp Cloud API Dispatch Engine</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setShowWhatsAppPreview((prev) => !prev)}
-                      className="text-[11px] text-neutral-400 hover:text-white flex items-center gap-1 cursor-pointer"
-                    >
-                      <Eye className="w-3.5 h-3.5" />
-                      <span>{showWhatsAppPreview ? 'Hide Message Preview' : 'Preview Live Alert'}</span>
-                    </button>
-                  </div>
-
-                  <p className="text-[11px] text-neutral-300">
-                    Automated Sunday 6:00 AM dispatch queued for <span className="text-white font-mono font-bold">+91 {completedOrderDetails.phone}</span>.
-                  </p>
-
-                  {showWhatsAppPreview && (
-                    <div className="p-3 rounded-lg bg-[#0b141a] border border-[#202c33] space-y-2 text-xs font-sans text-[#e9edef] shadow-inner">
-                      <div className="flex items-center justify-between text-[10px] text-[#8696a0] pb-1 border-b border-[#202c33]">
-                        <span className="font-semibold text-[#00a884] flex items-center gap-1">
-                          <span>Nextclasses.in Learning System</span>
-                          <Check className="w-3 h-3 text-[#00a884]" />
-                        </span>
-                        <span>Sunday 06:00 AM</span>
-                      </div>
-                      <p className="text-[11px] leading-relaxed">
-                        👋 Hi <strong>{completedOrderDetails.name}</strong>! Your <strong>Week 1 Study Material Package</strong> is ready for download.
-                      </p>
-                      <div className="p-2 rounded bg-[#111b21] border border-[#202c33] text-[10px] space-y-1">
-                        <div>📦 <strong>Included:</strong> High-Yield Mind Maps + Chapter Formula Sheets + Mock Paper 01</div>
-                        <div>⏱️ <strong>Target:</strong> Complete before Saturday evening review</div>
-                      </div>
-                      <div className="flex gap-2 pt-1">
-                        <span className="px-2.5 py-1 rounded bg-[#00a884]/20 text-[#00a884] text-[10px] font-bold border border-[#00a884]/30">
-                          📥 1-Click PDF Download
-                        </span>
-                        <span className="px-2.5 py-1 rounded bg-[#00a884]/20 text-[#00a884] text-[10px] font-bold border border-[#00a884]/30">
-                          📝 Start Mock Test CBT
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-between pt-1">
-                    <button
-                      type="button"
-                      onClick={handleSendTestWhatsAppDispatch}
-                      disabled={whatsAppDispatched || isSendingWhatsApp}
-                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
-                    >
-                      {isSendingWhatsApp ? (
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                      ) : (
-                        <Send className="w-3 h-3" />
-                      )}
-                      <span>
-                        {isSendingWhatsApp
-                          ? 'Sending via WhatsApp...'
-                          : whatsAppDispatched
-                          ? '✓ Test Dispatch Delivered'
-                          : 'Trigger Test WhatsApp Alert'}
-                      </span>
-                    </button>
-                    <span className="text-[10px] text-neutral-400">Powered by WhatsApp Cloud API</span>
-                  </div>
-                </div>
+                <p className="text-sm text-neutral-300">Your purchased courses are available in the student portal. Contact support for help with materials or login.</p>
 
                 <a
                   href={`https://wa.me/918792134951?text=${encodeURIComponent(`Hi Nextclasses.in Team, I just enrolled with Order #${completedOrderDetails.orderId} (${completedOrderDetails.name}, Phone: +91 ${completedOrderDetails.phone}). Please send my study materials and add me to the batch WhatsApp group!`)}`}
@@ -926,7 +819,7 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
                           <div className="text-[11px] text-neutral-300 leading-relaxed bg-orange-500/10 p-2 rounded-lg border border-orange-500/20 flex items-start gap-2">
                             <Zap className="w-3.5 h-3.5 text-orange-400 shrink-0 mt-0.5" />
                             <span>
-                              <strong>Automated Weekly Dispatch:</strong> Based on your {daysToExam} days countdown, study modules will be delivered every Sunday directly to your student portal and WhatsApp.
+                              <strong>Weekly study plan:</strong> Based on your {daysToExam} days countdown, check your student portal for published course materials.
                             </span>
                           </div>
                         </div>
@@ -1005,7 +898,7 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
                   </div>
 
                   <p className="text-[11px] text-neutral-400 leading-relaxed">
-                    Provide your mobile number and email. Your student login credentials, receipt, and downloadable study packs will be sent here immediately.
+                    Provide your mobile number and email. After payment verification, access your courses in the student portal. Keep a copy of your payment reference.
                   </p>
 
                   <div className="space-y-3 pt-1">
@@ -1038,7 +931,7 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
                         </label>
                         <span className="text-[10px] text-emerald-400 font-medium flex items-center gap-1">
                           <Smartphone className="w-3 h-3" />
-                          Direct WhatsApp Delivery
+                          WhatsApp support contact
                         </span>
                       </div>
                       <div className="relative flex">
@@ -1062,7 +955,7 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
                         />
                       </div>
                       <span className="text-[10px] text-neutral-500 mt-1 block">
-                        We dispatch portal logins & weekly updates directly to this WhatsApp number.
+                        Use a number where NextClasses support can reach you.
                       </span>
                     </div>
 
@@ -1090,7 +983,7 @@ Support: support@nextclasses.in | WhatsApp: +91 87921 34951 | https://www.nextcl
                         />
                       </div>
                       <span className="text-[10px] text-neutral-500 mt-1 block">
-                        Your enrollment confirmation & payment receipt will be sent here immediately.
+                        Use an email address you can access for your login details.
                       </span>
                     </div>
                   </div>

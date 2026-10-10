@@ -140,9 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (courseChoice && !courseChoice.startsWith('class-') && !updatedEnrolled.includes(courseChoice)) {
       updatedEnrolled.unshift(courseChoice);
     }
-    if (!updatedEnrolled.includes(specificSainikCourseId) && courseChoice === 'course-aissee-sainik') {
-      updatedEnrolled.unshift(specificSainikCourseId);
-    }
+
 
     const detectedGender = verified.gender || detectStudentGender(verified.name);
 

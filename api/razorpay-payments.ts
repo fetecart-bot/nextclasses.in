@@ -1,7 +1,9 @@
-type ApiRequest = { method?: string; headers: Record<string, string | string[] | undefined> };
+import { checkout } from './_checkout.js';
+type ApiRequest = { method?: string; body?: any; headers: Record<string, string | string[] | undefined> };
 type ApiResponse = { status: (code: number) => ApiResponse; json: (body: unknown) => void };
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
+  if (req.method === 'POST') return checkout(req, res);
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
   const adminKey = process.env.ADMIN_API_KEY;

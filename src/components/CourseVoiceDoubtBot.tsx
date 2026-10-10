@@ -93,6 +93,7 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
   const [selectedLanguage, setSelectedLanguage] = useState<string>(initialLanguage);
   const [isListening, setIsListening] = useState<boolean>(false);
   const [isThinking, setIsThinking] = useState<boolean>(false);
+  const [isPreparingAudio, setIsPreparingAudio] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState<boolean>(false);
   const [inputText, setInputText] = useState<string>('');
   const [liveTranscript, setLiveTranscript] = useState<string>('');
@@ -541,31 +542,14 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
 
   const playAudio = (url: string) => {
     stopAudioPlayback();
-    try {
-      const audio = new Audio(url);
-      audioPlayerRef.current = audio;
-      setIsPlayingAudio(true);
-      setLiveStatus('speaking');
-
-      audio.onended = () => {
-        setIsPlayingAudio(false);
-        setLiveStatus('idle');
-      };
-
-      audio.onerror = () => {
-        setIsPlayingAudio(false);
-        setLiveStatus('idle');
-      };
-
-      audio.play().catch((err) => {
-        console.warn('Audio auto-play prevented:', err);
-        setIsPlayingAudio(false);
-        setLiveStatus('idle');
-      });
-    } catch (e) {
-      setIsPlayingAudio(false);
-      setLiveStatus('idle');
-    }
+    const audio = new Audio(url);
+    audioPlayerRef.current = audio;
+    setIsPreparingAudio(true);
+    const current = () => audioPlayerRef.current === audio;
+    audio.onplay = () => { if (current()) { setIsPreparingAudio(false); setIsPlayingAudio(true); setLiveStatus('speaking'); } };
+    audio.onended = () => { if (current()) { setIsPlayingAudio(false); setLiveStatus('idle'); } };
+    audio.onerror = () => { if (current()) { setIsPreparingAudio(false); setIsPlayingAudio(false); setLiveStatus('idle'); setReportNotice('Natural voice could not load. Please try Play Voice again.'); } };
+    audio.play().catch(() => { if (current()) { setIsPreparingAudio(false); setIsPlayingAudio(false); setLiveStatus('idle'); setReportNotice('Your browser paused automatic audio. Tap Play Voice to listen.'); } });
   };
 
   const stopAudioPlayback = () => {
@@ -574,6 +558,7 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
       audioPlayerRef.current.currentTime = 0;
       audioPlayerRef.current = null;
     }
+    setIsPreparingAudio(false);
     setIsPlayingAudio(false);
   };
 
@@ -766,6 +751,7 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
                           <div className="flex items-center gap-2">
                             <button
                               type="button"
+                              disabled={isPreparingAudio}
                               onClick={() => {
                                 if (isPlayingAudio) {
                                   stopAudioPlayback();
@@ -783,7 +769,7 @@ export const CourseVoiceDoubtBot: React.FC<CourseVoiceDoubtBotProps> = ({
                               ) : (
                                 <>
                                   <Volume2 className="w-3 h-3 text-emerald-400" />
-                                  <span>Play Voice</span>
+                                  <span>{isPreparingAudio ? 'Preparing voice…' : 'Play Voice'}</span>
                                 </>
                               )}
                             </button>

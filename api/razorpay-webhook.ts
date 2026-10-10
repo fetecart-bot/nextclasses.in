@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
-import nodemailer from 'nodemailer';
-import { credentialsFor } from './_razorpay.js';
+import { sendEnrollmentEmail } from './_enrollmentEmail.js';
+import { credentialsFor, paymentWithOrderNotes } from './_razorpay.js';
 import { saveStudentAndEnrollment } from './_supabase.js';
 
 export const config = { api: { bodyParser: false } };
@@ -21,28 +21,25 @@ export default async function handler(req: any, res: any) {
   if (!supplied || supplied.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(supplied), Buffer.from(expected))) {
     return res.status(401).json({ error: 'Invalid signature' });
   }
-  const event = JSON.parse(raw.toString('utf8'));
+  let event: any;
+  try { event = JSON.parse(raw.toString('utf8')); } catch { return res.status(400).json({ error: 'Invalid event JSON' }); }
   if (event.event !== 'payment.captured') return res.status(200).json({ ignored: true });
-  const payment = event.payload?.payment?.entity;
+  let payment = event.payload?.payment?.entity;
+  if (!payment?.id || payment.status !== 'captured') return res.status(400).json({ error: 'Invalid captured payment' });
+  try { payment = await paymentWithOrderNotes(payment); } catch { return res.status(503).json({ error: 'Order verification pending. Retry delivery.' }); }
   const account = credentialsFor(payment);
   const portal = 'https://www.nextclasses.in/?portal=true';
   const message = `Hi ${account.name}, your Nextclasses payment is confirmed. Login: ${account.username} Password: ${account.password} Portal: ${portal}`;
 
+  let student: any;
   try {
-    await saveStudentAndEnrollment(account, payment);
+    student = await saveStudentAndEnrollment(account, payment, { preserveExisting: true });
   } catch (error) {
     console.error('Supabase enrollment sync failed', error);
     return res.status(503).json({ error: 'Enrollment could not be saved. Retry delivery.' });
   }
 
-  if (account.email && process.env.SMTP_USER && process.env.SMTP_PASS) {
-    const transport = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'smtp.gmail.com', port: Number(process.env.SMTP_PORT || 587),
-      secure: Number(process.env.SMTP_PORT) === 465,
-      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-    });
-    await transport.sendMail({ from: `Nextclasses <${process.env.SMTP_USER}>`, to: account.email, subject: 'Your Nextclasses student login', text: `${message}\nCourse: ${account.courseTitle}\nPayment: ${payment.id}` });
-  }
+  try { await sendEnrollmentEmail(account, payment, student); } catch { return res.status(503).json({ error: 'Email delivery pending. Retry delivery.' }); }
 
   const token = process.env.WHATSAPP_API_KEY;
   const phoneId = process.env.WHATSAPP_PHONE_NUMBER_ID;
