@@ -28,7 +28,7 @@ export default async function handler(req: any, res: any) {
     const enrollments = await supabaseRequest('enrollments?select=course_id,students!inner(active)&students.active=eq.true');
     const enrolled = new Set((enrollments || []).map((row: any) => row.course_id));
     const existing = await supabaseRequest(`daily_materials?material_date=eq.${date}&select=course_id,status,generated_by`);
-    const ready = new Set((existing || []).filter((row: any) => row.status !== 'draft' || String(row.generated_by).startsWith('OpenAI')).map((row: any) => row.course_id));
+    const ready = new Set((existing || []).map((row: any) => row.course_id));
     const pending = COURSES_DATA.filter(course => enrolled.has(course.id) && !ready.has(course.id));
     // Bound one invocation; a worker queue is required when many distinct courses are active.
     const courses = pending.slice(0, 4);
@@ -53,9 +53,8 @@ export default async function handler(req: any, res: any) {
       const row = { ...lesson, course_id: course.id, course_title: course.title, material_date: date, status: 'draft', generated_by: 'OpenAI course lesson generator' };
       // Never overwrite reviewed/published material, including a publication during generation.
       const current = await supabaseRequest(`daily_materials?course_id=eq.${encodeURIComponent(course.id)}&material_date=eq.${date}&select=id,status`);
-      if (current?.[0]) {
-        await supabaseRequest(`daily_materials?id=eq.${current[0].id}&status=eq.draft`, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify(row) });
-      } else {
+      if (current?.[0]) return null;
+      else {
         await supabaseRequest('daily_materials?on_conflict=course_id,material_date', { method: 'POST', headers: { Prefer: 'resolution=ignore-duplicates,return=minimal' }, body: JSON.stringify(row) });
       }
       return course.title;

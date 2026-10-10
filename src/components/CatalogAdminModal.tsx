@@ -233,7 +233,7 @@ export default function CatalogAdminModal({
       const response = await fetch('/api/daily-materials-cron', { method: 'POST', headers: { 'x-admin-key': getStoredPassword() }, signal: AbortSignal.timeout(55000) });
       const payload = await response.json().catch(() => ({}));
       await loadCloudMaterials();
-      setCloudQueueMessage(response.ok ? `${payload.drafts || 0} new course lesson drafts ready for review. Publish reviewed lessons to make them visible to students.${payload.remaining ? ' More courses remain; run generation again.' : ''}` : payload.error || `Some lessons could not be generated: ${(payload.failures || []).join(', ')}. Please retry.`);
+      setCloudQueueMessage(response.ok ? (payload.drafts ? `${payload.drafts} new course lesson drafts ready for review. One lesson per course per day.` : 'No new drafts: today’s lessons already exist or the course plan is complete. The next set becomes available tomorrow (India time).') : payload.error || `Some lessons could not be generated: ${(payload.failures || []).join(', ')}. Please retry.`);
     } catch { setCloudQueueMessage('Generation unavailable. Please retry.'); }
     finally { cloudGeneratingRef.current = false; setCloudGenerating(false); setCloudQueueLoading(false); }
   };
@@ -3053,7 +3053,7 @@ export default function CatalogAdminModal({
                   <div>
                     <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Supabase cloud queue</div>
                     <h4 className="font-black text-white mt-1">Daily Material Approval</h4>
-                    <p className="text-xs text-neutral-400 mt-1">Review and edit generated drafts before students can see them.</p>
+                    <p className="text-xs text-neutral-400 mt-1">Today’s queue only. One draft per course each day (India time). Review and publish before students can see it.</p>
                   </div>
                   <button type="button" disabled={cloudQueueLoading || cloudGenerating} onClick={generateCloudMaterials} className="px-3 py-2 rounded-xl bg-orange-500 text-neutral-950 text-xs font-bold disabled:opacity-50">{cloudGenerating ? 'Generating… please wait' : 'Generate today’s lessons'}</button>
                   <button type="button" onClick={loadCloudMaterials} disabled={cloudQueueLoading} className="px-3 py-2 rounded-xl border border-neutral-700 text-xs font-bold text-white hover:border-emerald-500 flex items-center gap-1.5 disabled:opacity-50">
@@ -3061,7 +3061,7 @@ export default function CatalogAdminModal({
                   </button>
                 </div>
                 {cloudQueueMessage && <div role="status" aria-live="polite" className="sticky top-0 z-10 text-sm font-bold rounded-lg bg-neutral-900 border border-emerald-500 p-4 text-emerald-300">{cloudQueueMessage}</div>}
-                {!cloudQueueLoading && cloudMaterials.length === 0 && <div className="rounded-xl bg-neutral-900 border border-neutral-800 p-4 text-sm text-neutral-400">No lessons are waiting for review. Generation stops when the course lesson plan is complete.</div>}
+                {!cloudQueueLoading && cloudMaterials.length === 0 && <div className="rounded-xl bg-neutral-900 border border-neutral-800 p-4 text-sm text-neutral-400">No lessons are waiting for review today. The next daily set becomes available tomorrow (India time).</div>}
                 <div className="space-y-4">
                   {cloudMaterials.map((material) => (
                     <div key={material.id} className="rounded-xl bg-neutral-900 border border-neutral-800 p-4 space-y-3">
