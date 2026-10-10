@@ -11,7 +11,10 @@ export default async function handler(req: any, res: any) {
     // Supabase is authoritative after an administrator corrects a course.
     try {
       const encoded = encodeURIComponent(identifier);
-      const students = await supabaseRequest(`students?or=(username.eq.${encoded},email.eq.${encoded})&active=eq.true&limit=1`);
+      // Generated usernames contain mixed case. Match case-insensitively while
+      // escaping LIKE wildcards so underscores remain literal characters.
+      const usernamePattern = encodeURIComponent(identifier.replace(/([\\%_*])/g, '\\$1'));
+      const students = await supabaseRequest(`students?or=(username.ilike.${usernamePattern},email.eq.${encoded})&active=eq.true&limit=1`);
       const student = students?.[0];
       if (student && student.password_hash === passwordHash(password)) {
         const enrollments = await supabaseRequest(`enrollments?student_id=eq.${encodeURIComponent(student.id)}&select=course_id,course_title&order=created_at.desc`);
