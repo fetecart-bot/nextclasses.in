@@ -1,3 +1,4 @@
+import { isCourseOpenForEnrollment } from '../src/cataloguePolicy.js';
 import { sendEnrollmentEmail } from './_enrollmentEmail.js';
 import crypto from 'node:crypto';
 import { COURSES_DATA } from '../src/data.js';
@@ -20,7 +21,7 @@ async function razorpay(path:string,init:RequestInit={}) {
 export function priceCourses(ids:string[],coupon:string) {
  if(!ids.length || ids.length>5 || new Set(ids).size!==ids.length) throw new Error('Choose up to five different courses');
  const courses=ids.map(id=>COURSES_DATA.find(c=>c.id===id));
- if(courses.some(c=>!c || !Number.isFinite(c.price) || c.price<=0)) throw new Error('One of these courses is unavailable for checkout');
+ if(courses.some(c=>!c || c.id.startsWith('course-cbse-class-') || !isCourseOpenForEnrollment(c) || !Number.isFinite(c.price) || c.price<=0)) throw new Error('One of these courses is unavailable for checkout');
  if(coupon && !coupons[coupon]) throw new Error('This coupon is not valid');
  const selected=courses as typeof COURSES_DATA;
  const raw=selected.reduce((sum,c)=>sum+c.price,0);

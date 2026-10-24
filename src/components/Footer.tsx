@@ -23,9 +23,7 @@ export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicy
           {/* Brand Info */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center text-neutral-950 font-black text-lg shadow-md">
-                NC
-              </div>
+              <img src="/nextclasses-logo-512.png" alt="NextClasses original NC book logo" className="w-12 h-12 object-contain shrink-0" />
               <span className="font-extrabold text-lg text-white tracking-tight">NextClasses</span>
               <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-orange-500/20 text-orange-400 border border-orange-500/30">{translateUI(".in Academy")}</span>
             </div>
@@ -87,28 +85,28 @@ export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicy
                   type="button"
                   onClick={() => onNavigateTo('courses')}
                   className="hover:text-white transition-colors text-left"
-                >{translateUI("Master Claude AI (All Indian Languages & English)")}</button>
+                >{translateUI("ChatGPT practical learning")}</button>
               </li>
               <li>
                 <button
                   type="button"
                   onClick={() => onNavigateTo('courses')}
                   className="hover:text-white transition-colors text-left"
-                >{translateUI("AI for School & College Teachers")}</button>
+                >{translateUI("CBSE tuition for Classes 5–12")}</button>
               </li>
               <li>
                 <button
                   type="button"
                   onClick={() => onNavigateTo('courses')}
                   className="hover:text-white transition-colors text-left"
-                >{translateUI("AI for Students & Academics")}</button>
+                >{translateUI("Sainik & Navodaya preparation")}</button>
               </li>
               <li>
                 <button
                   type="button"
                   onClick={() => onNavigateTo('courses')}
                   className="hover:text-white transition-colors text-left"
-                >{translateUI("Generative AI for Beginners")}</button>
+                >{translateUI("Languages & public speaking")}</button>
               </li>
               <li>
                 <button
@@ -127,28 +125,28 @@ export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicy
               <li>
                 <button
                   type="button"
-                  onClick={() => onNavigateTo('products')}
+                  onClick={() => onNavigateTo('school-tuition')}
                   className="hover:text-white transition-colors text-left"
                 >{translateUI("2,500+ Curated Prompt Vault")}</button>
               </li>
               <li>
                 <button
                   type="button"
-                  onClick={() => onNavigateTo('products')}
+                  onClick={() => onNavigateTo('school-tuition')}
                   className="hover:text-white transition-colors text-left"
                 >{translateUI("Educator's AI Notion Operating System")}</button>
               </li>
               <li>
                 <button
                   type="button"
-                  onClick={() => onNavigateTo('products')}
+                  onClick={() => onNavigateTo('school-tuition')}
                   className="hover:text-white transition-colors text-left"
                 >{translateUI("Midjourney & Flux Photoreal Guide")}</button>
               </li>
               <li>
                 <button
                   type="button"
-                  onClick={() => onNavigateTo('products')}
+                  onClick={() => onNavigateTo('school-tuition')}
                   className="hover:text-white transition-colors text-left"
                 >{translateUI("Freelance AI Consultant Agency Kit")}</button>
               </li>

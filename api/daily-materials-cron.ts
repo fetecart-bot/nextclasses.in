@@ -1,3 +1,4 @@
+import { trialIsExpired } from './_trialPolicy.js';
 import crypto from 'node:crypto';
 import { COURSES_DATA } from '../src/data.js';
 import { supabaseRequest } from './_supabase.js';
@@ -25,8 +26,9 @@ export default async function handler(req: any, res: any) {
   if (!process.env.OPENAI_API_KEY) return res.status(503).json({ error: 'Daily lesson generation needs the OpenAI API key' });
   try {
     const date = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
-    const enrollments = await supabaseRequest('enrollments?select=course_id,students!inner(active)&students.active=eq.true');
-    const enrolled = new Set((enrollments || []).map((row: any) => row.course_id));
+    const studentFields = process.env.NEXTCLASSES_TRIAL_ENABLED === 'true' ? 'active,account_kind,access_expires_at' : 'active';
+    const enrollments = await supabaseRequest(`enrollments?select=course_id,students!inner(${studentFields})&students.active=eq.true`);
+    const enrolled = new Set((enrollments || []).filter((row: any) => !trialIsExpired(Array.isArray(row.students) ? row.students[0] || {} : row.students || {})).map((row: any) => row.course_id));
     const existing = await supabaseRequest(`daily_materials?material_date=eq.${date}&select=course_id,status,generated_by`);
     const ready = new Set((existing || []).map((row: any) => row.course_id));
     const pending = COURSES_DATA.filter(course => enrolled.has(course.id) && !ready.has(course.id));

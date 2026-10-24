@@ -121,3 +121,16 @@ create table if not exists public.whatsapp_bot_messages (
 );
 alter table public.whatsapp_bot_messages enable row level security;
 revoke all on public.whatsapp_bot_messages from anon, authenticated;
+
+-- Tables are accessed through authenticated server endpoints, not directly by
+-- browser roles. New tables no longer receive automatic Data API grants after
+-- 2026-10-30. RLS bypass alone does not grant SQL table privileges.
+grant select, insert, update, delete on table
+  public.students,
+  public.enrollments,
+  public.daily_materials,
+  public.student_progress,
+  public.delivery_logs,
+  public.student_reviews,
+  public.whatsapp_bot_messages
+to service_role;

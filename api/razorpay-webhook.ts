@@ -1,3 +1,4 @@
+import { activateVerifiedTuitionPayment } from './_tuitionBilling.js';
 import crypto from 'node:crypto';
 import { sendEnrollmentEmail } from './_enrollmentEmail.js';
 import { credentialsFor, paymentWithOrderNotes } from './_razorpay.js';
@@ -27,6 +28,10 @@ export default async function handler(req: any, res: any) {
   let payment = event.payload?.payment?.entity;
   if (!payment?.id || payment.status !== 'captured') return res.status(400).json({ error: 'Invalid captured payment' });
   try { payment = await paymentWithOrderNotes(payment); } catch { return res.status(503).json({ error: 'Order verification pending. Retry delivery.' }); }
+  if (payment.notes?.checkoutVersion === 'tuition-month-v1') {
+    try { await activateVerifiedTuitionPayment(payment); return res.status(200).json({success:true}); }
+    catch { return res.status(503).json({error:'Tuition renewal confirmation pending. Retry delivery.'}); }
+  }
   const account = credentialsFor(payment);
   let student: any;
   try {

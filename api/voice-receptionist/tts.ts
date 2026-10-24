@@ -1,7 +1,7 @@
 import { requireStudentCourse } from '../_studentAccess.js';
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-  if (!await requireStudentCourse(req, res)) return;
+  if (!await requireStudentCourse(req, res, 'speech')) return;
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return res.status(503).json({ error: 'OpenAI voice is not configured' });
   const text = String(req.body?.text || '').replace(/[*#_~`]/g, '').trim().slice(0, 1800);

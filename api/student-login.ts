@@ -1,7 +1,10 @@
-import { credentialsFor, recentCapturedPayments } from './_razorpay.js';
+import tuitionTrial from './_tuitionTrial.js';
+import { trialIsExpired } from './_trialPolicy.js';
+import { credentialsFor, recentCapturedPayments, paymentWithOrderNotes } from './_razorpay.js';
 import { passwordHash, supabaseRequest, saveStudentAndEnrollment } from './_supabase.js';
 
 export default async function handler(req: any, res: any) {
+  if (req.method === 'GET' || ['request-code','verify-code'].includes(req.body?.action)) return tuitionTrial(req,res);
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   const identifier = String(req.body?.identifier || '').trim().toLowerCase();
   const password = String(req.body?.password || '').trim();
@@ -19,6 +22,7 @@ export default async function handler(req: any, res: any) {
       if (student && (!student.active || student.password_hash !== passwordHash(password))) {
         return res.status(401).json({ error: 'Invalid Username/Email or Password.' });
       }
+      if (student && trialIsExpired(student)) return res.status(403).json({ error: 'Your tuition access period has ended. Renew your optional monthly plan or contact support.' });
       if (student) {
         const enrollments = await supabaseRequest(`enrollments?student_id=eq.${encodeURIComponent(student.id)}&select=course_id,course_title&order=created_at.desc`);
         if (requestedCourseId) {
@@ -35,6 +39,7 @@ export default async function handler(req: any, res: any) {
             enrolledCourseIds,
             registeredAt: String(student.created_at || new Date().toISOString()).slice(0, 10),
             paymentReference: student.payment_id,
+            ...(student.account_kind === 'trial' ? { trialExpiresAt: student.access_expires_at } : {}),
           } });
         }
       }
@@ -46,12 +51,14 @@ export default async function handler(req: any, res: any) {
     // Compatibility fallback for captured payments that have not synced yet.
     const payments = await recentCapturedPayments();
     for (const payment of payments) {
-      const account = credentialsFor(payment);
+      const verifiedPayment = await paymentWithOrderNotes(payment);
+      if (verifiedPayment.notes?.checkoutVersion === 'tuition-month-v1') continue;
+      const account = credentialsFor(verifiedPayment);
       const phone = account.phone.replace(/[^0-9]/g, '');
       const identifierPhone = identifier.replace(/[^0-9]/g, '');
       if ((account.username.toLowerCase() === identifier || account.email === identifier || (identifierPhone.length >= 10 && phone.length >= 10 && phone.endsWith(identifierPhone))) && account.password === password) {
         if (account.courseId === 'course-unassigned') return res.status(409).json({ error: 'Your payment is verified, but the course assignment needs support review.' });
-        await saveStudentAndEnrollment(account, payment, { preserveExisting: true });
+        await saveStudentAndEnrollment(account, verifiedPayment, { preserveExisting: true });
         return res.status(200).json({ account });
       }
     }

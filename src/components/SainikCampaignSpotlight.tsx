@@ -19,6 +19,7 @@ const TRACKS = [
     audience: 'For students currently studying in Class 7 or 8',
     pattern: '150 questions • 400 marks',
   },
+  { id: 'course-navodaya-jnvst', label: 'Navodaya preparation', audience: 'Review the class and eligibility details before joining', pattern: 'Mental ability, arithmetic and language practice' },
 ] as const;
 
 export default function SainikCampaignSpotlight({ courses }: SainikCampaignSpotlightProps) {
@@ -33,18 +34,19 @@ export default function SainikCampaignSpotlight({ courses }: SainikCampaignSpotl
 
   return (
     <section
+      id="sainik-campaign"
       aria-labelledby="sainik-campaign-heading"
       className="border-y border-amber-400/20 bg-gradient-to-b from-amber-950/30 via-neutral-950 to-neutral-950 py-14 sm:py-18"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto mb-8 max-w-3xl text-center">
           <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-amber-300">
-            <ShieldCheck className="h-4 w-4" />{translateUI("Admissions preparation 2027")}</div>
-          <h2 id="sainik-campaign-heading" className="text-3xl font-black tracking-tight text-white sm:text-4xl">{translateUI("Sainik School entrance preparation for Class 6 and Class 9")}</h2>
-          <p className="mt-3 text-sm leading-6 text-neutral-300 sm:text-base">{translateUI("Choose the student’s entrance level to see the correct AISSEE syllabus, weekly study plan, mock tests and enrolment details.")}</p>
+            <ShieldCheck className="h-4 w-4" />{translateUI("School entrance preparation")}</div>
+          <h2 id="sainik-campaign-heading" className="text-3xl font-black tracking-tight text-white sm:text-4xl">{translateUI("Sainik School & Navodaya entrance preparation")}</h2>
+          <p className="mt-3 text-sm leading-6 text-neutral-300 sm:text-base">{translateUI("Choose Sainik Class 6, Sainik Class 9 or Navodaya to review the syllabus, practice and enrolment details.")}</p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-3">
           {availableTracks.map(({ course, ...track }) => {
             if (!course) return null;
             const slug = course.id.replace(/^course-/, '');
@@ -52,7 +54,7 @@ export default function SainikCampaignSpotlight({ courses }: SainikCampaignSpotl
               <article key={course.id} className="rounded-3xl border border-neutral-800 bg-neutral-900/90 p-5 shadow-xl shadow-black/20 sm:p-6">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-widest text-amber-400">AISSEE 2027</p>
+                    <p className="text-xs font-bold uppercase tracking-widest text-amber-400">{course.id.includes('navodaya') ? 'Navodaya' : 'AISSEE'}</p>
                     <h3 className="mt-1 text-2xl font-extrabold text-white">{translateUI(track.label)}</h3>
                     <p className="mt-1 text-sm text-neutral-400">{translateUI(track.audience)}</p>
                   </div>

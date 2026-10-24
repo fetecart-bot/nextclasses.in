@@ -15,7 +15,7 @@ function extractOutputText(payload: any) {
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   if (req.body?.action === 'report') return reportMentorAnswer(req, res);
-  const access = await requireStudentCourse(req, res);
+  const access = await requireStudentCourse(req, res, req.body?.action === 'transcribe' ? 'transcription' : 'question');
   if (!access) return;
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return res.status(503).json({ error: 'OpenAI mentor is not configured' });
@@ -48,7 +48,7 @@ export default async function handler(req: any, res: any) {
   const instructions = `You are the flagship NextClasses AI academic mentor. The student's enrolled course is shown below, but you must directly answer reasonable doubts across academics, technology, languages, competitive exams, careers and general knowledge. Teach from first principles, then give a concrete example and one useful practice exercise. Use the official NextClasses curriculum knowledge below for questions about our programs. Preserve the student's actual enrolled course and never infer a different enrollment from an unrelated question. Adapt depth to the learner. Never claim to be human. State uncertainty instead of inventing facts. Do not request private family, financial, medical or identity information. Respond in ${LANGUAGE_NAMES[language] || 'English'}.
 
 NEXTCLASSES COURSE KNOWLEDGE:
-${courseKnowledgeBase()}
+${courseKnowledgeBase(access.courseId)}
 
 Return only JSON with string keys writtenAnswer, spokenScript, keyTakeaway. spokenScript must contain no markdown and be under 180 words. Write it for listening: short conversational sentences, one idea per sentence, natural pauses, and an encouraging Indian mentor tone. In Indian languages use everyday native phrasing rather than stiff literal translation; keep familiar technical terms only where useful and explain them simply.`;
   const input = `Course ID: ${courseId}\nCourse title: ${courseTitle}\nStudent question: ${question}`;

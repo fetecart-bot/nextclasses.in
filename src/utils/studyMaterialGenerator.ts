@@ -1,3 +1,4 @@
+import { cbseStarterPractice } from '../data/cbseStarterPractice';
 import { GRADUATE_EXAM_PRACTICE } from '../data/graduateExamPractice';
 import { Course } from '../types';
 import { COURSES_DATA } from '../data';
@@ -515,6 +516,17 @@ function buildCourseStudyMaterialPack(course: Course): StudyMaterialPack {
 }
 
 export function getStudyMaterialPack(courseId: string): StudyMaterialPack {
+  const cbse = courseId.match(/^course-cbse-class-([5-9]|1[0-2])$/);
+  if (cbse) {
+    const course = COURSES_DATA.find(item => item.id === courseId);
+    if (course) {
+      const pack = buildCourseStudyMaterialPack(course);
+      pack.description = `${course.subtitle} This is a short introductory diagnostic, not a complete textbook or full mock examination.`;
+      pack.sampleQuestions = cbseStarterPractice(Number(cbse[1]));
+      pack.formulaAndTips = ['Use the textbook and chapter assigned by your school to guide revision.', 'Attempt each diagnostic question before reading its explanation.', 'Ask for a hint before a full worked solution.', 'Check important AI explanations against your textbook.'];
+      return pack;
+    }
+  }
   const graduateQuestions = GRADUATE_EXAM_PRACTICE[courseId as keyof typeof GRADUATE_EXAM_PRACTICE];
   if (graduateQuestions) {
     const course = COURSES_DATA.find((item) => item.id === courseId)!;

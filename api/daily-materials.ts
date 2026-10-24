@@ -1,3 +1,4 @@
+import { trialIsExpired } from './_trialPolicy.js';
 import crypto from 'node:crypto';
 import { passwordHash, supabaseRequest } from './_supabase.js';
 
@@ -88,6 +89,7 @@ export default async function handler(req: any, res: any) {
       const students = await supabaseRequest(`students?or=(username.ilike.${usernamePattern},email.eq.${encoded})&active=eq.true&limit=1`);
       const student = students?.[0];
       if (!student || student.password_hash !== passwordHash(password)) return res.status(401).json({ error: 'Invalid student credentials' });
+      if (trialIsExpired(student)) return res.status(403).json({ error: 'Your tuition access period has ended. Renew the optional monthly plan or contact support.' });
       const enrollments = await supabaseRequest(`enrollments?student_id=eq.${student.id}&course_id=eq.${encodeURIComponent(courseId)}&limit=1`);
       if (!enrollments?.length) return res.status(403).json({ error: 'This course is not enrolled' });
       const materialId = String(req.body?.materialId || '');

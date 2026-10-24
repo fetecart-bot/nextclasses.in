@@ -20,10 +20,10 @@ export default function SEOHead({ course }: { course?: Course | null }) {
     const canonical = course ? `${SITE}/courses/${slug}/` : `${SITE}/`;
     const title = course
       ? `${course.title} | NextClasses.in`
-      : 'NextClasses.in | AI Courses, Languages & Entrance Exam Preparation';
+      : 'NextClasses.in | CBSE Tuition, Sainik & Navodaya Preparation';
     const description = course
       ? `${course.subtitle} Learn in ${course.language}. View syllabus, demo lessons and enrol online from ₹${course.price}.`
-      : 'Practical AI courses, spoken-language programs and NEET, JEE, KEAM, AISSEE and Navodaya preparation with mock tests, certificates and multilingual support.';
+      : 'CBSE tuition for Classes 5–12, Sainik and Navodaya preparation, practical ChatGPT skills, languages and public speaking. Explore class-wise subjects and monthly tuition plans.';
     const image = course?.thumbnail?.startsWith('http')
       ? course.thumbnail
       : course?.thumbnail ? `${SITE}${course.thumbnail}` : DEFAULT_IMAGE;

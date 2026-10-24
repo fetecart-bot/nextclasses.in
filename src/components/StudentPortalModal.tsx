@@ -1,3 +1,4 @@
+import { CBSE_TUITION_COURSES } from '../data/cbseTuitionCourses';
 import LanguageSwitch from './LanguageSwitch';
 import { useLanguage } from '../context/LanguageContext';
 import { GRADUATE_EXAM_COURSES } from '../data/graduateExamCourses';
@@ -2163,14 +2164,14 @@ const COURSE_CURRICULUMS: Record<string, {
 };
 
 
-for (const course of GRADUATE_EXAM_COURSES) {
+for (const course of [...GRADUATE_EXAM_COURSES, ...CBSE_TUITION_COURSES]) {
   COURSE_CURRICULUMS[course.id] = {
     courseTitle: course.title,
     examCode: course.targetExamCode || 'OTHER',
-    certificateTitle: `${course.examName} Foundation Learning`,
+    certificateTitle: `${course.examName || course.title} Foundation Learning`,
     videos: [],
     weeklyPackages: [{ week: 1, title: 'Foundation syllabus and practice pack', releaseDate: 'Available Now', status: 'Available', modules: course.curriculum.map((module) => module.title) }],
-    prompts: course.curriculum.map((module) => ({ title: module.title, text: `Teach me ${module.lessons[0]} for ${course.examName}. Explain from first principles, give a worked example and three practice questions with explained answers. Do not invent exam dates or current affairs.` })),
+    prompts: course.curriculum.map((module) => ({ title: module.title, text: `Teach me ${module.lessons[0]} for ${course.examName || course.title}. Explain from first principles, give a worked example and three practice questions with explained answers. Do not invent exam dates or current affairs.` })),
   };
 }
 

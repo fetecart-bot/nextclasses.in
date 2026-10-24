@@ -35,8 +35,9 @@ export default function Navbar({
   const cartTotalAmount = cartItems.reduce((acc, item) => acc + (Number(item.price) || 0), 0);
 
   const navLinks = [
-    { label: 'AI Courses', href: 'courses' },
-    { label: 'AI Digital Products', href: 'products' },
+    { label: 'CBSE Tuition', href: 'school-tuition' },
+    { label: 'Entrance Preparation', href: 'sainik-campaign' },
+    { label: 'ChatGPT & Languages', href: 'courses' },
     { label: 'Why Nextclasses.in', href: 'why-us' },
     { label: 'Testimonials', href: 'testimonials' },
     { label: 'FAQ', href: 'faq' },
@@ -59,12 +60,10 @@ export default function Navbar({
           {/* Brand Identity */}
           <button
             type="button"
-            onClick={() => handleLinkClick('hero')}
+            onClick={() => handleLinkClick('school-tuition')}
             className="flex items-center gap-3 text-left group"
           >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center text-neutral-950 font-black text-xl shadow-lg shadow-orange-500/20 group-hover:scale-105 transition-transform">
-              NC
-            </div>
+            <img src="/nextclasses-logo-512.png" alt="NextClasses original NC book logo" className="w-14 h-14 object-contain shrink-0" />
             <div>
               <div className="flex items-center gap-1.5 font-extrabold text-lg sm:text-xl tracking-tight text-white leading-none">
                 <span>NextClasses</span>
@@ -72,7 +71,7 @@ export default function Navbar({
                   .in
                 </span>
               </div>
-              <p className="text-[11px] text-neutral-400 font-medium mt-0.5">{translateUI("Practical AI & Competitive Exam Masterclasses")}</p>
+              <p className="text-[11px] text-neutral-400 font-medium mt-0.5">{translateUI("CBSE Tuition · Entrance Preparation · ChatGPT")}</p>
             </div>
           </button>
 

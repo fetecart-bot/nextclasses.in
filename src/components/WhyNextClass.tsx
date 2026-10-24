@@ -5,54 +5,12 @@ export default function WhyNextClass() {
   const { t: translateUI } = useLanguage();
 
   const pillars = [
-    {
-      id: 'pillar-jargon-free',
-      icon: Sparkles,
-      title: '100% Practical & Zero Jargon',
-      description:
-        'No confusing algorithms or intimidating math. We teach you how to think, prompt, and orchestrate generative AI models to solve real everyday tasks.',
-      highlight: 'No coding required',
-    },
-    {
-      id: 'pillar-multilingual',
-      icon: Globe,
-      title: 'All Indian Languages & English',
-      description:
-        'Learning in your natural conversational flow ensures total clarity. Ask doubts and access instructions in all Indian languages or English without hesitation.',
-      highlight: 'Native Comfort',
-    },
-    {
-      id: 'pillar-curriculum',
-      icon: Award,
-      title: 'Domain-Specific Programs',
-      description:
-        'We do not teach generic AI overviews. Teachers get SCERT/CBSE lesson planning; students get thesis research and exam revision; designers get photorealistic poster prompts.',
-      highlight: 'Tailored Frameworks',
-    },
-    {
-      id: 'pillar-community',
-      icon: Users,
-      title: 'VIP WhatsApp Community & Prompt Hub',
-      description:
-        'You never learn in isolation. Every enrolled learner gets access to our curated WhatsApp community for prompt sharing, workflow templates, and peer networking.',
-      highlight: '10k+ Peer Network',
-    },
-    {
-      id: 'pillar-lifetime',
-      icon: ShieldCheck,
-      title: 'Lifetime Dashboard & Updates',
-      description:
-        'AI evolves every month. As new capabilities launch (like Claude 3.7 or GPT-5), your student dashboard gets free updated modules and fresh prompt sheets.',
-      highlight: 'Continuous Evolution',
-    },
-    {
-      id: 'pillar-certification',
-      icon: HeartHandshake,
-      title: 'Verified Certificate of Mastery',
-      description:
-        'Receive an official certificate with a unique QR code verification link to present to schools, college departments, or add to LinkedIn.',
-      highlight: 'Official Credential',
-    },
+    { id: 'pillar-clarity', icon: Sparkles, title: 'Understand before memorising', description: 'Use clear explanations, worked examples and practice to build understanding step by step.', highlight: 'Practical learning' },
+    { id: 'pillar-subjects', icon: Award, title: 'Choose the right class', description: 'Select CBSE Classes 5–12 and review the offered subjects before joining.', highlight: 'Class-wise tuition' },
+    { id: 'pillar-language', icon: Globe, title: 'Language support', description: 'Use the available language controls and ask support about the language you need.', highlight: 'Learning support' },
+    { id: 'pillar-support', icon: Users, title: 'Talk to course support', description: 'Ask about the syllabus, access or monthly tuition through our published WhatsApp support number.', highlight: '+91 8792134951' },
+    { id: 'pillar-price', icon: ShieldCheck, title: 'Clear monthly tuition prices', description: 'Classes 5–7: ₹200; Classes 8–9: ₹300; Classes 10–12: ₹400 per month, including all offered subjects after the introductory trial.', highlight: 'Optional renewal' },
+    { id: 'pillar-check', icon: HeartHandshake, title: 'Check your learning', description: 'Practise questions, review mistakes and check important AI explanations against your textbook.', highlight: 'Understand and practise' },
   ];
 
   return (
@@ -64,8 +22,8 @@ export default function WhyNextClass() {
         {/* Header */}
         <div className="max-w-3xl space-y-4 mb-16">
           <span className="text-xs font-bold uppercase tracking-wider text-orange-400">{translateUI("The Nextclasses.in Advantage")}</span>
-          <h2 id="why-heading" className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white">{translateUI("Why thousands of learners trust Nextclasses.in for their journey.")}</h2>
-          <p className="text-neutral-400 text-sm sm:text-base leading-relaxed">{translateUI("Most online tutorials are either too academic or overly superficial. We bridge the gap with hands-on, contextual learning that creates immediate productivity.")}</p>
+          <h2 id="why-heading" className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white">{translateUI("Learning support that is easy to understand.")}</h2>
+          <p className="text-neutral-400 text-sm sm:text-base leading-relaxed">{translateUI("Choose a suitable course, explore its learning approach, and ask us about access before joining.")}</p>
         </div>
 
         {/* 6-Grid Pillars */}

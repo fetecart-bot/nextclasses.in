@@ -1,3 +1,4 @@
+import { CBSE_TUITION_COURSES } from './data/cbseTuitionCourses.js';
 import { GRADUATE_EXAM_COURSES } from './data/graduateExamCourses.js';
 import type { Course, AIProduct, Testimonial, FAQItem, PortalVideoLesson } from './types';
 
@@ -168,7 +169,7 @@ export const COURSES_DATA: Course[] = [
   },
   {
     id: 'course-chatgpt-6-openai',
-    title: 'ChatGPT & OpenAI 6-Course Masterclass: GPT-4o, o1, o3-mini & GPT-6 Ready',
+    title: 'Practical ChatGPT for Study, Teaching & Everyday Work',
     subtitle: 'The definitive 6-module masterclass covering Custom GPTs, Advanced Data Analysis, Canvas, Realtime Voice, and Deep Reasoning Models.',
     category: 'ai_platforms',
     level: 'All Levels',
@@ -2190,6 +2191,7 @@ export const COURSES_DATA: Course[] = [
     },
   },
   ...GRADUATE_EXAM_COURSES,
+  ...CBSE_TUITION_COURSES,
 ];
 export const PRODUCTS_DATA: AIProduct[] = [
   {

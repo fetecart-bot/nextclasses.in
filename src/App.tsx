@@ -1,3 +1,5 @@
+import SchoolTuition from './components/SchoolTuition';
+import { isCourseOpenForEnrollment } from './cataloguePolicy';
 import { useState, useEffect } from 'react';
 import AnnouncementBanner from './components/AnnouncementBanner';
 import Navbar from './components/Navbar';
@@ -379,14 +381,15 @@ export default function App() {
     return () => window.removeEventListener('hashchange', handleHash);
   }, []);
 
+  const publicCourses = courses.filter(isCourseOpenForEnrollment).map(course => ({ ...(COURSES_DATA.find(item => item.id === course.id) || course), rating: 0, reviewCount: 0, enrolledCount: 0 }));
   const directCourseSlug = currentPath.match(/^\/courses\/([^/]+)\/?$/i)?.[1];
   const directCourse = directCourseSlug
-    ? courses.find((course) => course.id.replace(/^course-/, '') === directCourseSlug)
+    ? publicCourses.find((course) => course.id.replace(/^course-/, '') === directCourseSlug)
     : null;
 
   useEffect(() => {
     if (directCourse) setSelectedCourseForModal(directCourse);
-  }, [directCourse]);
+  }, [directCourse?.id]);
 
   // --- PRODUCT MANAGEMENT HANDLERS ---
   const handleAddProduct = (newProduct: AIProduct) => {
@@ -472,6 +475,7 @@ export default function App() {
 
   // Cart operations
   const handleAddToCart = (item: CartItem) => {
+    if (item.itemType === 'course' && !isCourseOpenForEnrollment(item)) return;
     window.dispatchEvent(new CustomEvent('nextclasses:conversion', { detail: { event: 'add_to_cart', itemId: item.id, value: item.price } }));
     const exists = cartItems.some((ci) => ci.id === item.id);
     if (!exists) {
@@ -503,7 +507,7 @@ export default function App() {
 
   // Flagship course for the hero feature spotlight (Google AI Studio & Gemini 2.0 Flash)
   const flagshipCourse =
-    courses.find((c) => c.id === 'course-google-ai-studio') ||
+    publicCourses.find((c) => c.id === 'course-chatgpt-6-openai') ||
     courses.find((c) => c.category === 'ai_platforms') ||
     courses[0] ||
     COURSES_DATA[0];
@@ -537,7 +541,7 @@ export default function App() {
     <div className="min-h-screen bg-neutral-950 text-neutral-100 selection:bg-orange-500 selection:text-neutral-950 font-sans antialiased">
       <SEOHead course={directCourse} />
       {/* Top Promos & Announcement Bar */}
-      <AnnouncementBanner onPromoApply={() => setIsCartOpen(true)} />
+
 
       {/* Primary Sticky Navigation */}
       <Navbar
@@ -553,6 +557,11 @@ export default function App() {
       {/* Main Content Sections */}
       <main id="main-content">
         {!directCourse && <>
+        <SchoolTuition />
+
+        {/* Direct campaign path for parents arriving from AISSEE promotions */}
+        <SainikCampaignSpotlight courses={courses} />
+
         {/* Hero Section */}
         <Hero
           flagshipCourse={flagshipCourse}
@@ -563,25 +572,14 @@ export default function App() {
           onAddToCart={handleAddToCart}
         />
 
-        {/* Direct campaign path for parents arriving from AISSEE promotions */}
-        <SainikCampaignSpotlight courses={courses} />
+
 
         {/* AI Courses Catalog */}
         <CourseCatalog
-          courses={courses}
+          courses={publicCourses.filter(course => !course.id.startsWith('course-cbse-class-'))}
           onSelectCourse={(course) => setSelectedCourseForModal(course)}
           onAddToCart={handleAddToCart}
           onOpenLanguageSelector={() => setIsLanguageModalOpen(true)}
-        />
-
-        {/* Digital Products & Prompt Toolkits */}
-        <ProductCatalog
-          products={products}
-          onAddToCart={handleAddToCart}
-          onInstantBuy={(item) => {
-            handleAddToCart(item);
-            setIsCartOpen(true);
-          }}
         />
 
         {/* Why NextClass (The 6 Pillars) */}

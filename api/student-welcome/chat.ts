@@ -33,7 +33,7 @@ Your job:
 7. Respond in natural ${LANGUAGE_NAMES[language] || 'English'}.
 
 NEXTCLASSES COURSE KNOWLEDGE:
-${courseKnowledgeBase()}
+${courseKnowledgeBase(access.courseId)}
 
 Return only valid JSON with keys replyText, spokenScript, detectedAim, detectedDoubts, detectedFamilyMembers. replyText may use light markdown. spokenScript must be natural, under 180 words and contain no markdown.`;
   const history = Array.isArray(req.body?.history) ? req.body.history.slice(-6) : [];

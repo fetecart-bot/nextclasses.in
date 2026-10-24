@@ -2,6 +2,7 @@ import { COURSES_DATA } from '../src/data.js';
 import crypto from 'node:crypto';
 
 export function credentialsFor(payment: any) {
+  if (payment.notes?.checkoutVersion === 'tuition-month-v1') throw new Error('Monthly tuition renewals keep the existing login; do not generate new credentials.');
   const email = String(payment.email || payment.notes?.studentEmail || '').toLowerCase();
   const name = String(payment.notes?.studentName || email.split('@')[0] || 'Student');
   const courseId = String(payment.notes?.courseId || 'course-unassigned');
@@ -50,7 +51,7 @@ export async function paymentWithOrderNotes(payment: any) {
   const response = await fetch(`https://api.razorpay.com/v1/orders/${encodeURIComponent(payment.order_id)}`, { headers: { Authorization: `Basic ${Buffer.from(`${keyId}:${secret}`).toString('base64')}` }, signal: AbortSignal.timeout(20000) });
   if (!response.ok) throw new Error('Payment order could not be verified');
   const order: any = await response.json();
-  if (order.notes?.checkoutVersion !== '2') return payment;
+  if (!['2','tuition-month-v1'].includes(order.notes?.checkoutVersion)) return payment;
   if (order.amount !== payment.amount || order.currency !== payment.currency || order.status !== 'paid') throw new Error('Payment and order do not match');
   return { ...payment, notes: order.notes };
 }
@@ -64,5 +65,5 @@ export async function capturedPayment(paymentId: string) {
   if (response.status === 404) return null;
   if (!response.ok) throw new Error('Razorpay payment lookup failed');
   const payment: any = await response.json();
-  return payment.status === 'captured' ? payment : null;
+  return payment.status === 'captured' ? await paymentWithOrderNotes(payment) : null;
 }

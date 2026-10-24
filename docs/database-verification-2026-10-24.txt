@@ -1,0 +1,358 @@
+envkklqteha/logs
+      - generic: Logs
+    - link "Integrations":
+      - /url: /dashboard/project/vrednzejsenvkklqteha/integrations
+      - generic: Integrations
+  - list:
+    - link "Project Settings":
+      - /url: /dashboard/project/vrednzejsenvkklqteha/settings/general
+      - generic: Project Settings
+- button "Sidebar control":
+- main:
+  - heading "SQL Editor" [level=4]
+  - generic: Search queries
+  - textbox "Search queries..."
+  - button:
+  - button "Create a new query":
+  - button "Shared":
+    - generic: Shared
+  - button "Favorites":
+    - generic: Favorites
+  - button "PRIVATE (1)" [expanded]:
+    - generic: PRIVATE (1)
+  - tree "private-snippets":
+    - generic "Untitled query":
+      - generic: Untitled query
+    - generic "Untitled query":
+      - generic: Untitled query
+  - button "Logs":
+    - generic: Logs
+  - button "Reference" [expanded]:
+    - generic: Reference
+  - link "templates":
+    - /url: /dashboard/project/vrednzejsenvkklqteha/sql/templates
+    - text: templates
+  - link "examples":
+    - /url: /dashboard/project/vrednzejsenvkklqteha/sql/examples
+    - text: examples
+  - link "View running queries":
+    - /url: /dashboard/project/vrednzejsenvkklqteha/observability/connections
+    - generic: View running queries
+  - separator:
+  - main:
+    - button "Collapse sidebar":
+      - generic: Collapse sidebar
+    - tablist:
+      - tab "Untitled query" [selected]:
+        - generic: Untitled query
+      - button "Close tab":
+      - separator
+      - button:
+    - status
+    - generic: Unsaved edits
+    - button "More actions":
+    - 'button "Query source: Database"':
+      - generic: Database
+    - button "Save":
+      - generic: Save
+      - generic: ⌘S
+    - button "Run":
+      - generic: Run
+      - generic: ⌘↵
+    - code:
+      - generic: "1"
+      - generic: select c.relname as table_name,c.relrowsecurity as rls_enabled,has_table_privilege('service_role',c.
+      - generic: oid,'SELECT') and has_table_privilege('service_role',c.oid,'INSERT') and has_table_privilege
+      - generic: ('service_role',c.oid,'UPDATE') and has_table_privilege('service_role',c.oid,'DELETE') as
+      - generic: server_access_all,has_table_privilege('anon',c.oid,'SELECT') as anonymous_read,has_table_privilege
+      - generic: ('authenticated',c.oid,'SELECT') as direct_user_read from pg_class c join pg_namespace n on n.oid=c.
+      - generic: relnamespace where n.nspname='public' and c.relkind='r' order by c.relname;
+      - textbox "Editor content" [active]: enabled,has_table_privilege('service_role',c.oid,'SELECT') and has_table_privilege('service_role',c.oid,'INSERT') and has_table_privilege('service_role',c.oid,'UPDATE') and has_table_privilege('service_role',c.oid,'DELETE') as server_access_all,has_table_privilege('anon',c.oid,'SELECT') as anonymous_read,has_table_privilege('authenticated',c.oid,'SELECT') as direct_user_read from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind='r' order by c.relname;
+    - separator:
+    - tablist:
+      - tab "Results" [selected]:
+        - generic: Results
+      - tab "Chart":
+        - generic: Chart
+      - button "9 rows(Limited to only 100 rows)":
+        - paragraph:
+          - generic: 9 rows
+          - text: (Limited to only 100 rows)
+      - button "Export":
+        - generic: Export
+    - grid:
+      - row "table_name rls_enabled server_access_all anonymous_read direct_user_read":
+        - columnheader "table_name":
+          - generic: table_name
+        - columnheader "rls_enabled":
+          - generic: rls_enabled
+        - columnheader "server_access_all":
+          - generic: server_access_all
+        - columnheader "anonymous_read":
+          - generic: anonymous_read
+        - columnheader "direct_user_read":
+          - generic: direct_user_read
+      - row "daily_materials true true false false":
+        - gridcell "daily_materials":
+          - generic: daily_materials
+        - gridcell "true":
+          - generic: "true"
+        - gridcell "true":
+          - generic: "true"
+        - gridcell "false":
+          - generic: "false"
+        - gridcell "false":
+          - generic: "false"
+      - row "delivery_logs true true false false":
+        - gridcell "delivery_logs":
+          - generic: delivery_logs
+        - gridcell "true":
+          - generic: "true"
+        - gridcell "true":
+          - generic: "true"
+        - gridcell "false":
+          - generic: "false"
+        - gridcell "false":
+          - generic: "false"
+      - row "enrollments true true false false":
+        - gridcell "enrollments":
+          - generic: enrollments
+        - gridcell "true":
+          - generic: "true"
+        - gridcell "true":
+          - generic: "true"
+        - gridcell "false":
+          - generic: "false"
+        - gridcell "false":
+          - generic: "false"
+      - row "student_progress true true false false":
+        - gridcell "student_progress":
+          - generic: student_progress
+        - gridcell "true":
+          - generic: "true"
+        - gridcell "true":
+          - generic: "true"
+        - gridcell "false":
+          - generic: "false"
+        - gridcell "false":
+          - generic: "false"
+      - row "student_reviews true true false false":
+        - gridcell "student_reviews":
+          - generic: student_reviews
+        - gridcell "true":
+          - generic: "true"
+        - gridcell "true":
+          - generic: "true"
+        - gridcell "false":
+          - generic: "false"
+        - gridcell "false":
+          - generic: "false"
+      - row "students true true false false":
+        - gridcell "students":
+          - generic: students
+        - gridcell "true":
+          - generic: "true"
+        - gridcell "true":
+          - generic: "true"
+        - gridcell "false":
+          - generic: "false"
+        - gridcell "false":
+          - generic: "false"
+      - row "trial_daily_usage true true false false":
+        - gridcell "trial_daily_usage":
+          - generic: trial_daily_usage
+        - gridcell "true":
+          - generic: "true"
+        - gridcell "true":
+          - generic: "true"
+        - gridcell "false":
+          - generic: "false"
+        - gridcell "false":
+          - generic: "false"
+      - row "trial_requests true true false false":
+        - gridcell "trial_requests":
+          - generic: trial_requests
+        - gridcell "true":
+          - generic: "true"
+        - gridcell "true":
+          - generic: "true"
+        - gridcell "false":
+          - generic: "false"
+        - gridcell "false":
+          - generic: "false"
+      - row "whatsapp_bot_messages true true false false":
+        - gridcell "whatsapp_bot_messages":
+          - generic: whatsapp_bot_messages
+        - gridcell "true":
+          - generic: "true"
+        - gridcell "true":
+          - generic: "true"
+        - gridcell "false":
+          - generic: "false"
+        - gridcell "false":
+          - generic: "false"
+- button "Close banner":
+- generic: Preview
+- paragraph: User growth
+- paragraph: Track how your user base is trending.
+- paragraph:
+  - generic: select
+  - generic: date_trunc('week', last_sign_in_at) as week,
+  - generic: count(distinct id) as active_users
+- paragraph: Explorer & Notebooks
+- paragraph: New unified workspace for querying data and chatting with Assistant.
+- button "Enable Explorer":
+  - generic: Enable Explorer
+- alert: SQL Editor | nextclasses-production | Nextclasses Academy | Supabase
+- alert
+- alert
+
+FUNCTION AUDIT
+ard/project/vrednzejsenvkklqteha/observability/connections
+    - generic: View running queries
+  - separator:
+  - main:
+    - button "Collapse sidebar":
+      - generic: Collapse sidebar
+    - tablist:
+      - tab "Untitled query" [selected]:
+        - generic: Untitled query
+      - button "Close tab":
+      - separator
+      - button:
+    - status
+    - generic: Unsaved edits
+    - button "More actions":
+    - 'button "Query source: Database"':
+      - generic: Database
+    - button "Save":
+      - generic: Save
+      - generic: ⌘S
+    - button "Run":
+      - generic: Run
+      - generic: ⌘↵
+    - code:
+      - generic: "1"
+      - generic: select p.proname,has_function_privilege('service_role',p.oid,'EXECUTE') as server_execute,
+      - generic: has_function_privilege('anon',p.oid,'EXECUTE') as anonymous_execute,has_function_privilege
+      - generic: ('authenticated',p.oid,'EXECUTE') as direct_user_execute from pg_proc p join pg_namespace n on n.oid=p.
+      - generic: pronamespace where n.nspname='public' and p.proname in ('request_tuition_trial','claim_tuition_trial',
+      - generic: "'consume_trial_usage') order by p.proname;"
+      - textbox "Editor content" [active]: select p.proname,has_function_privilege('service_role',p.oid,'EXECUTE') as server_execute,has_function_privilege('anon',p.oid,'EXECUTE') as anonymous_execute,has_function_privilege('authenticated',p.oid,'EXECUTE') as direct_user_execute from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname in ('request_tuition_trial','claim_tuition_trial','consume_trial_usage') order by p.proname;
+    - separator:
+    - tablist:
+      - tab "Results" [selected]:
+        - generic: Results
+      - tab "Chart":
+        - generic: Chart
+      - button "3 rows(Limited to only 100 rows)":
+        - paragraph:
+          - generic: 3 rows
+          - text: (Limited to only 100 rows)
+      - button "Export":
+        - generic: Export
+    - grid:
+      - row "proname server_execute anonymous_execute direct_user_execute":
+        - columnheader "proname":
+          - generic: proname
+        - columnheader "server_execute":
+          - generic: server_execute
+        - columnheader "anonymous_execute":
+          - generic: anonymous_execute
+        - columnheader "direct_user_execute":
+          - generic: direct_user_execute
+      - row "claim_tuition_trial true false false":
+        - gridcell "claim_tuition_trial":
+          - generic: claim_tuition_trial
+        - gridcell "true":
+          - generic: "true"
+        - gridcell "false":
+          - generic: "false"
+        - gridcell "false":
+          - generic: "false"
+      - row "consume_trial_usage true false false":
+        - gridcell "consume_trial_usage":
+          - generic: consume_trial_usage
+        - gridcell "true":
+          - generic: "true"
+        - gridcell "false":
+          - generic: "false"
+        - gridcell "false":
+          - generic: "false"
+      - row "request_tuition_trial true false false":
+        - gridcell "request_tuition_trial":
+          - generic: request_tuition_trial
+        - gridcell "true":
+          - generic: "true"
+        - gridcell "false":
+          - generic: "false"
+        - gridcell "false":
+          - generic: "false"
+- button "Close banner":
+- generic: Preview
+- paragraph: User growth
+- paragraph: Track how your user base is trending.
+- paragraph:
+  - generic: select
+  - generic: date_trunc('week', last_sign_in_at) as week,
+  - generic: count(distinct id) as active_users
+- paragraph: Explorer & Notebooks
+- paragraph: New unified workspace for querying data and chatting with Assistant.
+- button "Enable Explorer":
+  - generic: Enable Explorer
+- alert: SQL Editor | nextclasses-production | Nextclasses Academy | Supabase
+- alert
+- alert
+
+PRESERVATION CHECK
+m public.enrollments where
+      - generic: course_id='course-public-speaking-articulation') as articulation_assignment_present,(select count(*)
+      - generic: from public.trial_requests) as trial_requests_remaining,(select count(*) from public.
+      - generic: trial_daily_usage) as trial_usage_remaining;
+      - textbox "Editor content" [active]: select not exists(select 1 from public.students where account_kind<>'paid') as existing_accounts_preserved_as_paid,exists(select 1 from public.enrollments where course_id='course-public-speaking-articulation') as articulation_assignment_present,(select count(*) from public.trial_requests) as trial_requests_remaining,(select count(*) from public.trial_daily_usage) as trial_usage_remaining;
+    - separator:
+    - tablist:
+      - tab "Results" [selected]:
+        - generic: Results
+      - tab "Chart":
+        - generic: Chart
+      - button "1 row(Limited to only 100 rows)":
+        - paragraph:
+          - generic: 1 row
+          - text: (Limited to only 100 rows)
+      - button "Export":
+        - generic: Export
+    - grid:
+      - row "existing_accounts_preserved_as_paid articulation_assignment_present trial_requests_remaining trial_usage_remaining":
+        - columnheader "existing_accounts_preserved_as_paid":
+          - generic: existing_accounts_preserved_as_paid
+        - columnheader "articulation_assignment_present":
+          - generic: articulation_assignment_present
+        - columnheader "trial_requests_remaining":
+          - generic: trial_requests_remaining
+        - columnheader "trial_usage_remaining":
+          - generic: trial_usage_remaining
+      - row "true true 0 0":
+        - gridcell "true":
+          - generic: "true"
+        - gridcell "true":
+          - generic: "true"
+        - gridcell "0":
+          - generic: "0"
+        - gridcell "0":
+          - generic: "0"
+- button "Close banner":
+- generic: Preview
+- paragraph: User growth
+- paragraph: Track how your user base is trending.
+- paragraph:
+  - generic: select
+  - generic: date_trunc('week', last_sign_in_at) as week,
+  - generic: count(distinct id) as active_users
+- paragraph: Explorer & Notebooks
+- paragraph: New unified workspace for querying data and chatting with Assistant.
+- button "Enable Explorer":
+  - generic: Enable Explorer
+- alert: SQL Editor | nextclasses-production | Nextclasses Academy | Supabase
+- alert
+- alert

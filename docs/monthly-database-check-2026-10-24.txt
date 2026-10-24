@@ -1,0 +1,52 @@
+ric: "31"
+      - generic: "32"
+      - generic: "33"
+      - generic: "34"
+      - generic: "35"
+      - generic: "-- exercise today's counter inside this rolled-back transaction only."
+      - generic: perform public.reserve_trial_email_slot();
+      - generic: update public.trial_email_budget set sent_count=100 where usage_date=(now() at time zone 'Asia/
+      - generic: Kolkata')::date;
+      - generic: assert not public.reserve_trial_email_slot(), 'Email budget exceeded';
+      - generic: end $$;
+      - generic: rollback;
+      - generic: select 'Monthly renewal and email-budget checks passed; test data rolled back' as result;
+      - textbox "Editor content" [active]
+      - generic: "5"
+      - generic: 
+      - list:
+        - generic: begin
+    - separator:
+    - tablist:
+      - tab "Results" [selected]:
+        - generic: Results
+      - tab "Chart":
+        - generic: Chart
+      - button "1 row":
+        - paragraph:
+          - generic: 1 row
+      - button "Export":
+        - generic: Export
+    - grid:
+      - row "result":
+        - columnheader "result":
+          - generic: result
+      - row "Monthly renewal and email-budget checks passed; test data rolled back View full cell content":
+        - gridcell "Monthly renewal and email-budget checks passed; test data rolled back View full cell content":
+          - text: Monthly renewal and email-budget checks passed; test data rolled back
+          - button "View full cell content":
+- button "Close banner":
+- generic: Preview
+- paragraph: User growth
+- paragraph: Track how your user base is trending.
+- paragraph:
+  - generic: select
+  - generic: date_trunc('week', last_sign_in_at) as week,
+  - generic: count(distinct id) as active_users
+- paragraph: Explorer & Notebooks
+- paragraph: New unified workspace for querying data and chatting with Assistant.
+- button "Enable Explorer":
+  - generic: Enable Explorer
+- alert: SQL Editor | nextclasses-production | Nextclasses Academy | Supabase
+- alert
+- alert

@@ -30,16 +30,11 @@ export default function CourseCatalog({
   const [showAllCourses, setShowAllCourses] = useState(false);
 
   const categories: { id: CourseCategory; label: string; count: number }[] = [
-    { id: 'all', label: t('allPrograms', 'All Programs'), count: courses.length },
-    { id: 'ai_platforms', label: '⚡ Frontier AI & Platforms (Gemini 2.0, ChatGPT, Claude, DeepSeek, Cursor)', count: courses.filter(c => c.category === 'ai_platforms').length },
-    { id: 'automation', label: '🤖 AI Agents & Automations (LangGraph, CrewAI, Voice AI, Zapier)', count: courses.filter(c => c.category === 'automation').length },
-    { id: 'creators', label: '🎬 AI Creators & Video (Sora, Runway Gen-3, Midjourney, HeyGen)', count: courses.filter(c => c.category === 'creators').length },
-    { id: 'beginners', label: '🌱 Beginners & Productivity', count: courses.filter(c => c.category === 'beginners').length },
-    { id: 'students', label: '🎓 Students & Academics', count: courses.filter(c => c.category === 'students').length },
-    { id: 'educators', label: '🍎 Teachers & Educators', count: courses.filter(c => c.category === 'educators').length },
-    { id: 'languages', label: '🗣️ Languages & Speaking (English, French, German)', count: courses.filter(c => c.category === 'languages').length },
-    { id: 'competitive_exams', label: '🎯 Competitive Exams (UPSC, SSC CGL, Kerala PSC, School & College Entrance)', count: courses.filter(c => c.category === 'competitive_exams').length },
-  ];
+    { id: 'all', label: 'All learning programmes', count: courses.length },
+    { id: 'competitive_exams', label: 'School entrance preparation', count: courses.filter(c => c.category === 'competitive_exams').length },
+    { id: 'ai_platforms', label: 'ChatGPT', count: courses.filter(c => c.category === 'ai_platforms').length },
+    { id: 'languages', label: 'Languages & public speaking', count: courses.filter(c => c.category === 'languages').length },
+  ].filter(category => category.count > 0) as { id: CourseCategory; label: string; count: number }[];
 
   const filteredCourses = useMemo(() => {
     const list = courses.filter((course) => {
@@ -59,8 +54,8 @@ export default function CourseCatalog({
     if (activeCategory === 'all' && !searchQuery) {
       const aiCategories = new Set(['ai_platforms', 'automation', 'creators', 'beginners', 'students', 'educators']);
       return [...list].sort((a, b) => {
-        const aRank = aiCategories.has(a.category) ? 0 : a.category === 'languages' ? 1 : 2;
-        const bRank = aiCategories.has(b.category) ? 0 : b.category === 'languages' ? 1 : 2;
+        const aRank = a.category === 'competitive_exams' ? 0 : a.category === 'languages' ? 2 : 1;
+        const bRank = b.category === 'competitive_exams' ? 0 : b.category === 'languages' ? 2 : 1;
         return aRank - bRank;
       });
     }
@@ -83,10 +78,10 @@ export default function CourseCatalog({
               <span>{translateUI("Tailored Learning Paths")}</span>
             </div>
             <h2 id="courses-section-title" className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white">
-              {t('coursesHeading', 'Practical AI Courses for Real Impact')}
+              {translateUI('Choose your learning goal')}
             </h2>
             <p className="text-sm sm:text-base text-neutral-400 max-w-2xl leading-relaxed">
-              {t('coursesSubheading', 'Every course is taught by experienced practitioners in your preferred language with actionable digital superpowers.')}
+              {translateUI('School entrance preparation and practical ChatGPT skills. Review a lesson and syllabus before choosing your course.')}
             </p>
           </div>
 
@@ -148,14 +143,6 @@ export default function CourseCatalog({
           </div>
         </div>
 
-        {(activeCategory === 'all' || activeCategory === 'competitive_exams') && (
-          <aside className="mb-6 p-5 rounded-xl border border-amber-500/30 bg-amber-500/5">
-            <h3 className="text-white font-bold">{translateUI("UPSC, SSC CGL & Kerala PSC graduate exam preparation")}</h3>
-            <p className="text-sm text-neutral-300 mt-2">{translateUI("Dedicated foundation study plans and AI mentor support. Other state PSC tracks:")}<strong className="text-amber-400">{translateUI("Coming soon")}</strong>.</p>
-            <button type="button" onClick={() => { setActiveCategory('competitive_exams'); setSearchQuery(''); setShowAllCourses(true); }} className="mt-3 text-amber-400 text-sm font-bold">{translateUI("Explore exam preparation →")}</button>
-            <a href="/exam-preparation/" className="block mt-2 text-sm text-neutral-300 underline">{translateUI("Compare the three graduate exam tracks")}</a>
-          </aside>
-        )}
         {/* Filters and Search Bar */}
         <div className="space-y-4 mb-10">
           
@@ -190,7 +177,7 @@ export default function CourseCatalog({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={translateUI("Search courses by tool or keyword (e.g., Claude, Teacher, Midjourney, n8n)...")}
+                placeholder={translateUI("Search Sainik, Navodaya, ChatGPT or a language...")}
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white placeholder-neutral-500 text-xs sm:text-sm focus:outline-none focus:border-orange-500/60 transition-colors"
               />
               {searchQuery && (
@@ -334,17 +321,6 @@ export default function CourseCatalog({
                     {/* Content Section */}
                     <div className="p-6 space-y-4">
                       
-                      {/* Rating & Social Proof */}
-                      {course.reviewCount > 0 && <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-1 text-amber-400 font-bold">
-                          <Star className="w-3.5 h-3.5 fill-amber-400" />
-                          <span>{course.rating}</span>
-                          <span className="text-neutral-500 font-normal">({course.reviewCount})</span>
-                        </div>
-                        <span className="text-neutral-400 text-[11px]">
-                          {course.enrolledCount.toLocaleString()}{translateUI("+ students")}</span>
-                      </div>}
-
                       {/* Title & Subtitle */}
                       <div>
                         <h3 className="text-lg font-bold text-white tracking-tight leading-snug group-hover:text-amber-300 transition-colors">
