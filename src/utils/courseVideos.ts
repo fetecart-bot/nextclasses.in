@@ -1,6 +1,21 @@
 import { Course, PortalVideoLesson } from '../types';
 
+// A shared revision sample, not a claim of complete class-specific video coverage.
+const TUITION_REVISION_VIDEO: PortalVideoLesson = {
+  id: 'nextclasses-speed-distance-revision',
+  title: 'Time, Distance & Speed Made Easy — Maths Revision',
+  duration: 'English lesson',
+  company: 'NextClasses',
+  youtubeId: 'vpsuPIJZYN8',
+  youtubeUrl: 'https://www.youtube.com/watch?v=vpsuPIJZYN8',
+  description: 'Our published Sainik preparation lesson with a cyclist, toy car and practice questions. Use this as foundational maths revision alongside your class-specific study materials.',
+  badge: 'NextClasses • Foundation revision',
+};
+
 export const COURSE_VIDEO_PLAYLISTS: Record<string, PortalVideoLesson[]> = {
+  ...Object.fromEntries([5, 6, 7, 8, 9, 10, 11, 12].map(grade => [
+    `course-cbse-class-${grade}`, [TUITION_REVISION_VIDEO],
+  ])),
   // 1. Google AI Studio & Gemini 2.0
   'course-google-ai-studio': [
     {
