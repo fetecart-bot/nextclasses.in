@@ -1,3 +1,4 @@
+import { enrichLearningTracks } from './data/learningTracks.js';
 import { CBSE_TUITION_COURSES } from './data/cbseTuitionCourses.js';
 import { GRADUATE_EXAM_COURSES } from './data/graduateExamCourses.js';
 import type { Course, AIProduct, Testimonial, FAQItem, PortalVideoLesson } from './types';
@@ -2192,7 +2193,7 @@ export const COURSES_DATA: Course[] = [
   },
   ...GRADUATE_EXAM_COURSES,
   ...CBSE_TUITION_COURSES,
-];
+].map(enrichLearningTracks);
 export const PRODUCTS_DATA: AIProduct[] = [
   {
     id: 'product-mega-prompt-pack',

@@ -1,3 +1,4 @@
+import LearningTracks from './components/LearningTracks';
 import SchoolTuition from './components/SchoolTuition';
 import { isCourseOpenForEnrollment } from './cataloguePolicy';
 import { useState, useEffect } from 'react';
@@ -558,6 +559,7 @@ export default function App() {
       <main id="main-content">
         {!directCourse && <>
         <SchoolTuition />
+        <LearningTracks />
 
         {/* Direct campaign path for parents arriving from AISSEE promotions */}
         <SainikCampaignSpotlight courses={courses} />
