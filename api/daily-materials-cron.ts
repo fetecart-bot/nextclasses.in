@@ -1,3 +1,4 @@
+import { isCourseOpenForEnrollment } from '../src/cataloguePolicy.js';
 import { trialIsExpired } from './_trialPolicy.js';
 import crypto from 'node:crypto';
 import { COURSES_DATA } from '../src/data.js';
@@ -31,7 +32,7 @@ export default async function handler(req: any, res: any) {
     const enrolled = new Set((enrollments || []).filter((row: any) => !trialIsExpired(Array.isArray(row.students) ? row.students[0] || {} : row.students || {})).map((row: any) => row.course_id));
     const existing = await supabaseRequest(`daily_materials?material_date=eq.${date}&select=course_id,status,generated_by`);
     const ready = new Set((existing || []).map((row: any) => row.course_id));
-    const pending = COURSES_DATA.filter(course => enrolled.has(course.id) && !ready.has(course.id));
+    const pending = COURSES_DATA.filter(course => isCourseOpenForEnrollment(course) && enrolled.has(course.id) && !ready.has(course.id));
     // Bound one invocation; a worker queue is required when many distinct courses are active.
     const courses = pending.slice(0, 4);
     const results = await Promise.allSettled(courses.map(async course => {

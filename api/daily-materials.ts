@@ -1,3 +1,4 @@
+import { isCourseOpenForEnrollment } from '../src/cataloguePolicy.js';
 import { trialIsExpired } from './_trialPolicy.js';
 import crypto from 'node:crypto';
 import { passwordHash, supabaseRequest } from './_supabase.js';
@@ -52,7 +53,7 @@ export default async function handler(req: any, res: any) {
       const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
       const dateFilter = status === 'review' ? `&material_date=eq.${today}` : '';
       const rows = await supabaseRequest(`daily_materials?${filter}${dateFilter}&order=material_date.desc,course_title.asc&limit=200`);
-      return res.status(200).json({ materials: rows });
+      return res.status(200).json({ materials: status === 'review' ? (rows || []).filter((row: any) => isCourseOpenForEnrollment({id: row.course_id})) : rows });
     }
     if (req.method === 'PATCH') {
       if (!adminAuthorized(req)) return res.status(401).json({ error: 'Admin authorization failed' });
