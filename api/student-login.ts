@@ -1,9 +1,25 @@
+import crypto from 'node:crypto';
 import tuitionTrial from './_tuitionTrial.js';
 import { trialIsExpired } from './_trialPolicy.js';
 import { credentialsFor, recentCapturedPayments, paymentWithOrderNotes } from './_razorpay.js';
 import { passwordHash, supabaseRequest, saveStudentAndEnrollment } from './_supabase.js';
 
 export default async function handler(req: any, res: any) {
+  if (req.method === 'GET' && req.query?.admin === 'students') {
+    res.setHeader('Cache-Control', 'private, no-store');
+    const supplied = Buffer.from(String(req.headers['x-admin-key'] || ''));
+    const expected = Buffer.from(String(process.env.ADMIN_API_KEY || ''));
+    if (!expected.length || supplied.length !== expected.length || !crypto.timingSafeEqual(supplied, expected)) return res.status(401).json({error: 'Admin access required'});
+    try {
+      const students: any[] = [];
+      for (let offset = 0; ; offset += 500) {
+        const page = await supabaseRequest(`students?select=id,name,email,phone,username,active,account_kind,access_expires_at,created_at,enrollments(course_id,course_title)&order=created_at.desc,id.asc&limit=500&offset=${offset}`);
+        students.push(...(page || []));
+        if (!page || page.length < 500) break;
+      }
+      return res.status(200).json({students});
+    } catch { return res.status(503).json({error: 'Unable to load online student accounts. Please refresh shortly.'}); }
+  }
   if (req.method === 'GET' || ['request-code','verify-code'].includes(req.body?.action)) return tuitionTrial(req,res);
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   const identifier = String(req.body?.identifier || '').trim().toLowerCase();

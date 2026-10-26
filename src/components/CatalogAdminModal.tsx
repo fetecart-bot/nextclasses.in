@@ -33,6 +33,12 @@ type CloudDailyMaterial = {
   status: 'draft' | 'approved' | 'published' | 'rejected';
 };
 
+type CloudStudent = {
+  id: string; name: string; email: string; phone: string | null; username: string;
+  active: boolean; account_kind: string; access_expires_at: string | null; created_at: string;
+  enrollments: {course_id: string; course_title: string}[];
+};
+
 type StudentReview = {
   id: string; display_name: string; course_title: string; rating: number;
   review_text: string; status: 'pending' | 'published' | 'rejected';
@@ -122,6 +128,9 @@ export default function CatalogAdminModal({
   const [studentReviews, setStudentReviews] = useState<StudentReview[]>([]);
   const [reviewLoading, setReviewLoading] = useState(false);
   const [reviewMessage, setReviewMessage] = useState<string | null>(null);
+  const [onlineStudents, setOnlineStudents] = useState<CloudStudent[] | null>(null);
+  const [onlineStudentsLoading, setOnlineStudentsLoading] = useState(false);
+  const [onlineStudentsError, setOnlineStudentsError] = useState('');
   const [studentSearchTerm, setStudentSearchTerm] = useState<string>('');
   const [registeredStudentsList, setRegisteredStudentsList] = useState<RegisteredStudentAccount[]>(() => {
     try {
@@ -148,6 +157,18 @@ export default function CatalogAdminModal({
     } catch {
       return '';
     }
+  };
+
+  const loadOnlineStudents = async () => {
+    setOnlineStudentsLoading(true);
+    setOnlineStudentsError('');
+    try {
+      const response = await fetch('/api/student-login?admin=students', {headers: {'x-admin-key': getStoredPassword()}, cache: 'no-store', signal: AbortSignal.timeout(55000)});
+      const payload = await response.json();
+      if (!response.ok || !Array.isArray(payload.students)) throw new Error(payload.error || 'Unable to load students');
+      setOnlineStudents(payload.students);
+    } catch (error: any) { setOnlineStudentsError(error.message || 'Unable to load students'); }
+    finally { setOnlineStudentsLoading(false); }
   };
 
   const loadStudentReviews = async () => {
@@ -261,6 +282,7 @@ export default function CatalogAdminModal({
 
   useEffect(() => {
     if (isAuthenticated && activeTab === 'dispatch') loadCloudMaterials();
+    if (isAuthenticated && activeTab === 'students') loadOnlineStudents();
     if (isAuthenticated && activeTab === 'reviews') loadStudentReviews();
   }, [isAuthenticated, activeTab]);
 
@@ -1087,7 +1109,7 @@ export default function CatalogAdminModal({
             }`}
           >
             <UserCheck className="w-4 h-4 text-sky-400" />
-            <span>Enrolled Students ({registeredStudentsList.length})</span>
+            <span>Enrolled Students ({onlineStudents?.length ?? '—'})</span>
           </button>
 
           <button
@@ -3251,14 +3273,31 @@ export default function CatalogAdminModal({
           {/* TAB: ENROLLED STUDENTS REGISTRY */}
           {activeTab === 'students' && (
             <div className="space-y-4">
+              <section className="p-4 rounded-2xl bg-neutral-950 border border-orange-500/40 space-y-3">
+                <div className="flex justify-between items-center gap-3">
+                  <h4 className="text-white font-bold">Online Student Accounts ({onlineStudents?.length ?? '—'})</h4>
+                  <button type="button" disabled={onlineStudentsLoading} onClick={loadOnlineStudents} className="px-3 py-2 rounded-lg bg-orange-500 text-black font-bold disabled:opacity-50">{onlineStudentsLoading ? 'Loading…' : 'Refresh students'}</button>
+                </div>
+                <p className="text-sm text-neutral-400">Live database: completed free-trial registrations and paid accounts. One account may have multiple courses. Pending email verification is not a completed enrolment.</p>
+                {onlineStudentsError && <p role="alert" className="text-amber-400">{onlineStudentsError} Any previous results below may be out of date.</p>}
+                {onlineStudents && <p className="text-orange-300 text-sm">Total: {onlineStudents.length} · Trial: {onlineStudents.filter(s => s.account_kind === 'trial').length} · Joined today (India): {onlineStudents.filter(s => new Date(s.created_at).toLocaleDateString('en-CA', {timeZone: 'Asia/Kolkata'}) === new Date().toLocaleDateString('en-CA', {timeZone: 'Asia/Kolkata'})).length}</p>}
+                {onlineStudents?.map(student => <div key={student.id} className="rounded-xl bg-neutral-900 p-3 text-sm space-y-1">
+                  <p className="font-bold text-white">{student.name || 'Parent-managed account'} · {student.account_kind}</p>
+                  <p className="text-neutral-300">{student.email} · @{student.username}</p>
+                  <p className="text-orange-300">{student.enrollments.map(e => e.course_title).join(' · ') || 'No course assigned'}</p>
+                  <p className="text-neutral-400">Joined: {new Date(student.created_at).toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})} · {student.active ? 'Enabled' : 'Disabled'}{student.access_expires_at ? ` · Access ends: ${new Date(student.access_expires_at).toLocaleDateString('en-IN', {timeZone: 'Asia/Kolkata'})}` : ''}</p>
+                </div>)}
+                {onlineStudents?.length === 0 && <p className="text-neutral-400">No completed online registrations found.</p>}
+              </section>
+
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-neutral-950 border border-neutral-800">
                 <div>
                   <h4 className="text-base font-bold text-white flex items-center gap-2">
                     <UserCheck className="w-5 h-5 text-sky-400" />
-                    <span>Registered Student Accounts ({registeredStudentsList.length})</span>
+                    <span>Older Browser Records ({registeredStudentsList.length})</span>
                   </h4>
                   <p className="text-xs text-neutral-400 mt-0.5">
-                    View active student portal accounts, auto-generated login credentials, and course enrollments.
+                    Older records saved in this browser only. These are not the live student count.
                   </p>
                 </div>
                 <div className="relative w-full sm:w-64">
