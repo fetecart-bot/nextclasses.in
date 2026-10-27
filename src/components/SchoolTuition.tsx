@@ -21,6 +21,7 @@ export default function SchoolTuition() {
       <p className="text-orange-400 font-semibold">CBSE · Classes 5–12</p>
       <h1 className="text-3xl sm:text-5xl font-bold mt-2">CBSE tuition for Classes 5–12</h1>
       <p className="text-neutral-300 mt-3">Tell us what you need help with. One monthly plan includes all offered subjects for your class. Choose a subject below to tell us where you need help first.</p>
+      <a href="tel:+918064262009" className="inline-flex mt-4 items-center rounded-xl border border-orange-500/50 px-4 py-3 text-orange-300 hover:bg-orange-500/10">Call Tara for course enquiries: +91 80 6426 2009</a>
       <div className="grid sm:grid-cols-3 gap-4 mt-6 items-end">
         <label className="grid gap-2">Student's class
           <select value={grade} onChange={event => { setShowTrial(false); setShowRenewal(false); setGrade(Number(event.target.value)); setSubject('All offered subjects'); }} className="bg-neutral-900 border border-neutral-600 rounded-xl p-3">

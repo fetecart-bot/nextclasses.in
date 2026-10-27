@@ -42,11 +42,11 @@ export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicy
               </a>
               <span className="text-neutral-700">•</span>
               <a
-                href="tel:8792134951"
+                href="tel:+918064262009"
                 className="inline-flex items-center gap-1.5 text-orange-300 hover:text-orange-200 transition-colors font-medium"
               >
                 <Phone className="w-4 h-4 text-orange-400" />
-                <span>{translateUI("Phone: +91 87921 34951")}</span>
+                <span>{translateUI("Call Tara:")} +91 80 6426 2009</span>
               </a>
               <span className="text-neutral-700">•</span>
               <a
@@ -174,8 +174,8 @@ export default function Footer({ onNavigateTo, onOpenStudentPortal, onOpenPolicy
               </div>
               <div className="flex items-center gap-2 text-xs">
                 <Phone className="w-4 h-4 text-orange-400 shrink-0" />
-                <a href="tel:8792134951" className="text-neutral-200 hover:text-white font-mono">
-                  +91 8792134951
+                <a href="tel:+918064262009" className="text-neutral-200 hover:text-white font-mono">
+                  {translateUI("Call Tara:")} +91 80 6426 2009
                 </a>
               </div>
               <div className="pt-1">
