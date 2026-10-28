@@ -1,3 +1,4 @@
+import PasswordField from '../components/PasswordField';
 import PasswordRecovery from '../components/PasswordRecovery';
 import LanguageSwitch from '../components/LanguageSwitch';
 import { useLanguage } from '../context/LanguageContext';
@@ -11,6 +12,7 @@ export default function StudentAppPage() {
   const { t: translateUI } = useLanguage();
 
   const { user, loginWithCredentials, logout } = useAuth();
+  const [recovering, setRecovering] = useState(()=>Boolean(new URLSearchParams(window.location.hash.slice(1)).get('reset')));
   const [verified, setVerified] = useState(false);
   const [checking, setChecking] = useState(true);
   const [identifier, setIdentifier] = useState('');
@@ -66,15 +68,15 @@ export default function StudentAppPage() {
       <div className="flex justify-center mb-4"><LanguageSwitch /></div>
       <img src="/nextclasses-logo-512.png" alt="NextClasses" className="h-20 w-20 mx-auto mb-5 rounded-2xl" />
       <h1 className="text-2xl font-bold text-center">{translateUI("Welcome to NextClasses")}</h1>
-      <p className="mt-3 text-neutral-400 text-center">{translateUI("Sign in to access your assigned courses and AI mentor.")}</p>
+      {!recovering && <><p className="mt-3 text-neutral-400 text-center">{translateUI("Sign in to access your assigned courses and AI mentor.")}</p>
       <form onSubmit={signIn} className="mt-7 space-y-4">
         <label className="block">{translateUI("Username or email")}<input required autoComplete="username" value={identifier} onChange={event => setIdentifier(event.target.value)} className="mt-2 w-full rounded-xl bg-neutral-950 border border-neutral-700 p-3" /></label>
-        <label className="block">{translateUI("Password")}<input required type="password" autoComplete="current-password" value={password} onChange={event => setPassword(event.target.value)} className="mt-2 w-full rounded-xl bg-neutral-950 border border-neutral-700 p-3" /></label>
+        <PasswordField label={translateUI("Password")} value={password} onChange={setPassword} autoComplete="current-password"/>
         {error && <p role="alert" className="text-orange-300">{error}</p>}
         <button disabled={busy} className="w-full rounded-xl bg-orange-500 text-black font-bold p-3 disabled:opacity-50">{translateUI(busy ? 'Signing in…' : 'Sign in')}</button>
-      </form>
-      <PasswordRecovery />
-      <p className="text-sm text-neutral-400 mt-5">{translateUI("Use the student credentials supplied by NextClasses. Internet access is required to sign in and use the AI mentor.")}</p>
+      </form></>}
+      <PasswordRecovery onModeChange={setRecovering} />
+      {!recovering && <p className="text-sm text-neutral-400 mt-5">{translateUI("Use the student credentials supplied by NextClasses. Internet access is required to sign in and use the AI mentor.")}</p>}
     </section>
   </main>;
 }
