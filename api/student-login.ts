@@ -1,3 +1,4 @@
+import passwordReset from './_passwordReset.js';
 import crypto from 'node:crypto';
 import tuitionTrial from './_tuitionTrial.js';
 import { trialIsExpired } from './_trialPolicy.js';
@@ -20,6 +21,7 @@ export default async function handler(req: any, res: any) {
       return res.status(200).json({students});
     } catch { return res.status(503).json({error: 'Unable to load online student accounts. Please refresh shortly.'}); }
   }
+  if (req.method === 'POST' && ['request-password-reset','reset-password'].includes(req.body?.action)) return passwordReset(req,res);
   if (req.method === 'GET' || ['request-code','verify-code'].includes(req.body?.action)) return tuitionTrial(req,res);
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   const identifier = String(req.body?.identifier || '').trim().toLowerCase();

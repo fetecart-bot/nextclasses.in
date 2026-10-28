@@ -843,7 +843,7 @@ export function generateWhatsAppDispatchMessage(
   const pack = getStudyMaterialPack(effectiveId);
 
   const origin = typeof window !== 'undefined' && window.location ? window.location.origin : 'https://www.nextclasses.in';
-  const portalUrl = `${origin}/?portal=true`;
+  const portalUrl = `${origin}/student-app`;
 
   const isClass6 = effectiveId.includes('-6') || standardChoice === 'class-6';
   const isClass9 = effectiveId.includes('-9') || standardChoice === 'class-9';

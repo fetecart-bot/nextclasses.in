@@ -20,9 +20,9 @@ const STORAGE_KEY = 'nextclass_registered_students_v2';
  */
 export function getAppPortalUrl(): string {
   if (typeof window !== 'undefined' && window.location && window.location.origin) {
-    return `${window.location.origin}/?portal=true`;
+    return `${window.location.origin}/student-app`;
   }
-  return '/?portal=true';
+  return '/student-app';
 }
 
 // Remove legacy demonstration accounts that older versions stored in the browser.

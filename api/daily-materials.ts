@@ -27,7 +27,7 @@ async function notifyPublishedMaterial(material: any) {
         body: JSON.stringify({
           from: 'NextClasses <study@nextclasses.in>', to: [student.email],
           subject: `New study material: ${material.title}`,
-          html: `<h2>${material.title}</h2><p>Hello ${student.name || 'Student'},</p><p>${material.focus}</p><p>Your new material for <strong>${material.course_title}</strong> is available in the student portal.</p><p><a href="https://www.nextclasses.in/">Open Student Portal</a></p><p>NextClasses Academy</p>`,
+          html: `<h2>${material.title}</h2><p>Hello ${student.name || 'Student'},</p><p>${material.focus}</p><p>Your new material for <strong>${material.course_title}</strong> is available in the student portal.</p><p><a href="https://www.nextclasses.in/student-app">Open Student Portal</a></p><p>NextClasses Academy</p>`,
         }),
       });
       const result: any = await response.json().catch(() => ({}));

@@ -1,3 +1,4 @@
+import PasswordRecovery from '../components/PasswordRecovery';
 import LanguageSwitch from '../components/LanguageSwitch';
 import { useLanguage } from '../context/LanguageContext';
 import { useEffect, useState, type FormEvent } from 'react';
@@ -20,6 +21,7 @@ export default function StudentAppPage() {
 
   useEffect(() => {
     let cancelled = false;
+    if (new URLSearchParams(window.location.hash.slice(1)).has("reset")) { setChecking(false); return; }
     const account = user;
     if (!account?.password || !(account.username || account.email)) {
       setChecking(false);
@@ -71,6 +73,7 @@ export default function StudentAppPage() {
         {error && <p role="alert" className="text-orange-300">{error}</p>}
         <button disabled={busy} className="w-full rounded-xl bg-orange-500 text-black font-bold p-3 disabled:opacity-50">{translateUI(busy ? 'Signing in…' : 'Sign in')}</button>
       </form>
+      <PasswordRecovery />
       <p className="text-sm text-neutral-400 mt-5">{translateUI("Use the student credentials supplied by NextClasses. Internet access is required to sign in and use the AI mentor.")}</p>
     </section>
   </main>;

@@ -1,6 +1,8 @@
+import PasswordRecovery from './PasswordRecovery';
+import { isCourseOpenForEnrollment } from '../cataloguePolicy';
 import { useLanguage } from '../context/LanguageContext';
 import { useState, type FormEvent } from 'react';
-import { X, Lock, KeyRound, Eye, EyeOff, ShieldCheck, LogOut, Loader2, BookOpen, QrCode } from 'lucide-react';
+import { X, Lock, KeyRound, Eye, EyeOff, ShieldCheck, LogOut, Loader2, BookOpen, Phone } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { COURSES_DATA } from '../data';
 
@@ -16,7 +18,7 @@ export default function StudentAuthModal({ onClose, onSuccess }: StudentAuthModa
 
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
-  const [selectedCourseId, setSelectedCourseId] = useState(COURSES_DATA[0]?.id || 'course-aissee-sainik-6');
+  const [selectedCourseId, setSelectedCourseId] = useState(COURSES_DATA.find(isCourseOpenForEnrollment)?.id || 'course-aissee-sainik-6');
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -139,7 +141,7 @@ export default function StudentAuthModal({ onClose, onSuccess }: StudentAuthModa
                   }}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-xs text-white focus:outline-none focus:border-orange-500 font-medium cursor-pointer"
                 >
-                  {COURSES_DATA.map((course) => (
+                  {COURSES_DATA.filter(isCourseOpenForEnrollment).map((course) => (
                     <option key={course.id} value={course.id} className="bg-[#0b101b] text-white">
                       {course.title}
                     </option>
@@ -212,14 +214,9 @@ export default function StudentAuthModal({ onClose, onSuccess }: StudentAuthModa
               <span>{translateUI("Verify & Access Student Portal")}</span>
             </button>
 
-            {/* Help / Enrollment guidance */}
-            <div className="p-3 rounded-xl bg-neutral-900/60 border border-neutral-800 text-[11px] text-neutral-400 text-center space-y-1">
-              <p>
-                💡 <strong className="text-neutral-200">{translateUI("Enrolled via UPI QR Code?")}</strong>{translateUI("Your credentials were generated and delivered to your registered email & phone upon verification.")}</p>
-              <div className="pt-1 flex items-center justify-center gap-1 text-[10px] text-neutral-400">
-                <QrCode className="w-3.5 h-3.5 text-orange-400" />
-                <span>{translateUI("UPI ID:")}<strong className="text-orange-400 font-mono">8281644058@hdfc</strong></span>
-              </div>
+            <div className="p-3 rounded-xl bg-neutral-900/60 border border-neutral-800 text-xs text-neutral-400 text-center space-y-2">
+              <p>Payments are securely processed through Razorpay. Sign in with your registered account.</p>
+              <a href="tel:+918064262009" className="inline-flex items-center gap-2 text-orange-300 font-bold"><Phone className="w-4 h-4" />Call Tara: +91 80 6426 2009</a>
             </div>
 
             <div className="flex flex-col items-center justify-center gap-1 text-[10px] text-neutral-500 text-center pt-1">
@@ -234,6 +231,7 @@ export default function StudentAuthModal({ onClose, onSuccess }: StudentAuthModa
             </div>
           </form>
         )}
+        {!user && <PasswordRecovery />}
 
       </div>
     </div>

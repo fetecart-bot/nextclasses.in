@@ -1,3 +1,5 @@
+import PasswordRecovery from './PasswordRecovery';
+import { isCourseOpenForEnrollment } from '../cataloguePolicy';
 import { CBSE_TUITION_COURSES } from '../data/cbseTuitionCourses';
 import LanguageSwitch from './LanguageSwitch';
 import { useLanguage } from '../context/LanguageContext';
@@ -2190,7 +2192,7 @@ export default function StudentPortalModal({
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [loginCourseId, setLoginCourseId] = useState(initialCourseId || COURSES_DATA[0]?.id || 'course-aissee-sainik-6');
+  const [loginCourseId, setLoginCourseId] = useState(initialCourseId || COURSES_DATA.find(isCourseOpenForEnrollment)?.id || 'course-aissee-sainik-6');
 
   // Determine active course (strictly prefers student's enrolled course and standard)
   const defaultCourse = useMemo(() => {
@@ -2414,7 +2416,7 @@ export default function StudentPortalModal({
                   }}
                   className="w-full px-3 py-2.5 rounded-xl bg-neutral-900/90 border border-neutral-800 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors font-medium cursor-pointer"
                 >
-                  {COURSES_DATA.map((course) => (
+                  {COURSES_DATA.filter(isCourseOpenForEnrollment).map((course) => (
                     <option key={course.id} value={course.id} className="bg-[#0b101b] text-white">
                       {translateUI(course.title)}
                     </option>
@@ -2474,6 +2476,8 @@ export default function StudentPortalModal({
                 <span>{translateUI("Sign In to Student Portal")}</span>
               </button>
             </form>
+
+            <PasswordRecovery />
 
             {/* Info for new enrollments */}
             <div className="p-3 rounded-2xl bg-neutral-900/60 border border-neutral-800 text-[11px] text-neutral-400 text-center space-y-1">
