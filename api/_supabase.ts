@@ -25,7 +25,7 @@ export async function supabaseRequest(path: string, init: RequestInit = {}) {
   });
   const text = await response.text();
   const data = text ? JSON.parse(text) : null;
-  if (!response.ok) throw new Error(data?.message || data?.error || `Supabase request failed (${response.status})`);
+  if (!response.ok) throw Object.assign(new Error(data?.message || data?.error || `Supabase request failed (${response.status})`), { status: response.status, code: data?.code });
   return data;
 }
 

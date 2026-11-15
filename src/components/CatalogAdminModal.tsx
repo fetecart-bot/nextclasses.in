@@ -252,10 +252,14 @@ export default function CatalogAdminModal({
     setCloudQueueLoading(true);
     setCloudQueueMessage(null);
     try {
-      const response = await fetch('/api/daily-materials-cron', { method: 'POST', headers: { 'x-admin-key': getStoredPassword() }, signal: AbortSignal.timeout(55000) });
+      const response = await fetch('/api/daily-materials-cron', { method: 'POST', headers: { 'x-admin-key': getStoredPassword() }, signal: AbortSignal.timeout(70000) });
       const payload = await response.json().catch(() => ({}));
       await loadCloudMaterials();
-      setCloudQueueMessage(response.ok ? (payload.drafts ? `${payload.drafts} new course lesson drafts ready for review. One lesson per course per day.` : 'No new drafts: today’s lessons already exist or the course plan is complete. The next set becomes available tomorrow (India time).') : payload.error || `Some lessons could not be generated: ${(payload.failures || []).join(', ')}. Please retry.`);
+      const details = (payload.failureDetails || []).map((item: { course: string; message: string }) => `${item.course}: ${item.message}`).join(' ');
+      const ready = payload.drafts ? `${payload.drafts} new course lesson drafts ready for review. ` : '';
+      setCloudQueueMessage(response.ok
+        ? (ready || 'No new drafts: today’s lessons already exist or the course plan is complete. ') + (payload.remaining ? `${payload.remaining} more courses remain. Click Generate again to process them.` : 'One lesson per course per day.')
+        : ready + (payload.error || details || `Some lessons could not be generated: ${(payload.failures || []).join(', ')}. Please retry.`));
     } catch { setCloudQueueMessage('Generation unavailable. Please retry.'); }
     finally { cloudGeneratingRef.current = false; setCloudGenerating(false); setCloudQueueLoading(false); }
   };
@@ -3084,7 +3088,7 @@ export default function CatalogAdminModal({
                   </button>
                 </div>
                 {cloudQueueMessage && <div role="status" aria-live="polite" className="sticky top-0 z-10 text-sm font-bold rounded-lg bg-neutral-900 border border-emerald-500 p-4 text-emerald-300">{cloudQueueMessage}</div>}
-                {!cloudQueueLoading && cloudMaterials.length === 0 && <div className="rounded-xl bg-neutral-900 border border-neutral-800 p-4 text-sm text-neutral-400">No lessons are waiting for review today. The next daily set becomes available tomorrow (India time).</div>}
+                {!cloudQueueLoading && cloudMaterials.length === 0 && <div className="rounded-xl bg-neutral-900 border border-neutral-800 p-4 text-sm text-neutral-400">No lessons are waiting for review today. Use Generate to check for missing lessons; an empty queue does not confirm that generation succeeded.</div>}
                 <div className="space-y-4">
                   {cloudMaterials.map((material) => (
                     <div key={material.id} className="rounded-xl bg-neutral-900 border border-neutral-800 p-4 space-y-3">
