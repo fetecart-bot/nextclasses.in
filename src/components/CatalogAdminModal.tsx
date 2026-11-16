@@ -245,19 +245,19 @@ export default function CatalogAdminModal({
     } finally { setCloudQueueLoading(false); }
   };
 
-  const generateCloudMaterials = async () => {
+  const generateCloudMaterials = async (courseId?: string) => {
     if (cloudGeneratingRef.current) return;
     cloudGeneratingRef.current = true;
     setCloudGenerating(true);
     setCloudQueueLoading(true);
     setCloudQueueMessage(null);
     try {
-      const response = await fetch('/api/daily-materials-cron', { method: 'POST', headers: { 'x-admin-key': getStoredPassword() }, signal: AbortSignal.timeout(70000) });
+      const response = await fetch('/api/daily-materials-cron', { method: 'POST', headers: { 'x-admin-key': getStoredPassword(), 'Content-Type': 'application/json' }, body: JSON.stringify(courseId ? { courseId, improveDraft: true } : {}), signal: AbortSignal.timeout(70000) });
       const payload = await response.json().catch(() => ({}));
       await loadCloudMaterials();
       const details = (payload.failureDetails || []).map((item: { course: string; message: string }) => `${item.course}: ${item.message}`).join(' ');
       const coverage = (payload.courseStatus || []).map((item: { course: string; status: string }) => `${item.course}: ${item.status.replaceAll('_', ' ')}`).join(' · ');
-      const ready = payload.drafts ? `${payload.drafts} new course lesson drafts ready for review. ` : '';
+      const ready = payload.drafts ? `${payload.drafts} course lesson drafts ready for review. ` : '';
       setCloudQueueMessage(response.ok
         ? (ready || 'No new drafts: today’s lessons already exist or the course plan is complete. ') + (payload.remaining ? `${payload.remaining} more courses remain. Click Generate again to process them.` : 'One lesson per course per day.') + (coverage ? ` Today’s course status: ${coverage}` : '')
         : ready + (payload.error || details || `Some lessons could not be generated: ${(payload.failures || []).join(', ')}. Please retry.`));
@@ -3083,7 +3083,7 @@ export default function CatalogAdminModal({
                     <h4 className="font-black text-white mt-1">Daily Material Approval</h4>
                     <p className="text-xs text-neutral-400 mt-1">Today’s queue only. One draft per course each day (India time). Review and publish before students can see it.</p>
                   </div>
-                  <button type="button" disabled={cloudQueueLoading || cloudGenerating} onClick={generateCloudMaterials} className="px-3 py-2 rounded-xl bg-orange-500 text-neutral-950 text-xs font-bold disabled:opacity-50">{cloudGenerating ? 'Generating… please wait' : 'Generate today’s lessons'}</button>
+                  <button type="button" disabled={cloudQueueLoading || cloudGenerating} onClick={() => generateCloudMaterials()} className="px-3 py-2 rounded-xl bg-orange-500 text-neutral-950 text-xs font-bold disabled:opacity-50">{cloudGenerating ? 'Generating… please wait' : 'Generate today’s lessons'}</button>
                   <button type="button" onClick={loadCloudMaterials} disabled={cloudQueueLoading} className="px-3 py-2 rounded-xl border border-neutral-700 text-xs font-bold text-white hover:border-emerald-500 flex items-center gap-1.5 disabled:opacity-50">
                     <RefreshCw className={`w-3.5 h-3.5 ${cloudQueueLoading ? 'animate-spin' : ''}`} /> Refresh
                   </button>
@@ -3106,6 +3106,7 @@ export default function CatalogAdminModal({
                         </div>
                       ))}
                       <div className="flex flex-wrap justify-end gap-2">
+                        {material.status === 'draft' && <button type="button" disabled={cloudGenerating || !!cloudSavingId} onClick={() => generateCloudMaterials(material.course_id)} className="px-3 py-2 rounded-lg border border-orange-500 text-xs font-bold text-orange-300">Improve draft</button>}
                         <button type="button" disabled={!!cloudSavingId} onClick={() => saveCloudMaterial(material, 'rejected')} className="px-3 py-2 rounded-lg border border-red-800 text-xs font-bold text-red-300">Reject</button>
                         <button type="button" disabled={!!cloudSavingId} onClick={() => saveCloudMaterial(material, 'approved')} className="px-3 py-2 rounded-lg border border-cyan-700 text-xs font-bold text-cyan-300">Approve</button>
                         <button type="button" disabled={!!cloudSavingId} onClick={() => saveCloudMaterial(material, 'published')} className="px-3 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-neutral-950 text-xs font-black">{cloudSavingId === material.id ? 'Saving…' : 'Publish to Students'}</button>
