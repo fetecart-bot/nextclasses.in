@@ -34,6 +34,9 @@ export const lessonFormat = {
 
 function failure(error: unknown) {
   if (error instanceof GenerationError) return { code: error.code, message: error.message };
+  if (error instanceof SyntaxError) return { code: 'lesson_json', message: 'The AI response was not valid lesson JSON. Nothing was saved; please retry.' };
+  if (error instanceof TypeError) return { code: 'ai_connection', message: 'The AI connection failed. Please retry.' };
+  if (error instanceof Error && /^(Invalid lesson title|Incomplete (lesson|practice|answers)|Lesson notes are too short)$/.test(error.message)) return { code: 'lesson_validation', message: `Lesson validation failed: ${error.message}. Nothing was saved; please retry.` };
   if (error instanceof Error && /timeout|abort/i.test(error.name)) return { code: 'ai_timeout', message: 'The AI service took too long. Please retry.' };
   return { code: 'lesson_invalid', message: 'The generated lesson was incomplete or invalid. Nothing was saved; please retry.' };
 }
