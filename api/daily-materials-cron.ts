@@ -24,10 +24,10 @@ export const lessonFormat = {
   schema: {
     type: 'object', additionalProperties: false,
     properties: {
-      title: { type: 'string' }, focus: { type: 'string' },
-      lesson: { type: 'array', items: { type: 'string' }, minItems: 3, maxItems: 8 },
-      practice: { type: 'array', items: { type: 'string' }, minItems: 3, maxItems: 8 },
-      answers: { type: 'array', items: { type: 'string' }, minItems: 3, maxItems: 8 },
+      title: { type: 'string', minLength: 1 }, focus: { type: 'string', minLength: 1 },
+      lesson: { type: 'array', items: { type: 'string', minLength: 300, maxLength: 2000 }, minItems: 3, maxItems: 8 },
+      practice: { type: 'array', items: { type: 'string', minLength: 12, maxLength: 2000 }, minItems: 3, maxItems: 8 },
+      answers: { type: 'array', items: { type: 'string', minLength: 12, maxLength: 2000 }, minItems: 3, maxItems: 8 },
     }, required: ['title', 'focus', 'lesson', 'practice', 'answers'],
   },
 };
@@ -74,14 +74,17 @@ export default async function handler(req: any, res: any) {
       const previous = await database(`daily_materials?course_id=eq.${encodeURIComponent(course.id)}&order=material_date.desc&select=title,status,generated_by&limit=200`);
       const plan = course.curriculum.flatMap(module => module.lessons.map(topic => `${module.title}: ${topic}`)).slice(0, 30);
       const completed = (previous || []).filter((row: any) => row.status !== 'rejected' && (row.status === 'published' || row.status === 'approved' || String(row.generated_by).startsWith('OpenAI')));
-      if (completed.length >= plan.length) return null;
-      const nextTopic = plan[completed.length];
+      if (!plan.length) return null;
+      const ongoingTuition = course.id.startsWith('course-cbse-class-');
+      if (!ongoingTuition && completed.length >= plan.length) return null;
+      const nextTopic = plan[completed.length % plan.length];
+      const progression = ongoingTuition ? `Ongoing monthly tuition, study day ${completed.length + 1}. Choose a fresh age-appropriate CBSE concept or a new application within the planned subject. Build on prior lessons; do not repeat their examples or questions.` : `Lesson ${completed.length + 1} of ${plan.length}.`;
       const curriculum = course.curriculum.map(module => `${module.title}: ${module.lessons.join('; ')}`).join('\n');
       const response = await fetch('https://api.openai.com/v1/responses', {
         method: 'POST', headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ model: process.env.OPENAI_DAILY_MATERIAL_MODEL || 'gpt-4o-mini', store: false, max_output_tokens: 3600, text: { format: lessonFormat },
           instructions: 'Write a self-contained 20-minute English lesson for the specified course. Teach a specific concept from first principles, include a fully worked example, 3 concrete practice activities and matching explained answers or a speaking rubric. Every array entry, including each answer, must be a descriptive sentence of at least 12 characters. Keep lesson notes between 1000 and 2500 characters in total, with 3 practice questions and 3 explained answers. At least 700 characters of substantive lesson notes. Do not write generic instructions to review a concept without teaching it. Do not invent exam dates, eligibility, current product features, outcomes or guarantees. Avoid sensitive personal information. This is a draft for teacher review. Return only JSON with title, focus, lesson (3-12 strings), practice (3-12 strings), answers (3-12 strings).',
-          input: `Lesson ${completed.length + 1} of ${plan.length}. Teach this planned topic: ${nextTopic}\nCourse: ${course.title}\nOverview: ${course.subtitle}\nCurriculum:\n${curriculum}\nDate: ${date}\nChoose a different concept from these recent lessons: ${(previous || []).map((row: any) => row.title).join('; ')}`,
+          input: `${progression} Teach this planned topic: ${nextTopic}\nCourse: ${course.title}\nOverview: ${course.subtitle}\nCurriculum:\n${curriculum}\nDate: ${date}\nChoose a different concept from these recent lessons: ${(previous || []).map((row: any) => row.title).join('; ')}`,
         }), signal: AbortSignal.timeout(40000),
       });
       const payload: any = await response.json();
