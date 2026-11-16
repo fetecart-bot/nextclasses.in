@@ -256,9 +256,10 @@ export default function CatalogAdminModal({
       const payload = await response.json().catch(() => ({}));
       await loadCloudMaterials();
       const details = (payload.failureDetails || []).map((item: { course: string; message: string }) => `${item.course}: ${item.message}`).join(' ');
+      const coverage = (payload.courseStatus || []).map((item: { course: string; status: string }) => `${item.course}: ${item.status.replaceAll('_', ' ')}`).join(' · ');
       const ready = payload.drafts ? `${payload.drafts} new course lesson drafts ready for review. ` : '';
       setCloudQueueMessage(response.ok
-        ? (ready || 'No new drafts: today’s lessons already exist or the course plan is complete. ') + (payload.remaining ? `${payload.remaining} more courses remain. Click Generate again to process them.` : 'One lesson per course per day.')
+        ? (ready || 'No new drafts: today’s lessons already exist or the course plan is complete. ') + (payload.remaining ? `${payload.remaining} more courses remain. Click Generate again to process them.` : 'One lesson per course per day.') + (coverage ? ` Today’s course status: ${coverage}` : '')
         : ready + (payload.error || details || `Some lessons could not be generated: ${(payload.failures || []).join(', ')}. Please retry.`));
     } catch { setCloudQueueMessage('Generation unavailable. Please retry.'); }
     finally { cloudGeneratingRef.current = false; setCloudGenerating(false); setCloudQueueLoading(false); }

@@ -74,9 +74,9 @@ export default async function handler(req: any, res: any) {
       const previous = await database(`daily_materials?course_id=eq.${encodeURIComponent(course.id)}&order=material_date.desc&select=title,status,generated_by&limit=200`);
       const plan = course.curriculum.flatMap(module => module.lessons.map(topic => `${module.title}: ${topic}`)).slice(0, 30);
       const completed = (previous || []).filter((row: any) => row.status !== 'rejected' && (row.status === 'published' || row.status === 'approved' || String(row.generated_by).startsWith('OpenAI')));
-      if (!plan.length) return null;
+      if (!plan.length) return { courseId: course.id, status: 'plan_complete' };
       const ongoingTuition = course.id.startsWith('course-cbse-class-');
-      if (!ongoingTuition && completed.length >= plan.length) return null;
+      if (!ongoingTuition && completed.length >= plan.length) return { courseId: course.id, status: 'plan_complete' };
       const nextTopic = plan[completed.length % plan.length];
       const progression = ongoingTuition ? `Ongoing monthly tuition, study day ${completed.length + 1}. Choose a fresh age-appropriate CBSE concept or a new application within the planned subject. Build on prior lessons; do not repeat their examples or questions.` : `Lesson ${completed.length + 1} of ${plan.length}.`;
       const curriculum = course.curriculum.map(module => `${module.title}: ${module.lessons.join('; ')}`).join('\n');
@@ -100,16 +100,22 @@ export default async function handler(req: any, res: any) {
       const row = { ...lesson, course_id: course.id, course_title: course.title, material_date: date, status: 'draft', generated_by: 'OpenAI course lesson generator' };
       // Never overwrite reviewed/published material, including a publication during generation.
       const current = await database(`daily_materials?course_id=eq.${encodeURIComponent(course.id)}&material_date=eq.${date}&select=id,status`);
-      if (current?.[0]) return null;
+      if (current?.[0]) return { courseId: course.id, status: current[0].status };
       else {
         await database('daily_materials?on_conflict=course_id,material_date', { method: 'POST', headers: { Prefer: 'resolution=ignore-duplicates,return=minimal' }, body: JSON.stringify(row) });
       }
-      return course.title;
+      return { courseId: course.id, status: 'draft', created: true };
     }));
     const failures = results.flatMap((result, index) => result.status === 'rejected' ? [courses[index].title] : []);
     const failureDetails = results.flatMap((result, index) => result.status === 'rejected' ? [{ course: courses[index].title, ...failure(result.reason) }] : []);
     failureDetails.forEach(detail => console.error('daily-material-generation', { course: detail.course, code: detail.code }));
-    return res.status(failures.length ? 503 : 200).json({ success: !failures.length, date, drafts: results.filter(result => result.status === 'fulfilled' && result.value !== null).length, awaitingReview: true, remaining: Math.max(0, pending.length - courses.length), failures, failureDetails });
+    const courseStatus = COURSES_DATA.filter(course => isCourseOpenForEnrollment(course) && enrolled.has(course.id)).map(course => {
+      const saved = (existing || []).find((row: any) => row.course_id === course.id);
+      const index = courses.findIndex(item => item.id === course.id);
+      const result = results[index];
+      return { course: course.title, status: saved?.status || (result?.status === 'fulfilled' ? result.value.status : result?.status === 'rejected' ? 'failed' : 'pending') };
+    });
+    return res.status(failures.length ? 503 : 200).json({ success: !failures.length, date, drafts: results.filter(result => result.status === 'fulfilled' && 'created' in result.value && result.value.created).length, awaitingReview: true, remaining: Math.max(0, pending.length - courses.length), failures, failureDetails, courseStatus });
   } catch (error) {
     const detail = failure(error);
     console.error('daily-material-generation', { code: detail.code });
