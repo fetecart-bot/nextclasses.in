@@ -269,7 +269,7 @@ export default function CatalogAdminModal({
     setCloudMaterials((items) => items.map((item) => item.id === id ? { ...item, ...changes } : item));
   };
 
-  const saveCloudMaterial = async (material: CloudDailyMaterial, status: 'approved' | 'published' | 'rejected') => {
+  const saveCloudMaterial = async (material: CloudDailyMaterial, status: 'draft' | 'approved' | 'published' | 'rejected') => {
     if (cloudSavingId) return;
     setCloudSavingId(material.id);
     setCloudQueueMessage('Saving lesson…');
@@ -280,8 +280,8 @@ export default function CatalogAdminModal({
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || 'Unable to update material');
-      setCloudMaterials((items) => status === 'approved' ? items.map(item => item.id === material.id ? { ...item, status } : item) : items.filter((item) => item.id !== material.id));
-      setCloudQueueMessage(status === 'published' ? 'Material published to enrolled students.' : status === 'rejected' ? 'Draft rejected.' : 'Draft approved.');
+      setCloudMaterials((items) => ['draft', 'approved'].includes(status) ? items.map(item => item.id === material.id ? { ...item, status } : item) : items.filter((item) => item.id !== material.id));
+      setCloudQueueMessage(status === 'published' ? 'Material published to enrolled students.' : status === 'rejected' ? 'Draft rejected.' : status === 'draft' ? 'Draft saved. It is still unpublished.' : 'Draft approved.');
     } catch (error: any) { setCloudQueueMessage(error?.message || 'Unable to update material'); }
     finally { setCloudSavingId(null); }
   };
@@ -3106,6 +3106,7 @@ export default function CatalogAdminModal({
                         </div>
                       ))}
                       <div className="flex flex-wrap justify-end gap-2">
+                        {material.status === 'draft' && <button type="button" disabled={cloudGenerating || !!cloudSavingId} onClick={() => saveCloudMaterial(material, 'draft')} className="px-3 py-2 rounded-lg border border-neutral-500 text-xs font-bold text-white">Save draft</button>}
                         {material.status === 'draft' && <button type="button" disabled={cloudGenerating || !!cloudSavingId} onClick={() => generateCloudMaterials(material.course_id)} className="px-3 py-2 rounded-lg border border-orange-500 text-xs font-bold text-orange-300">Improve draft</button>}
                         <button type="button" disabled={!!cloudSavingId} onClick={() => saveCloudMaterial(material, 'rejected')} className="px-3 py-2 rounded-lg border border-red-800 text-xs font-bold text-red-300">Reject</button>
                         <button type="button" disabled={!!cloudSavingId} onClick={() => saveCloudMaterial(material, 'approved')} className="px-3 py-2 rounded-lg border border-cyan-700 text-xs font-bold text-cyan-300">Approve</button>

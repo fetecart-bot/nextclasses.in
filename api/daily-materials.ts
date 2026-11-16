@@ -59,9 +59,10 @@ export default async function handler(req: any, res: any) {
       if (!adminAuthorized(req)) return res.status(401).json({ error: 'Admin authorization failed' });
       const id = String(req.body?.id || '');
       const status = String(req.body?.status || '');
-      if (!id || !['approved', 'published', 'rejected'].includes(status)) return res.status(400).json({ error: 'Invalid material update' });
+      if (!id || !['draft', 'approved', 'published', 'rejected'].includes(status)) return res.status(400).json({ error: 'Invalid material update' });
       const existing = await supabaseRequest(`daily_materials?id=eq.${encodeURIComponent(id)}&limit=1`);
       if (!existing?.[0]) return res.status(404).json({ error: 'Material not found' });
+      if (status === 'draft' && existing[0].status !== 'draft') return res.status(409).json({ error: 'Only an unpublished draft can be saved as a draft.' });
       const now = new Date().toISOString();
       const editable: Record<string, unknown> = {};
       for (const field of ['title', 'focus']) {
@@ -70,10 +71,11 @@ export default async function handler(req: any, res: any) {
       for (const field of ['lesson', 'practice', 'answers']) {
         if (Array.isArray(req.body?.[field])) editable[field] = req.body[field].map((item: unknown) => String(item).trim()).filter(Boolean);
       }
-      await supabaseRequest(`daily_materials?id=eq.${encodeURIComponent(id)}`, {
-        method: 'PATCH', headers: { Prefer: 'return=minimal' },
-        body: JSON.stringify({ ...editable, status, reviewed_by: 'Nextclasses Admin', reviewed_at: now, ...(status === 'published' ? { published_at: now } : {}) }),
+      const updated = await supabaseRequest(`daily_materials?id=eq.${encodeURIComponent(id)}${status === 'draft' ? '&status=eq.draft' : ''}`, {
+        method: 'PATCH', headers: { Prefer: status === 'draft' ? 'return=representation' : 'return=minimal' },
+        body: JSON.stringify({ ...editable, status, ...(status === 'draft' ? {} : { reviewed_by: 'Nextclasses Admin', reviewed_at: now }), ...(status === 'published' ? { published_at: now } : {}) }),
       });
+      if (status === 'draft' && !updated?.length) return res.status(409).json({ error: 'The lesson status changed. Refresh before editing.' });
       if (status === 'published' && existing[0].status !== 'published') {
         const published = await supabaseRequest(`daily_materials?id=eq.${encodeURIComponent(id)}&limit=1`);
         if (published?.[0]) await notifyPublishedMaterial(published[0]);
@@ -98,7 +100,8 @@ export default async function handler(req: any, res: any) {
       if (materialId && ['opened', 'completed'].includes(action)) {
         const allowed = await supabaseRequest(`daily_materials?id=eq.${encodeURIComponent(materialId)}&course_id=eq.${encodeURIComponent(courseId)}&status=eq.published&limit=1`);
         if (!allowed?.length) return res.status(404).json({ error: 'Published material not found' });
-        const now = new Date().toISOString();
+        if (status === 'draft' && existing[0].status !== 'draft') return res.status(409).json({ error: 'Only an unpublished draft can be saved as a draft.' });
+      const now = new Date().toISOString();
         await supabaseRequest('student_progress?on_conflict=student_id,material_id', {
           method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
           body: JSON.stringify({ student_id: student.id, material_id: materialId, opened_at: now, ...(action === 'completed' ? { completed_at: now } : {}) }),
