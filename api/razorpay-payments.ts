@@ -1,9 +1,11 @@
+import yogaPayment from './_yogaPayment.js';
 import tuitionPayment from './_tuitionPayment.js';
 import { checkout } from './_checkout.js';
 type ApiRequest = { method?: string; body?: any; headers: Record<string, string | string[] | undefined> };
 type ApiResponse = { status: (code: number) => ApiResponse; json: (body: unknown) => void };
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
+  if (req.method === 'POST' && ['create-yoga-order','verify-yoga-payment','yoga-access','yoga-admin-resources','yoga-admin-save-resource'].includes(req.body?.action)) return yogaPayment(req,res);
   if (req.method === 'POST' && ['create-tuition-order','verify-tuition-payment'].includes(req.body?.action)) return tuitionPayment({...req,body:{...req.body,action:req.body.action==='create-tuition-order'?'create-order':'verify-payment'}},res);
   if (req.method === 'POST') return checkout(req, res);
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
@@ -29,7 +31,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     if (!result.ok) return res.status(502).json({ error: 'Razorpay rejected the server credentials.' });
     const data: any = await result.json();
     const payments = (data.items || [])
-      .filter((payment: any) => payment.status === 'captured')
+      .filter((payment: any) => payment.status === 'captured' && payment.currency === 'INR')
       .map((payment: any) => ({
         id: payment.id,
         amount: Number(payment.amount || 0) / 100,

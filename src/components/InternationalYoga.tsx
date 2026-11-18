@@ -1,6 +1,10 @@
+import { useEffect, useState } from 'react';
+import YogaCheckout from './YogaCheckout';
 import { CalendarDays, Video, BookOpen, Globe2, ArrowUpRight } from 'lucide-react';
 
 export default function InternationalYoga() {
+  const [showCheckout,setShowCheckout]=useState(false);
+  useEffect(()=>{if(showCheckout)document.getElementById('yoga-enrolment')?.scrollIntoView({behavior:'smooth',block:'start'});},[showCheckout]);
   const enquiry = encodeURIComponent('Hello NextClasses, I am interested in the international yoga programme with Kavery P P: 8 live English classes per month, videos and notes, US$500/month. Please share the schedule, session duration, class format and instructor qualifications.');
   return <section id="international-yoga" aria-labelledby="yoga-heading" className="scroll-mt-36 bg-slate-950 border-y border-cyan-400/20 py-16 sm:py-24">
     <div className="max-w-6xl mx-auto px-5 grid lg:grid-cols-[1.25fr_1fr] gap-10 items-center">
@@ -17,11 +21,13 @@ export default function InternationalYoga() {
         <p className="text-cyan-300 mt-2">Live online classes · Taught in English</p>
         <p className="text-4xl font-bold text-white mt-7">US$500 <span className="text-base font-normal text-neutral-300">/ month</span></p>
         <p className="text-sm text-neutral-300 mt-3 leading-relaxed">Includes eight live classes, videos and notes. Enquire to confirm your time zone, timetable, session duration and class format before enrolling.</p>
-        <a href={`https://wa.me/918792134951?text=${enquiry}`} target="_blank" rel="noopener noreferrer" className="mt-7 flex items-center justify-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-400 text-black font-bold px-5 py-4">Enquire about yoga <ArrowUpRight size={20} aria-hidden="true" /></a>
+        <button type="button" onClick={()=>setShowCheckout(true)} className="mt-7 w-full rounded-xl bg-orange-500 hover:bg-orange-400 text-black font-bold px-5 py-4">Enrol or renew — US$500 for one month</button>
+        <a href={`https://wa.me/918792134951?text=${enquiry}`} target="_blank" rel="noopener noreferrer" className="mt-3 flex items-center justify-center gap-2 rounded-xl border border-orange-400/50 text-orange-300 font-bold px-5 py-3">Enquire about yoga <ArrowUpRight size={20} aria-hidden="true" /></a>
         <a href="tel:+918064262009" className="block text-center text-cyan-300 underline underline-offset-4 mt-4">Call Tara: +91 80 6426 2009</a>
         <a href={`mailto:support@nextclasses.in?subject=International%20yoga%20enquiry&body=${enquiry}`} className="block text-center text-neutral-300 underline underline-offset-4 mt-3">Email our course team</a>
-        <p className="text-xs text-neutral-400 mt-5 leading-relaxed">Enquiry only; no payment or automatic charge. The CBSE tuition free trial does not apply to this programme. Yoga instruction is for general wellbeing, not medical treatment.</p>
+        <p className="text-xs text-neutral-400 mt-5 leading-relaxed">One payment covers one calendar month. Renewal is manual; no automatic charges. The CBSE tuition free trial does not apply to this programme. Yoga instruction is for general wellbeing, not medical treatment.</p>
       </div>
     </div>
+    {showCheckout&&<div id="yoga-enrolment" className="max-w-6xl mx-auto px-5 scroll-mt-36"><YogaCheckout onClose={()=>setShowCheckout(false)}/></div>}
   </section>;
 }

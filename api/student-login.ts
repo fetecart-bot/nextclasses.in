@@ -40,9 +40,12 @@ export default async function handler(req: any, res: any) {
       if (student && (!student.active || student.password_hash !== passwordHash(password))) {
         return res.status(401).json({ error: 'Invalid Username/Email or Password.' });
       }
-      if (student && trialIsExpired(student)) return res.status(403).json({ error: 'Your tuition access period has ended. Renew your optional monthly plan or contact support.' });
       if (student) {
-        const enrollments = await supabaseRequest(`enrollments?student_id=eq.${encodeURIComponent(student.id)}&select=course_id,course_title&order=created_at.desc`);
+        let enrollments = await supabaseRequest(`enrollments?student_id=eq.${encodeURIComponent(student.id)}&select=course_id,course_title&order=created_at.desc`);
+        if (trialIsExpired(student)) {
+          enrollments=(enrollments||[]).filter((item:any)=>item.course_id==='course-international-yoga');
+          if(!enrollments.length)return res.status(403).json({error:'Your tuition access period has ended. Renew your optional monthly plan or contact support.'});
+        }
         if (requestedCourseId) {
           const requestedIndex = enrollments.findIndex((item: any) => item.course_id === requestedCourseId);
           if (requestedIndex > 0) enrollments.unshift(enrollments.splice(requestedIndex, 1)[0]);
@@ -70,7 +73,7 @@ export default async function handler(req: any, res: any) {
     const payments = await recentCapturedPayments();
     for (const payment of payments) {
       const verifiedPayment = await paymentWithOrderNotes(payment);
-      if (verifiedPayment.notes?.checkoutVersion === 'tuition-month-v1') continue;
+      if (['tuition-month-v1','yoga-month-v1'].includes(verifiedPayment.notes?.checkoutVersion)) continue;
       const account = credentialsFor(verifiedPayment);
       const phone = account.phone.replace(/[^0-9]/g, '');
       const identifierPhone = identifier.replace(/[^0-9]/g, '');

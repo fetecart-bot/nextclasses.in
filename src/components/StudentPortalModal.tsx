@@ -1,3 +1,5 @@
+import YogaPortal from './YogaPortal';
+import { YOGA_COURSE_ID } from '../data/yogaProgramme';
 import PasswordRecovery from './PasswordRecovery';
 import { isCourseOpenForEnrollment } from '../cataloguePolicy';
 import { CBSE_TUITION_COURSES } from '../data/cbseTuitionCourses';
@@ -2177,7 +2179,7 @@ for (const course of [...GRADUATE_EXAM_COURSES, ...CBSE_TUITION_COURSES]) {
   };
 }
 
-export default function StudentPortalModal({ 
+function StandardStudentPortalModal({
   onClose, 
   onLaunchMockTest,
   initialCourseId = 'course-aissee-sainik-6',
@@ -3229,4 +3231,10 @@ export default function StudentPortalModal({
       />
     </div>
   );
+}
+
+export default function StudentPortalModal(props:StudentPortalModalProps) {
+ const {user}=useAuth();
+ if(user?.enrolledCourseIds?.[0]===YOGA_COURSE_ID) return <YogaPortal onClose={props.onClose}/>;
+ return <StandardStudentPortalModal {...props}/>;
 }

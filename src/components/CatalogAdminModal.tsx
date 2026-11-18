@@ -1,3 +1,4 @@
+import YogaResourcesAdmin from './YogaResourcesAdmin';
 import { isCourseOpenForEnrollment } from '../cataloguePolicy';
 import { useState, useEffect, useRef, FormEvent } from 'react';
 import { 
@@ -2450,6 +2451,7 @@ export default function CatalogAdminModal({
           {/* TAB 4: STUDENT PORTAL VIDEOS */}
           {activeTab === 'videos' && (
             <div className="space-y-6">
+              <YogaResourcesAdmin adminKey={getStoredPassword}/>
               {/* Header & Action bar */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-neutral-800">
                 <div>

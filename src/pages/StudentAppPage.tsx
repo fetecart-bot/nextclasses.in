@@ -1,3 +1,4 @@
+import { YOGA_COURSE_ID } from '../data/yogaProgramme';
 import PasswordField from '../components/PasswordField';
 import PasswordRecovery from '../components/PasswordRecovery';
 import LanguageSwitch from '../components/LanguageSwitch';
@@ -12,6 +13,7 @@ export default function StudentAppPage() {
   const { t: translateUI } = useLanguage();
 
   const { user, loginWithCredentials, logout } = useAuth();
+  const preferredCourse = new URLSearchParams(window.location.search).get('programme')==='yoga'?YOGA_COURSE_ID:undefined;
   const [recovering, setRecovering] = useState(()=>Boolean(new URLSearchParams(window.location.hash.slice(1)).get('reset')));
   const [verified, setVerified] = useState(false);
   const [checking, setChecking] = useState(true);
@@ -29,7 +31,7 @@ export default function StudentAppPage() {
       setChecking(false);
       return;
     }
-    loginWithCredentials(account.username || account.email, account.password, undefined, { serverOnly: true })
+    loginWithCredentials(account.username || account.email, account.password, preferredCourse, { serverOnly: true })
       .then((result) => {
         if (cancelled) return;
         setVerified(Boolean(result.success && result.user?.enrolledCourseIds?.length));
@@ -45,7 +47,7 @@ export default function StudentAppPage() {
     setBusy(true);
     setError('');
     try {
-      const result = await loginWithCredentials(identifier.trim(), password, undefined, { serverOnly: true });
+      const result = await loginWithCredentials(identifier.trim(), password, preferredCourse, { serverOnly: true });
       if (result.success && result.user?.enrolledCourseIds?.length) setVerified(true);
       else setError('Unable to sign in. Check your credentials, internet connection and course assignment.');
     } catch {

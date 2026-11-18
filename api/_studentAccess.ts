@@ -5,6 +5,7 @@ export async function requireStudentCourse(req: any, res: any, kind: 'question' 
   const identifier = String(req.body?.identifier || '').trim().toLowerCase().slice(0, 200);
   const password = String(req.body?.password || '');
   const courseId = String(req.body?.courseId || '').trim().slice(0, 200);
+  if (courseId === 'course-international-yoga') { res.status(403).json({error:'Yoga is instructor-led. Open your yoga portal for classes and materials.'}); return null; }
   if (!identifier || !password || !courseId) { res.status(401).json({ error: 'Please sign in to use your course mentor.' }); return null; }
   try {
     const encoded = encodeURIComponent(identifier);
