@@ -4,6 +4,7 @@ import { COURSES_DATA } from '../data';
 export function courseGuideReply(query: string) {
   const text = query.toLowerCase();
   const support = 'For personal enrolment help, WhatsApp +91 8792134951.';
+  if (/yoga|kavery/.test(text)) return 'Our international yoga programme for adults is taught in English by Kavery P P. US$500 per month includes 8 live online classes, practice videos and notes. Confirm the timetable, time zone, session duration and class format with our team before enrolling. This programme is enquiry-only and separate from the CBSE tuition trial. Email support@nextclasses.in or call Tara on +91 80 6426 2009. No payment is taken through this enquiry.';
   if (/cbse|tuition|monthly|trial|free/.test(text)) return 'CBSE Classes 5–12 tuition: Classes 5–7 ₹200/month, Classes 8–9 ₹300/month, Classes 10–12 ₹400/month after the 30-day introductory trial. One plan includes all offered subjects, with limited daily mentor use. There is no automatic charge. Choose your class on the homepage to check trial availability and optional renewal. '+support;
   if (/human|counsel|contact|support|refund/.test(text)) return support;
   if (/login|password|sign in|portal/.test(text)) return `After your payment is confirmed, sign in with your student credentials at https://www.nextclasses.in/student-app. If you cannot sign in or see the wrong course, contact support with your payment reference. Do not share your password in chat. ${support}`;

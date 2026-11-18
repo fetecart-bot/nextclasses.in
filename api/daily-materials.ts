@@ -100,8 +100,7 @@ export default async function handler(req: any, res: any) {
       if (materialId && ['opened', 'completed'].includes(action)) {
         const allowed = await supabaseRequest(`daily_materials?id=eq.${encodeURIComponent(materialId)}&course_id=eq.${encodeURIComponent(courseId)}&status=eq.published&limit=1`);
         if (!allowed?.length) return res.status(404).json({ error: 'Published material not found' });
-        if (status === 'draft' && existing[0].status !== 'draft') return res.status(409).json({ error: 'Only an unpublished draft can be saved as a draft.' });
-      const now = new Date().toISOString();
+        const now = new Date().toISOString();
         await supabaseRequest('student_progress?on_conflict=student_id,material_id', {
           method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
           body: JSON.stringify({ student_id: student.id, material_id: materialId, opened_at: now, ...(action === 'completed' ? { completed_at: now } : {}) }),

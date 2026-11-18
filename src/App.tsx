@@ -1,3 +1,4 @@
+import InternationalYoga from './components/InternationalYoga';
 import LearningTracks from './components/LearningTracks';
 import SchoolTuition from './components/SchoolTuition';
 import { isCourseOpenForEnrollment } from './cataloguePolicy';
@@ -585,6 +586,8 @@ export default function App() {
         />
 
         {/* Why NextClass (The 6 Pillars) */}
+        <InternationalYoga />
+
         <WhyNextClass />
 
         {/* Institutional Training for Schools & Colleges */}

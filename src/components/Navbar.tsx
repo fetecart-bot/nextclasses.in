@@ -39,7 +39,7 @@ export default function Navbar({
     { label: 'Entrance Preparation', href: 'sainik-campaign' },
     { label: 'ChatGPT & Languages', href: 'courses' },
     { label: 'Why Nextclasses.in', href: 'why-us' },
-    { label: 'Testimonials', href: 'testimonials' },
+    { label: 'Yoga in English', href: 'international-yoga' },
     { label: 'FAQ', href: 'faq' },
   ];
 
@@ -76,7 +76,7 @@ export default function Navbar({
           </button>
 
           {/* Desktop Nav Links */}
-          <nav id="desktop-nav" className="hidden lg:flex items-center gap-7 text-sm font-medium">
+          <nav id="desktop-nav" className="hidden 2xl:flex items-center gap-3 text-xs font-medium">
 
             {navLinks.map((link) => (
               <button
@@ -91,7 +91,7 @@ export default function Navbar({
           </nav>
 
           {/* Desktop Right Actions */}
-          <div className="hidden sm:flex items-center gap-2">
+          <div className="hidden 2xl:flex items-center gap-2">
             {/* Translate Button */}
             <button
               id="navbar-translate-btn"
@@ -220,7 +220,7 @@ export default function Navbar({
           </div>
 
           {/* Mobile Right Controls */}
-          <div className="flex sm:hidden items-center gap-2">
+          <div className="flex 2xl:hidden items-center gap-2">
             <button
               type="button"
               onClick={onOpenCart}
@@ -250,7 +250,7 @@ export default function Navbar({
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div id="mobile-menu-panel" className="lg:hidden border-b border-neutral-800 bg-neutral-900 px-4 pt-3 pb-6 space-y-3">
+        <div id="mobile-menu-panel" className="2xl:hidden border-b border-neutral-800 bg-neutral-900 px-4 pt-3 pb-6 space-y-3">
           <div className="space-y-1">
             {navLinks.map((link) => (
               <button
